@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ViewportProvider } from "@/context/ViewportContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,10 +25,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className="bg-gray-100 flex justify-center items-center min-h-screen">
+        <ViewportProvider>
+          <div className="app-container">
+            {children}
+          </div>
+        </ViewportProvider>
       </body>
     </html>
   );

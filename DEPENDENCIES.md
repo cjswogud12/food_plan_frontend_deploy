@@ -1,4 +1,4 @@
-# Food Plan Frontend - 의존성 목록
+##Food Plan Frontend - 의존성 목록}
 
 > 생성일: 2026-01-23  
 > Node.js 프로젝트 (package.json 기반)

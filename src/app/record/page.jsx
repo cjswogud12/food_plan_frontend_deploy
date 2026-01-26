@@ -97,7 +97,7 @@ export default function Home() {
                 </section>
 
                 {/* Section 2: Body Composition */}
-                <section className="flex-1 bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-center">
+                <section className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
                     <div className="card-container">
                         <h2 className="text-lg font-bold text-slate-800">체성분</h2>
                         <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>

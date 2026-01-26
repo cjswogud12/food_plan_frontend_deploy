@@ -2,31 +2,39 @@
 
 import React, { useState, useEffect } from 'react';
 import { useViewport } from "@/context/ViewportContext"
-
+import { Record } from "@/types/record"
+import { User } from "@/types/user"
 
 export default function Home() {
     const { isMobile } = useViewport();
     const [activeTab, setActiveTab] = useState('day');
-    const [recordData, setRecordData] = useState(null);
+    const [recordData, setRecordData] = useState<Record | null>(null);
+    const [userData, setUserData] = useState<User | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('http://localhost:3000/api/record');
-                if (response.ok) {
-                    const data = await response.json();
-                    setRecordData(data);
-                    console.log("API Response:", data);
-                } else {
-                    console.error("API response not ok");
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
+useEffect(() => {
+    const fetchData = async () => {
+        try {
+            // Record 데이터 가져오기
+            const recordRes = await fetch('http://localhost:8000/api/record');
+            if (recordRes.ok) {
+                const data = await recordRes.json();
+                setRecordData(data);
             }
-        };
 
-        fetchData();
-    }, []);
+            // User 데이터 가져오기
+            const userRes = await fetch('http://localhost:8000/api/user');
+            if (userRes.ok) {
+                const data = await userRes.json();
+                setUserData(data);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    fetchData();
+}, []);
+
 
     return (
         <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 relative flex flex-col">
@@ -59,7 +67,7 @@ export default function Home() {
                     <div className="card-container">
                         <h2 className="text-lg font-bold text-slate-800">오늘의 기록</h2>
                         <span className="text-xs text-blue-500 font-medium bg-blue-50 px-2 py-1 rounded-md">
-                            {recordData?.date || '2030.01.01'}
+                            {/*recordData?.date || '2030.01.01'*/}
                         </span>
 
                         <div className="flex flex-col gap-3">
@@ -68,28 +76,28 @@ export default function Home() {
                                 <div className="flex justify-between mb-2">
                                     <span className="text-sm font-medium text-slate-600">섭취 칼로리</span>
                                     <span className="text-sm font-bold text-slate-800">
-                                        {recordData?.calories ? `${recordData.calories} / 2,000` : '-/-'} kcal
+                                        {recordData?.food_calories ? `${recordData.food_calories} / 2,000` : '-/-'} kcal
                                     </span>
                                 </div>
                                 <div className="w-full bg-slate-200 rounded-full h-2.5">
                                     <div
                                         className="bg-blue-500 h-2.5 rounded-full"
-                                        style={{ width: recordData?.calories ? `${Math.min((recordData.calories / 2000) * 100, 100)}%` : '0%' }}
+                                        style={{ width: recordData?.food_calories ? `${Math.min((recordData.food_calories / 2000) * 100, 100)}%` : '0%' }}
                                     ></div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2 text-center text-xs text-slate-600">
                                 <div className="bg-orange-50 p-2 rounded-lg border border-orange-100">
                                     <div className="font-bold text-orange-600 mb-1">탄수화물</div>
-                                    <div>{recordData?.carbs || '-'}g</div>
+                                    <div>{recordData?.food_carbs || '-'}g</div>
                                 </div>
                                 <div className="bg-purple-50 p-2 rounded-lg border border-purple-100">
                                     <div className="font-bold text-purple-600 mb-1">단백질</div>
-                                    <div>{recordData?.protein || '-'}g</div>
+                                    <div>{recordData?.food_protein || '-'}g</div>
                                 </div>
                                 <div className="bg-yellow-50 p-2 rounded-lg border border-yellow-100">
                                     <div className="font-bold text-yellow-600 mb-1">지방</div>
-                                    <div>{recordData?.fat || '-'}g</div>
+                                    <div>{recordData?.food_fats || '-'}g</div>
                                 </div>
                             </div>
                         </div>
@@ -105,19 +113,20 @@ export default function Home() {
                             <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center">
                                 <span className="text-sm text-green-700 mb-1 font-medium">체중</span>
                                 <span className="text-2xl font-bold text-slate-800">
-                                    {recordData?.weight || '0'} <span className="text-sm font-normal text-slate-500">kg</span>
+                                    {userData?.weight || '0'} <span className="text-sm font-normal text-slate-500">kg</span>
                                 </span>
                             </div>
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
                                 <span className="text-sm text-blue-700 mb-1 font-medium">골격근량</span>
                                 <span className="text-2xl font-bold text-slate-800">
-                                    {recordData?.muscle || '0'} <span className="text-sm font-normal text-slate-500">kg</span>
+                                    {/*userData?.muscle || '0'*/}
+                                    <span className="text-sm font-normal text-slate-500">kg</span>
                                 </span>
                             </div>
                             <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 flex flex-col items-center justify-center col-span-2">
                                 <span className="text-sm text-pink-700 mb-1 font-medium">체지방률</span>
                                 <span className="text-2xl font-bold text-slate-800">
-                                    {recordData?.fatRate || '0'} <span className="text-sm font-normal text-slate-500">%</span>
+                                    {/*recordData?.fatRate || '0'*/} <span className="text-sm font-normal text-slate-500">%</span>
                                 </span>
                             </div>
                         </div>

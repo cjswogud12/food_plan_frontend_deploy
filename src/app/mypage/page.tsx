@@ -1,18 +1,11 @@
 "use client"
 import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
-
-interface FoodRecord {
-    id: number;
-    goal_calories: number;
-    food_name: string;
-    calories: number;
-    created_at: string;
-}
+import { Record} from "@/types/record"
 
 export default function Mypage() {
     const { isMobile } = useViewport();
-    const [foodrecords, setFoodRecords] = useState<FoodRecord[]>([]);
+    const [foodrecords, setFoodRecords] = useState<Record[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +53,7 @@ export default function Mypage() {
 
                 {/*음식 기록 목록*/}
                 {!loading && !error && foodrecords.map((record) => (
-                    <div key={record.id}
+                    <div key={record.record_id}
                     style={{
                         border: "1px solid #e0e0e0",
                         borderRadius: "8px",
@@ -71,10 +64,10 @@ export default function Mypage() {
                     >
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontWeight: "bold" }}>{record.food_name}</span>
-                <span>{record.calories} kcal</span>
+                <span>{record.food_calories} kcal</span>
             </div>
             <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                {record.created_at}
+                {record.record_created_at}
             </div>
         </div>
     ))}

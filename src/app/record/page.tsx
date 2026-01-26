@@ -10,30 +10,35 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState('day');
     const [recordData, setRecordData] = useState<Record | null>(null);
     const [userData, setUserData] = useState<User | null>(null);
+    const [foodrecords, setFoodRecords] = useState<Record[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-    const fetchData = async () => {
-        try {
-            // Record 데이터 가져오기
-            const recordRes = await fetch('http://localhost:8000/api/record');
-            if (recordRes.ok) {
-                const data = await recordRes.json();
-                setRecordData(data);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+
+                // Record 데이터 가져오기
+                const recordRes = await fetch('http://localhost:8000/api/record');
+                if (recordRes.ok) {
+                    const data = await recordRes.json();
+                    setRecordData(data);
+                }
+
+                // User 데이터 가져오기
+                const userRes = await fetch('http://localhost:8000/api/user');
+                if (userRes.ok) {
+                    const data = await userRes.json();
+                    setUserData(data);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
             }
+        };
 
-            // User 데이터 가져오기
-            const userRes = await fetch('http://localhost:8000/api/user');
-            if (userRes.ok) {
-                const data = await userRes.json();
-                setUserData(data);
-            }
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        }
-    };
-
-    fetchData();
-}, []);
+        fetchData();
+    }, []);
 
 
     return (
@@ -103,35 +108,25 @@ useEffect(() => {
                         </div>
                     </div>
                 </section>
-
-                {/* Section 2: Body Composition */}
-                <section className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <div className="card-container">
-                        <h2 className="text-lg font-bold text-slate-800">체성분</h2>
-                        <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>
-                        <div className="grid grid-cols-2 gap-4 h-full">
-                            <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center">
-                                <span className="text-sm text-green-700 mb-1 font-medium">체중</span>
-                                <span className="text-2xl font-bold text-slate-800">
-                                    {userData?.weight || '0'} <span className="text-sm font-normal text-slate-500">kg</span>
-                                </span>
-                            </div>
-                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
-                                <span className="text-sm text-blue-700 mb-1 font-medium">골격근량</span>
-                                <span className="text-2xl font-bold text-slate-800">
-                                    {/*userData?.muscle || '0'*/}
-                                    <span className="text-sm font-normal text-slate-500">kg</span>
-                                </span>
-                            </div>
-                            <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 flex flex-col items-center justify-center col-span-2">
-                                <span className="text-sm text-pink-700 mb-1 font-medium">체지방률</span>
-                                <span className="text-2xl font-bold text-slate-800">
-                                    {/*recordData?.fatRate || '0'*/} <span className="text-sm font-normal text-slate-500">%</span>
-                                </span>
-                            </div>
+                {/*음식 기록 목록*/}
+                {!loading && !error && foodrecords.map((record) => (
+                    <div key={record.record_id}
+                        style={{
+                            border: "1px solid #e0e0e0",
+                            borderRadius: "8px",
+                            padding: "12px",
+                            marginBottom: "8px",
+                            backgroundColor: "#f9f9f9"
+                        }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span style={{ fontWeight: "bold" }}>{record.food_name}</span>
+                            <span>{record.food_calories} kcal</span>
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                            {record.record_created_at}
                         </div>
                     </div>
-                </section>
+                ))}
             </div>
         </div>
     );

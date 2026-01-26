@@ -1,7 +1,7 @@
 "use client"
 import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
-import { Record} from "@/types/record"
+import { Record } from "@/types/record"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
 
 
@@ -58,26 +58,7 @@ export default function Mypage() {
                                     <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: "100%" }}></div>
                                 </div>
                             </div>
-                {/*음식 기록 목록*/}
-                {!loading && !error && foodrecords.map((record) => (
-                    <div key={record.record_id}
-                    style={{
-                        border: "1px solid #e0e0e0",
-                        borderRadius: "8px",
-                        padding: "12px",
-                        marginBottom: "8px",
-                        backgroundColor: "#f9f9f9"
-                    }}
-                    >
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontWeight: "bold" }}>{record.food_name}</span>
-                <span>{record.food_calories} kcal</span>
-            </div>
-            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                {record.record_created_at}
-            </div>
-        </div>
-    ))}
+
                             {/* Right: Button */}
                             <button className="p-2 text-slate-400 hover:text-slate-600 bg-purple-500 text-white rounded-full">목표 변경</button>
                         </div>
@@ -91,8 +72,8 @@ export default function Mypage() {
                     </div>
                 </section>
 
-                {/* 3. 내 정보, 목표 설정, 알림 설정, 계정 연동 아이콘 섹션 */}
-                {/* 2. 식단 통계 섹션 */}
+
+                {/* 2. 식단 통계*/}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <div className="card-container w-full">
                         <h2 className="text-lg font-bold text-slate-800 mb-4">식단 통계</h2>
@@ -117,37 +98,35 @@ export default function Mypage() {
                     </div>
                 </section>
 
-                {/* 3. 내 정보, 목표 설정, 알림 설정, 계정 연동 아이콘 섹션 */}
-                <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                    <div className="card-container w-full">
-                        <div className="grid grid-cols-4 gap-4 text-center">
-                            <button className="flex flex-col items-center gap-2 group">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
-                                    <User size={24} />
-                                </div>
-                                <span className="text-xs font-medium text-slate-600">내 정보</span>
-                            </button>
-                            <button className="flex flex-col items-center gap-2 group">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
-                                    <Target size={24} />
-                                </div>
-                                <span className="text-xs font-medium text-slate-600">목표 설정</span>
-                            </button>
-                            <button className="flex flex-col items-center gap-2 group">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
-                                    <Bell size={24} />
-                                </div>
-                                <span className="text-xs font-medium text-slate-600">알림 설정</span>
-                            </button>
-                            <button className="flex flex-col items-center gap-2 group">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
-                                    <Link size={24} />
-                                </div>
-                                <span className="text-xs font-medium text-slate-600">계정 연동</span>
-                            </button>
+                {/* 체성분 */}
+                <section className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
+                    <div className="card-container">
+                        <h2 className="text-lg font-bold text-slate-800">체성분</h2>
+                        <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>
+                        <div className="grid grid-cols-2 gap-4 h-full">
+                            <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center">
+                                <span className="text-sm text-green-700 mb-1 font-medium">체중</span>
+                                <span className="text-2xl font-bold text-slate-800">
+                                    {/*userData?.weight || '0'*/} <span className="text-sm font-normal text-slate-500">kg</span>
+                                </span>
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
+                                <span className="text-sm text-blue-700 mb-1 font-medium">골격근량</span>
+                                <span className="text-2xl font-bold text-slate-800">
+                                    {/*userData?.muscle || '0'*/}
+                                    <span className="text-sm font-normal text-slate-500">kg</span>
+                                </span>
+                            </div>
+                            <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 flex flex-col items-center justify-center col-span-2">
+                                <span className="text-sm text-pink-700 mb-1 font-medium">체지방률</span>
+                                <span className="text-2xl font-bold text-slate-800">
+                                    {/*recordData?.fatRate || '0'*/} <span className="text-sm font-normal text-slate-500">%</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </section>
+
                 {/* 2. 음식 기록 섹션 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <div className="card-container w-full">
@@ -185,7 +164,39 @@ export default function Mypage() {
                     </div>
                 </section>
 
-                {/* 3. 추가 항목 3 섹션 */}
+                {/* 내 정보, 목표 설정, 알림 설정, 계정 연동 아이콘 섹션 */}
+                <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <div className="card-container w-full">
+                        <div className="grid grid-cols-4 gap-4 text-center">
+                            <button className="flex flex-col items-center gap-2 group">
+                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                                    <User size={24} />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">내 정보</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group">
+                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                                    <Target size={24} />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">목표 설정</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group">
+                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                                    <Bell size={24} />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">알림 설정</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group">
+                                <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                                    <Link size={24} />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">계정 연동</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 더보기 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
                     <div className="card-container w-full">
                         <h2 className="text-lg font-bold text-slate-800 mb-4">더보기</h2>

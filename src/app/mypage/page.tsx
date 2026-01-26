@@ -1,7 +1,6 @@
 "use client"
 import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
-import Link from "next/link"
 
 interface FoodRecord {
     id: number;
@@ -10,6 +9,7 @@ interface FoodRecord {
     calories: number;
     created_at: string;
 }
+
 export default function Mypage() {
     const { isMobile } = useViewport();
     const [foodrecords, setFoodRecords] = useState<FoodRecord[]>([]);
@@ -79,11 +79,6 @@ export default function Mypage() {
         </div>
     ))}
             </main>
-            <footer><Link href="/">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                    메인페이지로 이동
-                </button>
-            </Link></footer>
         </>
     );
 }

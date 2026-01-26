@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ViewportProvider } from "@/context/ViewportContext";
+import BottomNav from "@/components/BottomNav"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
         <ViewportProvider>
           <div className="app-container">
             {children}
+            <BottomNav/>
           </div>
         </ViewportProvider>
       </body>

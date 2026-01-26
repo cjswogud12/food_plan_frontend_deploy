@@ -65,3 +65,42 @@ div.app-container>footer {
   border-top: 1px solid #e0e0e0 !important;
   text-align: center !important;
 }
+
+/* 하단 네이게이션 바*/
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  padding: 8px 0 12px 0;
+  flex-shrink: 0;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #888;
+  padding: 4px 16px;
+  transition: color 0.2s ease;
+}
+
+.bottom-nav-item:hover {
+  color: #333;
+}
+
+.bottom-nav-item.active {
+  color: #3b82f6;
+}
+
+.nav-icon {
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+
+.nav-label {
+  font-size: 11px;
+  font-weight: 500;
+}

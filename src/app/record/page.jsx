@@ -1,8 +1,11 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+import { useViewport } from "@/context/ViewportContext"
+
 
 export default function Home() {
+    const { isMobile } = useViewport();
     const [activeTab, setActiveTab] = useState('day');
     const [recordData, setRecordData] = useState(null);
 

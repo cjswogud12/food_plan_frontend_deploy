@@ -6,6 +6,7 @@ import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { InbodyRecord } from "@/types/inbodyrecord"
 import { getInbody } from "@/api/inbody"
+import InbodyUpload from "@/components/InbodyUpload"
 
 
 export default function Mypage() {
@@ -49,6 +50,22 @@ export default function Mypage() {
                 console.error("인바디 API 호출 실패:", err);
             });
     }, []);
+
+    // 인바디 데이터 새로고침
+    const refreshInbody = () => {
+        getInbody()
+            .then((res) => {
+                if (!res.ok) throw new Error("인바디 데이터 오류");
+                return res.json();
+            })
+            .then((data) => {
+                const inbodyList = Array.isArray(data) ? data : [data];
+                setInbodyRecords(inbodyList);
+            })
+            .catch((err) => {
+                console.error("인바디 API 호출 실패:", err);
+            });
+    };
 
     return (
         <>
@@ -120,8 +137,10 @@ export default function Mypage() {
                 {/* 체성분 */}
                 <section className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
                     <div className="card-container">
-                        <h2 className="text-lg font-bold text-slate-800">체성분</h2>
-                        <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-slate-800">체성분</h2>
+                            <InbodyUpload onUploadSuccess={refreshInbody} />
+                        </div>
                         <div className="grid grid-cols-2 gap-4 h-full">
                             <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center">
                                 <span className="text-sm text-green-700 mb-1 font-medium">체중</span>

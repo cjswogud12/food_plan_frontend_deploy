@@ -32,34 +32,35 @@ export default function InbodyUpload({ onUploadSuccess }: InbodyUploadProps) {
         setIsUploading(true);
 
         try {
-            // 파일을 base64로 변환
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const base64 = reader.result as string;
-                const blob = base64ToBlob(base64);
-                const formData = new FormData();
-                formData.append('image', blob, `inbody_${Date.now()}.jpg`);
+            // 파일을 base64로 변환 (Promise로 래핑)
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = () => reject(new Error("파일 읽기 실패"));
+                reader.readAsDataURL(file);
+            });
 
-                // 백엔드로 전송
-                const response = await uploadInbodyImage(formData);
+            const blob = base64ToBlob(base64);
+            const formData = new FormData();
+            formData.append('image', blob, `inbody_${Date.now()}.jpg`);
 
-                if (response.ok) {
-                    alert("인바디 데이터가 업로드되었습니다!");
-                    onUploadSuccess?.();
-                } else {
-                    alert("업로드에 실패했습니다.");
-                }
-                setIsUploading(false);
-            };
-            reader.readAsDataURL(file);
+            // 백엔드로 전송
+            const response = await uploadInbodyImage(formData);
+
+            if (response.ok) {
+                alert("인바디 데이터가 업로드되었습니다!");
+                onUploadSuccess?.();
+            } else {
+                alert("업로드에 실패했습니다.");
+            }
         } catch (err) {
             console.error("업로드 오류:", err);
             alert("업로드 중 오류가 발생했습니다.");
+        } finally {
             setIsUploading(false);
+            // 같은 파일 다시 선택 가능하도록
+            e.target.value = '';
         }
-
-        // 같은 파일 다시 선택 가능하도록
-        e.target.value = '';
     };
 
     return (

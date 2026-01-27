@@ -11,7 +11,7 @@ export async function postFormData(endpoint: string, formData: FormData) {
 export async function postJson(endpoint: string, data: object) {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: { "content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
     return response;

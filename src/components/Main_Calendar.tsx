@@ -55,11 +55,11 @@ export default function Calendar() {
         );
     }
     return (
-        <div className="calendar">
+        <div className="calendar mb-4">
             {/* 헤더 */}
             <div className="calendar-header">
                 <button onClick={prevMonth}>&lt;</button>
-                <span>{month + 1}월 {year}</span>
+                <span>{year}년 {month + 1}월</span>
                 <button onClick={nextMonth}>&gt;</button>
             </div>
             {/* 요일 */}

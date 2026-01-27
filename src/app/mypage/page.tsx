@@ -3,6 +3,8 @@ import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
 import { Record } from "@/types/record"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
+import FoodListData from "@/components/mypage_food_list_data"
+import MypageBodyComposition from "@/components/mypage_body_composition"
 
 
 export default function Mypage() {
@@ -99,70 +101,11 @@ export default function Mypage() {
                 </section>
 
                 {/* 체성분 */}
-                <section className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <div className="card-container">
-                        <h2 className="text-lg font-bold text-slate-800">체성분</h2>
-                        <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>
-                        <div className="grid grid-cols-2 gap-4 h-full">
-                            <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center">
-                                <span className="text-sm text-green-700 mb-1 font-medium">체중</span>
-                                <span className="text-2xl font-bold text-slate-800">
-                                    {/*userData?.weight || '0'*/} <span className="text-sm font-normal text-slate-500">kg</span>
-                                </span>
-                            </div>
-                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
-                                <span className="text-sm text-blue-700 mb-1 font-medium">골격근량</span>
-                                <span className="text-2xl font-bold text-slate-800">
-                                    {/*userData?.muscle || '0'*/}
-                                    <span className="text-sm font-normal text-slate-500">kg</span>
-                                </span>
-                            </div>
-                            <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 flex flex-col items-center justify-center col-span-2">
-                                <span className="text-sm text-pink-700 mb-1 font-medium">체지방률</span>
-                                <span className="text-2xl font-bold text-slate-800">
-                                    {/*recordData?.fatRate || '0'*/} <span className="text-sm font-normal text-slate-500">%</span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                {/* 체성분 (mypage_body_composition.tsx) */}
+                <MypageBodyComposition />
 
-                {/* 2. 음식 기록 섹션 */}
-                <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                    <div className="card-container w-full">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-slate-800">음식 기록 데이터</h2>
-                            <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>
-                        </div>
-                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            {/* 로딩/에러/없음 상태 */}
-                            {loading && <p>로딩 중.....</p>}
-                            {error && <p style={{ color: "red" }}>{error}</p>}
-                            {!loading && !error && foodrecords.length === 0 && (<p>기록이 없습니다.</p>)}
-
-                            {/* 음식 목록 */}
-                            {!loading && !error && foodrecords.map((record) => (
-                                <div key={record.record_id}
-                                    style={{
-                                        border: "1px solid #e0e0e0",
-                                        borderRadius: "8px",
-                                        padding: "12px",
-                                        marginBottom: "8px",
-                                        backgroundColor: "#f9f9f9"
-                                    }}
-                                >
-                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                        <span style={{ fontWeight: "bold" }}>{record.food_name}</span>
-                                        <span>{record.food_calories} kcal</span>
-                                    </div>
-                                    <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                                        {record.record_created_at}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+                {/* 2. 음식 기록 섹션(mypage_food_list_data.tsx) */}
+                <FoodListData loading={loading} error={error} foodrecords={foodrecords} />
 
                 {/* 내 정보, 목표 설정, 알림 설정, 계정 연동 아이콘 섹션 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">

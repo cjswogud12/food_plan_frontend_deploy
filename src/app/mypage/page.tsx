@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
 import { Record } from "@/types/record"
@@ -14,10 +14,10 @@ export default function Mypage() {
     const [foodrecords, setFoodRecords] = useState<Record[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [inbodyrecords, setInbodyRecords] = useState<InbodyRecord[]>([]);
+    const [inbodyrecords, setInbodyRecords] = useState<Partial<InbodyRecord>[]>([]);
 
     useEffect(() => {
-        // 음식 기록 가져오기
+        // 식단 기록 가져오기
         fetch("http://localhost:8000/api/mypage")
             .then((res) => {
                 if (!res.ok) {
@@ -32,7 +32,7 @@ export default function Mypage() {
             })
             .catch((err) => {
                 console.error("API 호출 실패:", err);
-                setError("데이터를 불러오는데 실패했습니다.");
+                setError("데이터를 불러오는 데 실패했습니다.");
                 setLoading(false);
             });
 
@@ -51,8 +51,27 @@ export default function Mypage() {
             });
     }, []);
 
+    const mapOcrToDisplay = (data: unknown): Partial<InbodyRecord> | null => {
+        const values = (data as { values?: Record<string, unknown> } | null)?.values;
+        if (!values || typeof values !== "object") return null;
+
+        return {
+            height: typeof values.height === "number" ? values.height : undefined,
+            weight: typeof values.weight === "number" ? values.weight : undefined,
+            skeleton_muscle_mass:
+                typeof values.skeletal_muscle_mass === "number" ? values.skeletal_muscle_mass : undefined,
+            body_fat_pct:
+                typeof values.body_fat_pct === "number" ? values.body_fat_pct : undefined,
+            bmr: typeof values.bmr === "number" ? values.bmr : undefined,
+        };
+    };
     // 인바디 데이터 새로고침
-    const refreshInbody = () => {
+    const refreshInbody = (ocrData?: unknown) => {
+        const mapped = mapOcrToDisplay(ocrData);
+        if (mapped) {
+            setInbodyRecords([mapped]);
+            return;
+        }
         getInbody()
             .then((res) => {
                 if (!res.ok) throw new Error("인바디 데이터 오류");
@@ -75,7 +94,7 @@ export default function Mypage() {
             <main className="p-4 flex flex-col gap-4 pb-24 h-full overflow-y-auto bg-purple-100">
                 <h1 className="text-lg font-bold text-slate-800">마이페이지</h1>
 
-                {/* 1. 유저 프로필 섹션 */}
+                {/* 1. 프로필 섹션 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <div className="card-container w-full">
                         <div className="flex items-center gap-4">
@@ -109,7 +128,7 @@ export default function Mypage() {
                 </section>
 
 
-                {/* 2. 식단 통계*/}
+                {/* 2. 식단 통계 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <div className="card-container w-full">
                         <h2 className="text-lg font-bold text-slate-800 mb-4">식단 통계</h2>
@@ -123,7 +142,7 @@ export default function Mypage() {
                                 <span className="text-lg font-bold text-purple-600">85%</span>
                             </div>
                             <div className="bg-purple-50 p-4 rounded-2xl flex flex-col items-center justify-center">
-                                <span className="text-xs font-medium text-slate-500 mb-1">음식 양</span>
+                                <span className="text-xs font-medium text-slate-500 mb-1">섭취량</span>
                                 <span className="text-lg font-bold text-purple-600">450g</span>
                             </div>
                             <div className="bg-purple-50 p-4 rounded-2xl flex flex-col items-center justify-center">
@@ -165,20 +184,20 @@ export default function Mypage() {
                     </div>
                 </section>
 
-                {/* 2. 음식 기록 섹션 */}
+                {/* 2. 식단 기록 섹션 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <div className="card-container w-full">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-slate-800">음식 기록 데이터</h2>
-                            <button className="text-xs text-gray-400 hover:text-gray-600">더보기 &gt;</button>
+                            <h2 className="text-lg font-bold text-slate-800">식단 기록</h2>
+                            <button className="text-xs text-gray-400 hover:text-gray-600">더보기&gt;</button>
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                             {/* 로딩/에러/없음 상태 */}
-                            {loading && <p>로딩 중.....</p>}
+                            {loading && <p>로딩 중....</p>}
                             {error && <p style={{ color: "red" }}>{error}</p>}
                             {!loading && !error && foodrecords.length === 0 && (<p>기록이 없습니다.</p>)}
 
-                            {/* 음식 목록 */}
+                            {/* 식단 목록 */}
                             {!loading && !error && foodrecords.map((record) => (
                                 <div key={record.record_id}
                                     style={{
@@ -202,7 +221,7 @@ export default function Mypage() {
                     </div>
                 </section>
 
-                {/* 내 정보, 목표 설정, 알림 설정, 계정 연동 아이콘 섹션 */}
+                {/* 개인정보, 목표 설정, 알림 설정, 계정 연동 아이콘 섹션 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <div className="card-container w-full">
                         <div className="grid grid-cols-4 gap-4 text-center">
@@ -210,7 +229,7 @@ export default function Mypage() {
                                 <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
                                     <User size={24} />
                                 </div>
-                                <span className="text-xs font-medium text-slate-600">내 정보</span>
+                                <span className="text-xs font-medium text-slate-600">개인정보</span>
                             </button>
                             <button className="flex flex-col items-center gap-2 group">
                                 <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
@@ -234,10 +253,10 @@ export default function Mypage() {
                     </div>
                 </section>
 
-                {/* 더보기 */}
+                {/* 바로가기 */}
                 <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
                     <div className="card-container w-full">
-                        <h2 className="text-lg font-bold text-slate-800 mb-4">더보기</h2>
+                        <h2 className="text-lg font-bold text-slate-800 mb-4">바로가기</h2>
                         <div className="flex flex-col gap-2">
                             <button className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors text-left group">
                                 <div className="flex items-center gap-3">
@@ -254,7 +273,7 @@ export default function Mypage() {
                                     <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-100 transition-colors">
                                         <HelpCircle size={20} />
                                     </div>
-                                    <span className="text-slate-700 font-medium">자주하는 질문</span>
+                                    <span className="text-slate-700 font-medium">자주 묻는 질문</span>
                                 </div>
                                 <ChevronRight size={20} className="text-slate-400 group-hover:text-purple-500" />
                             </button>
@@ -281,7 +300,8 @@ export default function Mypage() {
                     </button>
                 </div>
             </main>
-            <FloatingCameraButton />
+            <FloatingCameraButton onUploadSuccess={refreshInbody} />
         </>
     );
 }
+

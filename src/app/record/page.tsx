@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useViewport } from "@/context/ViewportContext"
 import { Record } from '@/types/record'
 import { User } from '@/types/user'
+import FloatingCameraButton from '@/components/FloatingCameraButton'
 
 // 삭제할 데이터 (임시)
 interface RecordStats {
@@ -78,7 +79,7 @@ export default function Home() {
     };
 
     return (
-        <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 relative flex flex-col">
+        <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col">
             {/* 기록 헤더 */}
             <div className="pt-8 px-6 pb-4 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
                 <h1 className="text-2xl font-bold text-slate-800 mb-6">기록</h1>
@@ -191,6 +192,7 @@ export default function Home() {
                         </div>
                     </div>
                 </section>
+                <FloatingCameraButton />
             </div>
         </div>
     );

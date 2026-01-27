@@ -3,6 +3,9 @@ import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
 import { Record } from "@/types/record"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
+import FloatingCameraButton from "@/components/FloatingCameraButton"
+import { InbodyRecord } from "@/types/inbodyrecord"
+import { getInbody } from "@/api/inbody"
 
 
 export default function Mypage() {
@@ -10,8 +13,10 @@ export default function Mypage() {
     const [foodrecords, setFoodRecords] = useState<Record[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [inbodyrecords, setInbodyRecords] = useState<InbodyRecord[]>([]);
 
     useEffect(() => {
+        // 음식 기록 가져오기
         fetch("http://localhost:8000/api/mypage")
             .then((res) => {
                 if (!res.ok) {
@@ -19,7 +24,7 @@ export default function Mypage() {
                 }
                 return res.json();
             })
-            .then((data) => { //배열이 아니면 배열로 감싸기
+            .then((data) => {
                 const recordList = Array.isArray(data) ? data : [data];
                 setFoodRecords(recordList);
                 setLoading(false);
@@ -28,6 +33,20 @@ export default function Mypage() {
                 console.error("API 호출 실패:", err);
                 setError("데이터를 불러오는데 실패했습니다.");
                 setLoading(false);
+            });
+
+        // 인바디 기록 가져오기
+        getInbody()
+            .then((res) => {
+                if (!res.ok) throw new Error("인바디 데이터 오류");
+                return res.json();
+            })
+            .then((data) => {
+                const inbodyList = Array.isArray(data) ? data : [data];
+                setInbodyRecords(inbodyList);
+            })
+            .catch((err) => {
+                console.error("인바디 API 호출 실패:", err);
             });
     }, []);
 
@@ -107,20 +126,20 @@ export default function Mypage() {
                             <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center">
                                 <span className="text-sm text-green-700 mb-1 font-medium">체중</span>
                                 <span className="text-2xl font-bold text-slate-800">
-                                    {/*userData?.weight || '0'*/} <span className="text-sm font-normal text-slate-500">kg</span>
+                                    {inbodyrecords[0]?.weight || '0'} <span className="text-sm font-normal text-slate-500">kg</span>
                                 </span>
                             </div>
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
                                 <span className="text-sm text-blue-700 mb-1 font-medium">골격근량</span>
                                 <span className="text-2xl font-bold text-slate-800">
-                                    {/*userData?.muscle || '0'*/}
+                                    {inbodyrecords[0]?.skeleton_muscle_mass || '0'}
                                     <span className="text-sm font-normal text-slate-500">kg</span>
                                 </span>
                             </div>
                             <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 flex flex-col items-center justify-center col-span-2">
                                 <span className="text-sm text-pink-700 mb-1 font-medium">체지방률</span>
                                 <span className="text-2xl font-bold text-slate-800">
-                                    {/*recordData?.fatRate || '0'*/} <span className="text-sm font-normal text-slate-500">%</span>
+                                    {inbodyrecords[0]?.body_fat_pct || '0'} <span className="text-sm font-normal text-slate-500">%</span>
                                 </span>
                             </div>
                         </div>
@@ -243,6 +262,7 @@ export default function Mypage() {
                     </button>
                 </div>
             </main>
+            <FloatingCameraButton />
         </>
     );
 }

@@ -1,7 +1,7 @@
 ﻿"use client"
 import { useViewport } from "@/context/ViewportContext"
 import { useState, useEffect } from "react"
-import { Record } from "@/types/record"
+import { Record as FoodRecord } from "@/types/record"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { InbodyRecord } from "@/types/inbodyrecord"
@@ -11,7 +11,7 @@ import InbodyUpload from "@/components/InbodyUpload"
 
 export default function Mypage() {
     const { isMobile } = useViewport();
-    const [foodrecords, setFoodRecords] = useState<Record[]>([]);
+    const [foodrecords, setFoodRecords] = useState<FoodRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [inbodyrecords, setInbodyRecords] = useState<Partial<InbodyRecord>[]>([]);

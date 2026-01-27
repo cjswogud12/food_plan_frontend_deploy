@@ -1,10 +1,14 @@
-"use client"
+﻿"use client"
 
 import { useState, useRef, useEffect } from "react"
 import { Camera, Plus, X } from "lucide-react"
 import { uploadInbodyImage } from "@/api/inbody";
 
-export default function FloatingCameraButton() {
+interface FloatingCameraButtonProps {
+    onUploadSuccess?: (data?: unknown) => void;
+}
+
+export default function FloatingCameraButton({ onUploadSuccess }: FloatingCameraButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -40,16 +44,26 @@ export default function FloatingCameraButton() {
 
             // API 호출
             const response = await uploadInbodyImage(formData);
+            let responseData: unknown = undefined;
             const success = response.ok;
 
             if (success) {
-                alert("이미지가 저장되었습니다!");
+                try {
+                    responseData = await response.json();
+                } catch {
+                    // Ignore JSON parse errors for non-JSON responses
+                }
+                alert("이미지가 업로드되었습니다!");
+                onUploadSuccess?.(responseData);
                 closeCamera();
             } else {
-                alert("저장에 실패했습니다.");
+                alert("업로드에 실패했습니다.");
             }
         } catch (err) {
-            alert("처리 중 오류가 발생했습니다.");
+            const message = err instanceof DOMException && err.name === "AbortError"
+                ? "업로드가 지연되어 취소되었습니다. 다시 시도해주세요."
+                : "처리 중 오류가 발생했습니다.";
+            alert(message);
         } finally {
             setIsProcessing(false);
         }
@@ -117,7 +131,7 @@ export default function FloatingCameraButton() {
         startCamera();
     };
 
-    // 카메라 모달이 열리면 카메라 시작
+    // 모달이 열리면 카메라 시작
     useEffect(() => {
         if (showCamera && !capturedImage) {
             startCamera();
@@ -140,7 +154,7 @@ export default function FloatingCameraButton() {
                     <Camera size={24} />
                 </button>
 
-                {/* 메인 FAB 버튼 (+)*/}
+                {/* 메인 FAB 버튼 (+) */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className={`w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-700 ${isOpen ? 'rotate-45' : 'rotate-0'
@@ -169,7 +183,7 @@ export default function FloatingCameraButton() {
                         {capturedImage ? (
                             <img
                                 src={capturedImage}
-                                alt="촬영된 사진"
+                                alt="촬영한 사진"
                                 className="w-full h-full object-contain"
                             />
                         ) : (
@@ -199,7 +213,7 @@ export default function FloatingCameraButton() {
                                     disabled={isProcessing}
                                     className="px-6 py-3 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 disabled:opacity-50"
                                 >
-                                    {isProcessing ? "처리 중..." : "사용하기"}
+                                    {isProcessing ? "처리 중.." : "사용하기"}
                                 </button>
                             </>
                         ) : (
@@ -214,3 +228,5 @@ export default function FloatingCameraButton() {
         </>
     );
 }
+
+

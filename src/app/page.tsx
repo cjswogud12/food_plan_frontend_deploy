@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import Calendar from "@/components/Main_Calendar"
 import MainTodayLikeFood from "@/components/main_today_like_food"
@@ -12,6 +13,14 @@ export default function Mainpage() {
   const [foods, setFoods] = useState<any[]>([]);
   const [totalCalories, setTotalCalories] = useState(0);
   const [loading, setLoading] = useState(true);
+  const router = useRouter()
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id")
+    if (!userId) {
+      router.push("/login")
+    }
+  }, [router])
 
   // 사진 업로드 핸들러 (백엔드 연동 틀)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

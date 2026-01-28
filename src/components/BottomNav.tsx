@@ -5,12 +5,12 @@ import { House, List, User } from "lucide-react"
 
 export default function BottomNav() {
     const pathname = usePathname();
-
     const navItems = [
         { href: "/", label: "홈", icon: House },
         { href: "/record", label: "기록", icon: List },
         { href: "/mypage", label: "마이페이지", icon: User }
     ];
+    if (pathname === "/" || pathname === "/login") return null;
 
     return (
         <nav className="bottom-nav">

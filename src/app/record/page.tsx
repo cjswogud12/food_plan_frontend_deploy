@@ -5,8 +5,8 @@ import { useViewport } from "@/context/ViewportContext"
 import { Record } from '@/types/record'
 import { User } from '@/types/user'
 import FloatingCameraButton from '@/components/FloatingCameraButton'
-import FoodEatInfo from '@/components/record_food_eat_info'
-import FoodEatInfoTotal from '@/components/record_food_eat_info_total'
+import FoodEatInfo from '@/components/record/record_food_eat_info'
+import FoodEatInfoTotal from '@/components/record/record_food_eat_info_total'
 
 // 삭제할 데이터 (임시)
 interface RecordStats {
@@ -118,8 +118,8 @@ export default function Home() {
                             backgroundColor: "#f9f9f9"
                         }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span style={{ fontWeight: "bold" }}>{record.food_name}</span>
-                            <span>{record.food_calories} kcal</span>
+                            <span style={{ fontWeight: "bold" }}>{record.food_name}kcal</span>
+                            <span>{record.food_calories} </span>
                         </div>
                         <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
                             {record.record_created_at}

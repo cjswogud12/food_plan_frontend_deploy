@@ -11,7 +11,7 @@ export async function login(username: string, password: string) {
 }
 
 export async function signup(form: any) {
-    const res = await fetch(`${BASE_URL}/api/signup`, {
+    const res = await fetch(`${BASE_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

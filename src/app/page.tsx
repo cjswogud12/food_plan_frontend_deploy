@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
-import Calendar from "@/components/Main_Calendar"
-import MainTodayLikeFood from "@/components/main_today_like_food"
-import MainFoodEatInfo from "@/components/main_food_eat_info"
+import Calendar from "@/components/main/Main_Calendar"
+import MainTodayLikeFood from "@/components/main/main_today_like_food"
+import MainFoodEatInfo from "@/components/main/main_food_eat_info"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 // import { getRandomFood } from "@/components/main_food_dummy_data"
 

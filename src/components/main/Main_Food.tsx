@@ -1,5 +1,5 @@
 "use client"
-import { Food } from "@/types/food"
+import { Food } from "@/types/definitions"
 
 //백엔드에서 받아올 데이터 타입 정리
 

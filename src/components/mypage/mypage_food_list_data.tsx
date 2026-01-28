@@ -1,5 +1,5 @@
 "use client";
-import { Record } from "@/types/record";
+import { Record } from "@/types/definitions";
 
 interface FoodListDataProps {
     loading: boolean;

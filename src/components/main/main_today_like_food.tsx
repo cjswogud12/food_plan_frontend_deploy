@@ -1,5 +1,5 @@
 "use client"
-import FoodList from "@/components/Main_Food"
+import FoodList from "@/components/main/Main_Food"
 
 interface MainTodayLikeFoodProps {
     foods: any[];

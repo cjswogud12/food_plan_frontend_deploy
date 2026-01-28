@@ -1,6 +1,6 @@
 "use client";
 
-import { Food } from "@/types/food";
+import { Food } from "@/types/definitions";
 import React from 'react';
 
 interface MainFoodEatInfoProps {

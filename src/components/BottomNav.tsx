@@ -10,7 +10,7 @@ export default function BottomNav() {
         { href: "/record", label: "기록", icon: List },
         { href: "/mypage", label: "마이페이지", icon: User }
     ];
-    if (pathname === "/" || pathname === "/login") return null;
+    if (/*pathname === "/" ||*/ pathname === "/login") return null;
 
     return (
         <nav className="bottom-nav">
@@ -22,7 +22,7 @@ export default function BottomNav() {
                         href={item.href}
                         className={`bottom-nav-item ${isActive ? "active" : ""}`}
                     >
-                        <span className="nav-icon"><item.icon/></span>
+                        <span className="nav-icon"><item.icon /></span>
                         <span className="nav-label">{item.label}</span>
                     </Link>
                 );

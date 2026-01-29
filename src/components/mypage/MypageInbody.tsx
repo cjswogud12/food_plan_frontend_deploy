@@ -11,7 +11,7 @@ interface MypageBodyCompositionProps {
 export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
     const [inbodyData, setInbodyData] = useState<InbodyRecord | null>(null);
 
-    /*useEffect(() => {
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await getInbody();
@@ -32,7 +32,7 @@ export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
             }
         };
         fetchData();
-    }, []);*/
+    }, []);
 
     return (
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
@@ -55,7 +55,7 @@ export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
                     <div className="bg-purple-50 p-4 rounded-2xl flex flex-col items-center justify-center">
                         <span className="text-xs font-medium text-slate-500 mb-1">골격근량</span>
                         <span className="text-2xl font-bold text-slate-800">
-                            {inbodyData?.skeleton_muscle_mass || '-'}
+                            {inbodyData?.skeletal_muscle_mass || '-'}
                             <span className="text-sm font-normal text-slate-500">kg</span>
                         </span>
                     </div>

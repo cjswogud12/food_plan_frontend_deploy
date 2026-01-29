@@ -4,16 +4,17 @@ import { useState, useEffect } from 'react';
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from '@/components/FloatingCameraButton'
 import CalendarFull from "@/components/MainCalendarFull"
-import { Record } from "@/types/definitions"
-import { getRecord } from "@/api/index"
+import { FoodAnalysisResult } from "@/types/definitions"
+import { getRecord, uploadFoodImage } from "@/api/index"
 import RecordMealGroup from "@/components/record/RecordMealGroup"
+import { useRef } from "react";
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
 interface DailyMealData {
-    breakfast: Record[];
-    lunch: Record[];
-    dinner: Record[];
-    snack: Record[];
+    breakfast: FoodAnalysisResult[];
+    lunch: FoodAnalysisResult[];
+    dinner: FoodAnalysisResult[];
+    snack: FoodAnalysisResult[];
 }
 
 export default function RecordPage() {
@@ -25,12 +26,63 @@ export default function RecordPage() {
         breakfast: [], lunch: [], dinner: [], snack: []
     });
 
+    // 각 시간 별 음식 저장
+    const fileInputRefs = {
+        breakfast: useRef<HTMLInputElement>(null),
+        lunch: useRef<HTMLInputElement>(null),
+        dinner: useRef<HTMLInputElement>(null),
+        snack: useRef<HTMLInputElement>(null),
+    };
+
+    // + 버튼 클릭 시 파일 선택 창 열기
+    const handleAddMeal = (mealType: string) => {
+        fileInputRefs[mealType as keyof typeof fileInputRefs].current?.click();
+    };
+
+    // 파일 선택 후 업로드 처리
+    const handleFileUpload = async (mealType: string, file: File) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('meal_type', mealType);
+
+        const userId = localStorage.getItem("user_id");
+        if (userId) formData.append('user_number', userId);
+
+        try {
+            const response = await uploadFoodImage(formData);
+
+            if (response.ok) {
+                alert(`음식 등록 완료!`);
+                // 데이터 새로고침
+                const offset = selectedDate.getTimezoneOffset() * 60000;
+                const dateString = new Date(selectedDate.getTime() - offset).toISOString().split('T')[0];
+                const refreshRes = await getRecord(dateString);
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    setMealData({
+                        breakfast: data.breakfast || [],
+                        lunch: data.lunch || [],
+                        dinner: data.dinner || [],
+                        snack: data.snack || []
+                    });
+                }
+            } else {
+                alert("업로드 실패");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("업로드 중 오류가 발생했습니다.");
+        }
+    };
+
+
+
     // Calculate Totals
     const allRecords = [...mealData.breakfast, ...mealData.lunch, ...mealData.dinner, ...mealData.snack];
-    const totalCalories = allRecords.reduce((sum, r) => sum + (r.food_calories || 0), 0);
-    const totalCarbs = allRecords.reduce((sum, r) => sum + (r.food_carbs || 0), 0);
-    const totalProteins = allRecords.reduce((sum, r) => sum + (r.food_protein || 0), 0); // definition.ts의 food_protein 확인
-    const totalFats = allRecords.reduce((sum, r) => sum + (r.food_fats || 0), 0);
+    const totalCalories = allRecords.reduce((sum, r) => sum + (r.estimated_calories_kcal || 0), 0);
+    const totalCarbs = allRecords.reduce((sum, r) => sum + (r.estimated_carbs_g || 0), 0);
+    const totalProteins = allRecords.reduce((sum, r) => sum + (r.estimated_protein_g || 0), 0);
+    const totalFats = allRecords.reduce((sum, r) => sum + (r.estimated_fat_g || 0), 0);
 
     // API Fetch for Selected Date
     useEffect(() => {
@@ -111,11 +163,27 @@ export default function RecordPage() {
 
                 {/* Meal Lists - 2x2 Grid */}
                 <section className="grid grid-cols-2 gap-3 pb-8">
-                    <RecordMealGroup title="아침" records={[]} />
-                    <RecordMealGroup title="점심" records={[]} />
-                    <RecordMealGroup title="저녁" records={[]} />
-                    <RecordMealGroup title="간식" records={[]} />
+                    <RecordMealGroup title="아침" records={mealData.breakfast} onAddClick={() => handleAddMeal("breakfast")} />
+                    <RecordMealGroup title="점심" records={mealData.lunch} onAddClick={() => handleAddMeal("lunch")} />
+                    <RecordMealGroup title="저녁" records={mealData.dinner} onAddClick={() => handleAddMeal("dinner")} />
+                    <RecordMealGroup title="간식" records={mealData.snack} onAddClick={() => handleAddMeal("snack")} />
                 </section>
+
+                {/* 각 시간 별 음식 저장 */}
+                {Object.entries(fileInputRefs).map(([type, ref]) => (
+                    <input
+                        key={type}
+                        type="file"
+                        ref={ref}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(type, file);
+                            e.target.value = '';
+                        }}
+                    />
+                ))}
 
                 <FloatingCameraButton />
             </div>

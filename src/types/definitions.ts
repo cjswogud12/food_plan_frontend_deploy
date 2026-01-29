@@ -88,7 +88,7 @@ export interface InbodyRecord {
     weight: number;//몸무게
     body_fat_mass: number;//체지방량
     body_fat_pct: number; //체지방률
-    skeleton_muscle_mass: number; //골격근량
+    skeletal_muscle_mass: number; //골격근량
     bmr: number; //기초대사량
     bisceral_fat_level: number; //비만지수
     inbody_score: number; //인바디 점수
@@ -141,4 +141,20 @@ interface InbodyHistoryItem {
         inbody_score: number;
     };
     created_at: string;
+}
+
+export interface FoodAnalysisResult{
+    far_id: number;
+    user_id: number;
+    image_url: string;
+    predicted_food_name: string;
+    predicted_reason: string;
+    estimated_serving_g: number;
+    estimated_calories_kcal: number;  //GPT가 추정한 해당 음식의 칼로리(kcal)
+    estimated_carbs_g: number;  //GPT가 추정한 탄수화물 함량(g
+    estimated_protein_g: number;  //GPT가 추정한 단백질 함량(g)
+    estimated_fat_g: number;  //GPT가 추정한 지방 함량(g)
+    model: string; //음식 분석에 사용된 AI 모델명 (예: gpt-4.1-mini)
+    status: number; //분석 결과 상태 (PENDING: 기록 확정 전, CONFIRMED: 식단 기록으로 확정됨)
+    created_at: string; //음식 분석 결과 생성일
 }

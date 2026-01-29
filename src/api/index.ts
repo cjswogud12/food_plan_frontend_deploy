@@ -105,3 +105,8 @@ export async function getBodyClassification(userNumber: number) {
 export async function getInbodyHistory(userNumber: number, limit: number = 10) {
     return getJson(`/inbody-history=${userNumber}&limit=${limit}`);
 }
+
+// --- 음식 이미지 업로드 ---
+export async function uploadFoodImage(formData: FormData) {
+    return postFormData("/vision/food", formData, { timeoutMs: 15000 });
+}

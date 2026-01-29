@@ -62,7 +62,7 @@ export default function Mypage() {
         return {
             height: typeof values.height === "number" ? values.height : undefined,
             weight: typeof values.weight === "number" ? values.weight : undefined,
-            skeleton_muscle_mass:
+            skeletal_muscle_mass:
                 typeof values.skeletal_muscle_mass === "number" ? values.skeletal_muscle_mass : undefined,
             body_fat_pct:
                 typeof values.body_fat_pct === "number" ? values.body_fat_pct : undefined,

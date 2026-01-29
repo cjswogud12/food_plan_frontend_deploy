@@ -1,76 +1,85 @@
+
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
-export default function Calendar() {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState<number | null>(null);
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+interface CalendarProps {
+    selectedDate: Date;
+    onDateSelect: (date: Date) => void;
+}
 
-    //해당 월의 첫째 날, 마지막 날
-    const firstDay = new Date(year, month, 1).getDay();
-    //0일요일 ~6토요일
-    const lastDate = new Date(year, month +1, 0).getDate();
-    //오늘
-    const today = new Date();
-    // 이전 달, 다음 달
-    const prevMonth = () => {
-        setCurrentDate(new Date(year, month -1, 1));
-        setSelectedDate(null);
-    };
-     const nextMonth = () => {
-        setCurrentDate(new Date(year, month + 1, 1));
-        setSelectedDate(null);
-    };
+export default function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
+    const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
 
-    // 날짜 클릭
-    const handleDateClick = (date: number) => {
-        setSelectedDate(date);
-    };
-    // 오늘인지 확인
-    const isToday = (date: number) => {
-        return today.getFullYear() === year &&
-               today.getMonth() === month &&
-               today.getDate() === date;
-    };
-     // 날짜 배열 생성
-    const days = [];
-    // 빈 칸 (이전 달)
-    for (let i = 0; i < firstDay; i++) {
-        days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+    // Initialize week start based on selectedDate
+    useEffect(() => {
+        const start = new Date(selectedDate);
+        start.setDate(selectedDate.getDate() - selectedDate.getDay()); // Sunday
+        setCurrentWeekStart(start);
+    }, [selectedDate]);
+
+    // Calculate Week Days
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+        const day = new Date(currentWeekStart);
+        day.setDate(currentWeekStart.getDate() + i);
+        weekDays.push(day);
     }
-    // 날짜
-    for (let date = 1; date <= lastDate; date++) {
-        const isSelected = selectedDate === date;
-        const isTodayDate = isToday(date);
-        
-        days.push(
-            <div
-                key={date}
-                className={`calendar-day ${isSelected ? "selected" : ""} ${isTodayDate ? "today" : ""}`}
-                onClick={() => handleDateClick(date)}
-            >
-                {date}
-            </div>
-        );
-    }
+
+    const prevWeek = () => {
+        const newStart = new Date(currentWeekStart);
+        newStart.setDate(currentWeekStart.getDate() - 7);
+        setCurrentWeekStart(newStart);
+    };
+
+    const nextWeek = () => {
+        const newStart = new Date(currentWeekStart);
+        newStart.setDate(currentWeekStart.getDate() + 7);
+        setCurrentWeekStart(newStart);
+    };
+
+    const formatHeaderDate = (date: Date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+
     return (
         <div className="calendar mb-4">
-            {/* 헤더 */}
-            <div className="calendar-header">
-                <button onClick={prevMonth}>&lt;</button>
-                <span>{year}년 {month + 1}월</span>
-                <button onClick={nextMonth}>&gt;</button>
+            {/* Header (Year Month and Prev/Next Week Navigation) */}
+            <div className="calendar-header flex justify-between items-center mb-4 px-2">
+                <button onClick={prevWeek} className="p-2 text-slate-500 hover:text-purple-600">&lt;</button>
+                <span
+                    onClick={() => window.location.href = '/calender_particular'}
+                    className="font-bold text-lg text-slate-800 cursor-pointer hover:text-purple-600 transition-colors"
+                >
+                    {formatHeaderDate(weekDays[0])}
+                </span>
+                <button onClick={nextWeek} className="p-2 text-slate-500 hover:text-purple-600">&gt;</button>
             </div>
-            {/* 요일 */}
-            <div className="calendar-weekdays">
-                {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-                    <div key={day} className="weekday">{day}</div>
+
+            {/* Weekday and Date Grid */}
+            <div className="grid grid-cols-7 gap-1 text-center">
+                {/* Day Header */}
+                {["일", "월", "화", "수", "목", "금", "토"].map((d, i) => (
+                    <div key={i} className={`text-xs mb-2 ${i === 0 ? "text-red-500" : "text-slate-500"}`}>{d}</div>
                 ))}
-            </div>
-            {/* 날짜 그리드 */}
-            <div className="calendar-grid">
-                {days}
+
+                {/* Dates */}
+                {weekDays.map((d, i) => {
+                    const isSelected = d.toDateString() === selectedDate.toDateString();
+                    const isToday = d.toDateString() === new Date().toDateString();
+
+                    return (
+                        <div key={i} className="flex flex-col items-center">
+                            <button
+                                onClick={() => onDateSelect(d)}
+                                className={`
+                                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                                    ${isSelected ? "bg-purple-600 text-white shadow-md scale-105" : "text-slate-700 hover:bg-slate-100"}
+                                    ${isToday && !isSelected ? "border border-purple-200 text-purple-600" : ""}
+                                `}
+                            >
+                                {d.getDate()}
+                            </button>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

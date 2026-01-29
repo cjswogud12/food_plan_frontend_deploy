@@ -7,9 +7,7 @@ import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { InbodyRecord } from "@/types/definitions"
 import { getInbody } from "@/api/inbody"
 import InbodyUpload from "@/components/InbodyUpload"
-import FoodListData from "@/components/mypage/mypage_food_list_data"
 import MypageInbody from "@/components/mypage/mypage_inbody"
-import MypageFoodChart from "@/components/mypage/mypage_food_chart"
 import MypageMenuSeeMore from "@/components/mypage/mypage_menu_see_more"
 import MypageMenu from "@/components/mypage/mypage_menu"
 import MypageProfileTarget from "@/components/mypage/mypage_profile_target"
@@ -97,27 +95,21 @@ export default function Mypage() {
             <header>
                 <span>{isMobile ? '모바일' : 'PC'}</span>
             </header>
-            <main className="p-4 flex flex-col gap-4 pb-24 h-full overflow-y-auto bg-purple-100">
+            <div className="p-4 flex flex-col gap-4 pb-24 bg-purple-100">
                 <h1 className="text-lg font-bold text-slate-800">마이페이지</h1>
                 {/* 1. 유저 프로필 섹션 (mypage_profile_target.tsx) */}
                 <MypageProfileTarget foodrecords={foodrecords} />
 
-                {/* 2. 식단 통계 (mypage_food_chart.tsx)*/}
-                <MypageFoodChart />
-
-                {/* 3. 체성분 (mypage_inbody.tsx) */}
+                {/* 2. 체성분 (mypage_inbody.tsx) */}
                 <MypageInbody />
 
-                {/* 4. 음식 기록 섹션 (mypage_food_list_data.tsx) */}
-                <FoodListData loading={loading} error={error} foodrecords={foodrecords} />
-
-                {/* 5. 메뉴 (mypage_menu.tsx) */}
+                {/* 3. 메뉴 (mypage_menu.tsx) */}
                 <MypageMenu />
 
-                {/* 6. 더보기 (mypage_menu_see_more.tsx) */}
+                {/* 4. 더보기 (mypage_menu_see_more.tsx) */}
                 <MypageMenuSeeMore />
 
-                {/* 7. 추가 버튼 섹션 (회원정보수정, 로그아웃) */}
+                {/* 5. 추가 버튼 섹션 (회원정보수정, 로그아웃) */}
                 <div className="flex gap-3">
                     <button className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-slate-600 font-medium hover:bg-gray-50 transition-colors">
                         회원정보수정
@@ -126,7 +118,7 @@ export default function Mypage() {
                         로그아웃
                     </button>
                 </div>
-            </main>
+            </div>
             <FloatingCameraButton onUploadSuccess={refreshInbody} />
         </>
     );

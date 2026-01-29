@@ -1,92 +1,200 @@
 "use client"
+
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
-import Calendar from "@/components/main/Main_Calendar"
-import MainTodayLikeFood from "@/components/main/main_today_like_food"
-import MainFoodEatInfo from "@/components/main/main_food_eat_info"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
-// import { getRandomFood } from "@/components/main_food_dummy_data"
+import { Plus, ChevronRight, Utensils } from "lucide-react"
+
+interface User {
+  username: string;
+}
+
+interface MealPlan {
+  breakfast: any[];
+  lunch: any[];
+  dinner: any[];
+  snack: any[];
+}
 
 export default function Mainpage() {
   const { isMobile } = useViewport();
-  const [foods, setFoods] = useState<any[]>([]);
-  const [totalCalories, setTotalCalories] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter()
 
-  useEffect(() => {
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/login")
-    }
-  }, [router])
+  // State
+  const [user, setUser] = useState<User | null>(null);
+  const [mealPlan, setMealPlan] = useState<MealPlan>({
+    breakfast: [], lunch: [], dinner: [], snack: []
+  });
 
-  // 사진 업로드 핸들러 (백엔드 연동 틀)
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // 동작 확인을 위한 더미 데이터
-      console.log("이미지 전송(임시):", file.name);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5초 대기
-
-      // 테스트용 더미 데이터 (백엔드 연동시 삭제)
-      /*
-      const randomFood = getRandomFood();
-
-      const mockData = {
-        food_id: Date.now(),
-        food_name: `[테스트] ${randomFood.name}`,
-        food_calories: randomFood.calories,
-        food_proteins: 0,
-        food_carbs: 0,
-        food_fats: 0,
-        // food_image: URL.createObjectURL(file) // 필요 시 이미지 미리보기 URL 사용
-      };
-
-      // 상태 업데이트
-      setFoods((prev: any) => [...prev, mockData]);
-      setTotalCalories((prev) => prev + mockData.food_calories);
-      */
-
-      alert(`'${file.name}' 음식 이미지가 업로드 되었습니다!`);
-
-    } catch (error) {
-      console.error("Upload Error:", error);
-      alert("분석 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-      // 포커스 문제 방지 등을 위해 input 초기화가 필요하다면 여기서 처리
-      e.target.value = '';
-    }
+  // 더미 데이터(삭제 필요)
+  const nutrition = {
+    calories: { current: 152, goal: 3000 },
+    carbs: 10,    // g
+    protein: 10,  // g
+    fat: 10,       // g
   };
 
+  // Calculate Calorie Contributions for the Graph
+  // 1g Carbs = 4kcal, 1g Protein = 4kcal, 1g Fat = 9kcal
+  const carbCals = nutrition.carbs * 4;
+  const proteinCals = nutrition.protein * 4;
+  const fatCals = nutrition.fat * 9;
+
+  // Percentages relative to GOAL calories
+  const goal = nutrition.calories.goal;
+  const carbPctOfGoal = Math.min((carbCals / goal) * 100, 100);
+  const proteinPctOfGoal = Math.min((proteinCals / goal) * 100, 100);
+  const fatPctOfGoal = Math.min((fatCals / goal) * 100, 100);
+
+  // Fetch Data
+  useEffect(() => {
+    // 1. Fetch User
+    fetch('http://localhost:8000/api/user')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => data && setUser(data))
+      .catch(err => console.error("User fetch error", err));
+
+    // 2. Fetch Today's Recommendation (as initial plan)
+    const todayStr = new Date().toISOString().split('T')[0];
+    fetch(`http://localhost:8000/api/recommendation?date=${todayStr}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          setMealPlan({
+            breakfast: data.breakfast || [],
+            lunch: data.lunch || [],
+            dinner: data.dinner || [],
+            snack: data.snack || []
+          });
+        }
+      })
+      .catch(err => console.error("Meal plan fetch error", err));
+  }, []);
+
+  // Handlers
+  const handleAddMenu = (type: string) => {
+    // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
+  };
+
+  const PlanSection = ({ title, type, items }: { title: string, type: string, items: any[] }) => (
+    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-bold text-slate-700">{title}</h3>
+        <button
+          onClick={() => handleAddMenu(title)}
+          className="bg-purple-50 text-purple-600 hover:bg-purple-100 p-1.5 rounded-full transition-colors"
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+
+      {items.length > 0 ? (
+        <ul className="space-y-2">
+          {items.map((item, idx) => (
+            <li
+              key={idx}
+              onClick={() => handleAddMenu(`${title} 상세`)}
+              className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 cursor-pointer active:scale-[0.98] transition-all"
+            >
+              <div>
+                <span className="block text-sm font-medium text-slate-700">{item.food_name || item.name}</span>
+                <span className="text-xs text-slate-400">{item.calories || item.food_calories} kcal</span>
+              </div>
+              <ChevronRight size={14} className="text-slate-300" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div
+          onClick={() => handleAddMenu(title)}
+          className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+        >
+          <Utensils size={16} className="text-slate-300" />
+          <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <>
-      <header>
-        <span style={{ marginLeft: '12px' }}>{isMobile ? '모바일' : 'PC'}</span>
+    <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col overflow-y-auto pb-24">
+      {/* Header */}
+      <header className="px-6 pt-8 pb-4">
+        <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
+        <h1 className="text-xl font-bold text-slate-800 tracking-tight leading-snug">
+          <span className="text-purple-600">{user?.username || '사용자'}</span> 님<br />안녕하세요.
+        </h1>
       </header>
-      <main>
-        {/* 달력 (Calendar) */}
-        <Calendar />
-        {/* 오늘의 추천 식단 (main_food_eat_info) */}
-        <MainTodayLikeFood foods={foods} totalCalories={totalCalories} loading={loading} />
-        {/* 섭취 식단 정보 (main_food_eat_info) */}
-        <MainFoodEatInfo
-          foods={foods}
-          totalCalories={totalCalories}
-          handleImageUpload={handleImageUpload}
-        />
-        {/* -- */}
-        <FloatingCameraButton/>
-      </main>
-    </>
+
+      <div className="px-5 space-y-5">
+
+        {/* Assistant Message */}
+        <section className="bg-gradient-to-r from-purple-200 to-purple-200 rounded-xl p-1 text-black shadow-lg shadow-w-200 flex items-center gap-3">
+          <div className="bg-white/20 p-2.5 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-black-100 text-base font-bold">식단을 잘 지키고 있어요 👍</p>
+          </div>
+        </section>
+
+        {/* Compact Nutrition Graph (One Graph) */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-end mb-3">
+            <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
+            <div className="text-right">
+              <span className="text-lg font-bold text-slate-800">{nutrition.calories.current}</span>
+              <span className="text-xs text-slate-400"> / {nutrition.calories.goal} kcal</span> {/* 그래프 오른쪽 상단 칼로리 표시 따로 할 필요 없으면 삭제할 것. */}
+            </div>
+          </div>
+
+          {/* Stacked Bar Graph */}
+          {/* Total width represents Goal. Filled width represents Calories (C+P+F) */}
+          <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex relative">
+            {/* The segments add up to total calories consumed */}
+            <div className="h-full bg-blue-500" style={{ width: `${carbPctOfGoal}%` }} />
+            <div className="h-full bg-emerald-500" style={{ width: `${proteinPctOfGoal}%` }} />
+            <div className="h-full bg-amber-500" style={{ width: `${fatPctOfGoal}%` }} />
+          </div>
+
+          {/* Legend */}
+          <div className="flex w-full justify-between items-center mt-3 px-1">
+            {/* Explicit Calorie Legend Item */}
+            <div className="flex items-center gap-1.5">
+              {/* Using a multi-color dot or neutral dot for Total */}
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-500"></div>
+              <span className="text-[10px] text-slate-500 font-medium">칼로리 {nutrition.calories.current}kcal</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+              <span className="text-[10px] text-slate-500">탄수화물 {nutrition.carbs}g</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+              <span className="text-[10px] text-slate-500">단백질 {nutrition.protein}g</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+              <span className="text-[10px] text-slate-500">지방 {nutrition.fat}g</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Meal Plan Planning */}
+        <section className="space-y-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
+          </div>
+          <div className="grid gap-3">
+            <PlanSection title="아침" type="breakfast" items={mealPlan.breakfast} />
+            <PlanSection title="점심" type="lunch" items={mealPlan.lunch} />
+            <PlanSection title="저녁" type="dinner" items={mealPlan.dinner} />
+          </div>
+        </section>
+
+        <FloatingCameraButton />
+      </div>
+    </div>
   );
 }

@@ -29,8 +29,10 @@ export default function RootLayout({
       <body className="bg-gray-100 flex justify-center items-center min-h-screen">
         <ViewportProvider>
           <div className="app-container">
-            {children}
-            <BottomNav/>
+            <main>
+              {children}
+            </main>
+            <BottomNav />
           </div>
         </ViewportProvider>
       </body>

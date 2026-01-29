@@ -5,12 +5,12 @@ import { Record as FoodRecord } from "@/types/definitions"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { InbodyRecord } from "@/types/definitions"
-import { getInbody } from "@/api/inbody"
-import InbodyUpload from "@/components/InbodyUpload"
-import MypageInbody from "@/components/mypage/mypage_inbody"
-import MypageMenuSeeMore from "@/components/mypage/mypage_menu_see_more"
-import MypageMenu from "@/components/mypage/mypage_menu"
-import MypageProfileTarget from "@/components/mypage/mypage_profile_target"
+import { getInbody } from "@/api/index"
+import InbodyUpload from "@/components/InbodyUploadAndHistory"      
+import MypageInbody from "@/components/mypage/MypageInbody"
+import MypageMenuSeeMore from "@/components/mypage/MypageMenuSeeMore"
+import MypageMenu from "@/components/mypage/MypageMenu"
+import MypageProfileTarget from "@/components/mypage/MypageProfileTarget"
 
 
 export default function Mypage() {

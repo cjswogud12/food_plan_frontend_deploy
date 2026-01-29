@@ -5,7 +5,8 @@ import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from '@/components/FloatingCameraButton'
 import CalendarFull from "@/components/MainCalendarFull"
 import { Record } from "@/types/definitions"
-import { getRecord } from "@/api/record"
+import { getRecord } from "@/api/index"
+import RecordMealGroup from "@/components/record/RecordMealGroup"
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
 interface DailyMealData {
@@ -69,37 +70,6 @@ export default function RecordPage() {
         fetchData();
     }, [selectedDate]);
 
-    // Helper Component for Meal List (Square Card Style)
-    const MealGroup = ({ title, records }: { title: string, records: Record[] }) => {
-        const mealCal = records.reduce((sum, r) => sum + (r.food_calories || 0), 0);
-
-        return (
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col h-full min-h-[160px]">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-slate-800">{title}</h3>
-                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{mealCal} kcal</span>
-                </div>
-
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    {records.length > 0 ? (
-                        <div className="space-y-2">
-                            {records.map(record => (
-                                <div key={record.record_id} className="text-sm">
-                                    <div className="font-medium text-slate-700 truncate">{record.food_name}</div>
-                                    <div className="text-xs text-purple-600">{record.food_calories} kcal</div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                            기록 없음
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    };
-
     return (
         <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col overflow-y-auto">
             <div className="p-4 max-w-md mx-auto w-full pb-24">
@@ -141,10 +111,10 @@ export default function RecordPage() {
 
                 {/* Meal Lists - 2x2 Grid */}
                 <section className="grid grid-cols-2 gap-3 pb-8">
-                    <MealGroup title="아침" records={mealData.breakfast} />
-                    <MealGroup title="점심" records={mealData.lunch} />
-                    <MealGroup title="저녁" records={mealData.dinner} />
-                    <MealGroup title="간식" records={mealData.snack} />
+                    <RecordMealGroup title="아침" records={[]} />
+                    <RecordMealGroup title="점심" records={[]} />
+                    <RecordMealGroup title="저녁" records={[]} />
+                    <RecordMealGroup title="간식" records={[]} />
                 </section>
 
                 <FloatingCameraButton />

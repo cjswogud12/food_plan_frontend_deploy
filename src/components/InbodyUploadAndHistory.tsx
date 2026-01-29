@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 import { Upload } from "lucide-react"
-import { uploadInbodyImage } from "@/api/inbody"
+import { uploadInbodyImage } from "@/api/index"
 
 interface InbodyUploadProps {
     onUploadSuccess?: (data?: unknown) => void;

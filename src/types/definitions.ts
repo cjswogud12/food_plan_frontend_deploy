@@ -104,3 +104,41 @@ export interface BMIHistory {
     bmi: number;
     bmi_history_created_at: string;
 }
+
+// 체형 분석 응답
+interface BodyClassificationResponse {
+    stage1: string;           // "마름", "비만" 등
+    stage2: string;           // "초저체중(위험)", "근감소성비만" 등
+    metrics: {
+        bmi: number;
+        body_fat_pct: number;
+        body_fat_kg: number;
+        skeletal_muscle_kg: number;
+        ffm_kg: number;
+        ffmi: number;
+        smm_ratio: number;
+        bmr_per_kg: number;
+    };
+    reason: string;           // 분류 이유 설명
+}
+// 인바디 기록 응답 (배열)
+interface InbodyHistoryItem {
+    inbody_id: number;
+    measurement_date: string | null;
+    height: number;
+    weight: number;
+    body_fat_pct: number;
+    skeletal_muscle_mass: number;
+    predicted_cluster: string | null;
+    cluster_name: string | null;
+    values: {
+        height: number;
+        weight: number;
+        body_fat_mass: number;
+        body_fat_pct: number;
+        skeletal_muscle_mass: number;
+        bmr: number;
+        inbody_score: number;
+    };
+    created_at: string;
+}

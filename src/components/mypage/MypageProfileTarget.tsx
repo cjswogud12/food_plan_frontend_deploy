@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { User as UserIcon } from "lucide-react";
 import { Record, User, UserGoal } from "@/types/definitions";
-import { getUser, getUserGoal } from "@/api/user";
+import { getUser, getUserGoal } from "@/api/index";
 
 
 interface MypageProfileTargetProps {

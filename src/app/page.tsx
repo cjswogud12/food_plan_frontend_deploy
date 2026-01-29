@@ -4,71 +4,32 @@ import { useState, useEffect } from "react"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { Plus, ChevronRight, Utensils } from "lucide-react"
+import { User } from "@/types/definitions"
+import { getUser } from "@/api/index"
 
-interface User {
-  username: string;
-}
-
-interface MealPlan {
+/*interface MealPlan {
   breakfast: any[];
   lunch: any[];
   dinner: any[];
   snack: any[];
-}
+}*/
 
 export default function Mainpage() {
   const { isMobile } = useViewport();
 
   // State
   const [user, setUser] = useState<User | null>(null);
-  const [mealPlan, setMealPlan] = useState<MealPlan>({
+  /*const [mealPlan, setMealPlan] = useState<MealPlan>({
     breakfast: [], lunch: [], dinner: [], snack: []
-  });
-
-  // 더미 데이터(삭제 필요)
-  const nutrition = {
-    calories: { current: 152, goal: 3000 },
-    carbs: 10,    // g
-    protein: 10,  // g
-    fat: 10,       // g
-  };
-
-  // Calculate Calorie Contributions for the Graph
-  // 1g Carbs = 4kcal, 1g Protein = 4kcal, 1g Fat = 9kcal
-  const carbCals = nutrition.carbs * 4;
-  const proteinCals = nutrition.protein * 4;
-  const fatCals = nutrition.fat * 9;
-
-  // Percentages relative to GOAL calories
-  const goal = nutrition.calories.goal;
-  const carbPctOfGoal = Math.min((carbCals / goal) * 100, 100);
-  const proteinPctOfGoal = Math.min((proteinCals / goal) * 100, 100);
-  const fatPctOfGoal = Math.min((fatCals / goal) * 100, 100);
+  });*/
 
   // Fetch Data
   useEffect(() => {
-    // 1. Fetch User
-    fetch('http://localhost:8000/api/user')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => data && setUser(data))
-      .catch(err => console.error("User fetch error", err));
-
-    // 2. Fetch Today's Recommendation (as initial plan)
-    const todayStr = new Date().toISOString().split('T')[0];
-    fetch(`http://localhost:8000/api/recommendation?date=${todayStr}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) {
-          setMealPlan({
-            breakfast: data.breakfast || [],
-            lunch: data.lunch || [],
-            dinner: data.dinner || [],
-            snack: data.snack || []
-          });
-        }
-      })
-      .catch(err => console.error("Meal plan fetch error", err));
-  }, []);
+    getUser()
+        .then(res => res.ok ? res.json() : null)
+        .then(data => data && setUser(data))
+        .catch(err => console.error("User fetch error", err));
+}, []);
 
   // Handlers
   const handleAddMenu = (type: string) => {
@@ -144,8 +105,8 @@ export default function Mainpage() {
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right">
-              <span className="text-lg font-bold text-slate-800">{nutrition.calories.current}</span>
-              <span className="text-xs text-slate-400"> / {nutrition.calories.goal} kcal</span> {/* 그래프 오른쪽 상단 칼로리 표시 따로 할 필요 없으면 삭제할 것. */}
+              <span className="text-lg font-bold text-slate-800">{/*nutrition.calories.current*/}</span>
+              <span className="text-xs text-slate-400"> {/*nutrition.calories.goal*/} kcal</span> {/* 그래프 오른쪽 상단 칼로리 표시 따로 할 필요 없으면 삭제할 것. */}
             </div>
           </div>
 
@@ -153,9 +114,9 @@ export default function Mainpage() {
           {/* Total width represents Goal. Filled width represents Calories (C+P+F) */}
           <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex relative">
             {/* The segments add up to total calories consumed */}
-            <div className="h-full bg-blue-500" style={{ width: `${carbPctOfGoal}%` }} />
-            <div className="h-full bg-emerald-500" style={{ width: `${proteinPctOfGoal}%` }} />
-            <div className="h-full bg-amber-500" style={{ width: `${fatPctOfGoal}%` }} />
+            <div className="h-full bg-blue-500" style={{ width: `0%` }} />
+            <div className="h-full bg-emerald-500" style={{ width: `0%` }} />
+            <div className="h-full bg-amber-500" style={{ width: `0%`}} />
           </div>
 
           {/* Legend */}
@@ -164,19 +125,19 @@ export default function Mainpage() {
             <div className="flex items-center gap-1.5">
               {/* Using a multi-color dot or neutral dot for Total */}
               <div className="w-2.5 h-2.5 rounded-full bg-slate-500"></div>
-              <span className="text-[10px] text-slate-500 font-medium">칼로리 {nutrition.calories.current}kcal</span>
+              <span className="text-[10px] text-slate-500 font-medium">칼로리 {/*nutrition.calories.current*/}kcal</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-              <span className="text-[10px] text-slate-500">탄수화물 {nutrition.carbs}g</span>
+              <span className="text-[10px] text-slate-500">탄수화물 {/*nutrition.carbs*/}g</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-              <span className="text-[10px] text-slate-500">단백질 {nutrition.protein}g</span>
+              <span className="text-[10px] text-slate-500">단백질 {/*nutrition.protein*/}g</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-              <span className="text-[10px] text-slate-500">지방 {nutrition.fat}g</span>
+              <span className="text-[10px] text-slate-500">지방 {/*nutrition.fat*/}g</span>
             </div>
           </div>
         </section>
@@ -187,9 +148,9 @@ export default function Mainpage() {
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
           </div>
           <div className="grid gap-3">
-            <PlanSection title="아침" type="breakfast" items={mealPlan.breakfast} />
-            <PlanSection title="점심" type="lunch" items={mealPlan.lunch} />
-            <PlanSection title="저녁" type="dinner" items={mealPlan.dinner} />
+            <PlanSection title="아침" type="breakfast" items={[]} />
+            <PlanSection title="점심" type="lunch" items={[]} />
+            <PlanSection title="저녁" type="dinner" items={[]} />
           </div>
         </section>
 

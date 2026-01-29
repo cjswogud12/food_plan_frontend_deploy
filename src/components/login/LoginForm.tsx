@@ -1,23 +1,23 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { login, signup } from "@/api/loginregister"
+import { login, register } from "@/api/index"
 
 export default function LoginForm() {
     const router = useRouter()
     const [isLogin, setIsLogin] = useState(true)
-    const [form, setForm] = useState({ username: "", password: "", email: "", height: "", weight: "", age: "", gender: "M" })
+    const [form, setForm] = useState({ username: "", password: "", id: ""})
     const [error, setError] = useState("")
 
     const handleSubmit = async () => {
     try {
         if (isLogin) {
-            const res = await login(form.username, form.password)
+            const res = await login(form.id, form.password)
             localStorage.setItem("user_id", res.user_id)
             alert("로그인 성공!")  // 추가
             router.push("/home")  // "/" → "/home" (폴더 구조 변경 후)
         } else {
-            await signup(form)
+            await register(form.id, form.password, form.username)
             alert("회원가입 성공! 로그인해주세요.")
             setIsLogin(true)
         }
@@ -31,14 +31,13 @@ export default function LoginForm() {
     return (
         <div>
             {error && <p style={{ color: "red" }}>{error}</p>}
-            <input placeholder="아이디" onChange={(e) => setForm({ ...form, username: e.target.value })} />
+            <input placeholder="아이디" onChange={(e) => setForm({ ...form, id: e.target.value })} />
             <input placeholder="비밀번호" type="password" onChange={(e) => setForm({ ...form, password: e.target.value })} />
             {!isLogin && (
                 <>
-                    <input placeholder="이메일" onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                    <input placeholder="키(cm)" type="number" onChange={(e) => setForm({ ...form, height: e.target.value })} />
-                    <input placeholder="체중(kg)" type="number" onChange={(e) => setForm({ ...form, weight: e.target.value })} />
-                    <input placeholder="나이" type="number" onChange={(e) => setForm({ ...form, age: e.target.value })} />
+                <input placeholder="아이디" onChange={(e) => setForm({ ...form, id: e.target.value})}/>
+                <input placeholder="비밀번호" type="password" onChange={(e) => setForm({ ...form, password: e.target.value})}/>
+                <input placeholder="닉네임" onChange={(e) => setForm({ ...form, username: e.target.value})}/>
                 </>
             )}
             <button onClick={handleSubmit}

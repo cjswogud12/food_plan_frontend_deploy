@@ -1,9 +1,9 @@
 
 "use client"
 import { useState, useEffect } from "react"
-import InbodyUpload from '@/components/InbodyUpload'
+import InbodyUpload from '@/components/InbodyUploadAndHistory'
 import { InbodyRecord } from '@/types/definitions'
-import { getInbody } from "@/api/inbody"
+import { getInbody } from "@/api/index"
 
 interface MypageBodyCompositionProps {
 }
@@ -11,7 +11,7 @@ interface MypageBodyCompositionProps {
 export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
     const [inbodyData, setInbodyData] = useState<InbodyRecord | null>(null);
 
-    useEffect(() => {
+    /*useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await getInbody();
@@ -32,7 +32,7 @@ export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
             }
         };
         fetchData();
-    }, []);
+    }, []);*/
 
     return (
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">

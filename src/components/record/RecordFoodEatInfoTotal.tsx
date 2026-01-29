@@ -1,6 +1,6 @@
 "use client";
 
-import { Record } from '@/types/record';
+import { Record } from '@/types/definitions';
 
 interface FoodEatInfoTotalProps {
     title: string;

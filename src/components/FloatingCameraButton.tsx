@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Camera, Plus, X } from "lucide-react"
-import { uploadInbodyImage } from "@/api/inbody";
+import { uploadInbodyImage } from "@/api/index";
 
 interface FloatingCameraButtonProps {
     onUploadSuccess?: (data?: unknown) => void;

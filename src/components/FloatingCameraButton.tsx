@@ -1,7 +1,8 @@
 ﻿"use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Camera, Plus, X } from "lucide-react"
+import { Camera, Plus, X, MessageCircle } from "lucide-react"
+import AiChatbot from "@/components/AiChatBot/Aichatbot"
 import { uploadInbodyImage } from "@/api/index";
 
 interface FloatingCameraButtonProps {
@@ -11,6 +12,7 @@ interface FloatingCameraButtonProps {
 export default function FloatingCameraButton({ onUploadSuccess }: FloatingCameraButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
+    const [showChatbot, setShowChatbot] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -118,6 +120,16 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
         setIsOpen(false);
     };
 
+    // 챗봇 모달 열기/닫기
+    const openChatbot = () => {
+        setShowChatbot(true);
+        setIsOpen(false);
+    };
+
+    const closeChatbot = () => {
+        setShowChatbot(false);
+    };
+
     // 카메라 모달 닫기
     const closeCamera = () => {
         stopCamera();
@@ -145,11 +157,18 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
         <>
             {/* FAB 컨테이너 */}
             <div className="absolute bottom-24 right-4 flex flex-col items-center gap-3 z-50">
+                {/* 확장 버튼 (챗봇) */}
+                <button
+                    onClick={openChatbot}
+                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                >
+                    <MessageCircle size={24} />
+                </button>
+
                 {/* 확장 버튼 (카메라) */}
                 <button
                     onClick={openCamera}
-                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
-                        }`}
+                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                 >
                     <Camera size={24} />
                 </button>
@@ -157,8 +176,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                 {/* 메인 FAB 버튼 (+) */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-700 ${isOpen ? 'rotate-45' : 'rotate-0'
-                        }`}
+                    className={`w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-700 ${isOpen ? 'rotate-45' : 'rotate-0'}`}
                 >
                     <Plus size={28} />
                 </button>
@@ -222,6 +240,27 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                 className="w-16 h-16 bg-white rounded-full border-4 border-purple-500 hover:scale-105 transition-transform"
                             />
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* 챗봇 팝업 모달 */}
+            {showChatbot && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+                        {/* 팝업 헤더 */}
+                        <div className="flex justify-end p-2 bg-gray-100">
+                            <button
+                                onClick={closeChatbot}
+                                className="p-2 hover:bg-gray-200 rounded-full"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        {/* 챗봇 컴포넌트 */}
+                        <div className="flex-1 overflow-hidden">
+                            <AiChatbot />
+                        </div>
                     </div>
                 </div>
             )}

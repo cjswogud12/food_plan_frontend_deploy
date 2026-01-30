@@ -143,7 +143,7 @@ interface InbodyHistoryItem {
     created_at: string;
 }
 
-export interface FoodAnalysisResult{
+export interface FoodAnalysisResult {
     far_id: number;
     user_id: number;
     image_url: string;

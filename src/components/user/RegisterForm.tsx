@@ -17,7 +17,6 @@ export default function RegisterForm() {
     })
     const [showPassword, setShowPassword] = useState(false)
     const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
-    const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async () => {
@@ -35,7 +34,7 @@ export default function RegisterForm() {
         // setError("") // Removed
 
         try {
-            await register(form.username, form.password, form.name)
+            await register(form.username, form.password, form.name, Number(form.age), form.gender)
             alert("회원가입 성공! 로그인해주세요.")
             router.push('/login')
         } catch (e: any) {

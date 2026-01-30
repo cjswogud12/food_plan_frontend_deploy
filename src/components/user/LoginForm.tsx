@@ -18,7 +18,6 @@ export default function LoginForm() {
         }
 
         setIsLoading(true)
-        setIsLoading(true)
 
         try {
             const res = await login(form.username, form.password)

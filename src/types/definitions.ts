@@ -31,7 +31,7 @@ export interface UserGoal {
     id: string;
     user_number: number;
     goal_type: string;
-    target_calory: number;
+    target_calorie: number;
     target_protein: number;
     target_carb: number;
     target_fat: number;

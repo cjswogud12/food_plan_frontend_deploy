@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { User as UserIcon } from "lucide-react";
 import { Record, User, UserGoal } from "@/types/definitions";
 import { getUser, getUserGoal } from "@/api/index";
-
+import { getBodyClassification } from "@/api/index";
 
 interface MypageProfileTargetProps {
     foodrecords?: Record[];
@@ -13,6 +13,14 @@ interface MypageProfileTargetProps {
 export default function MypageProfileTarget({ foodrecords = [] }: MypageProfileTargetProps) {
     const [user, setUser] = useState<User | null>(null);
     const [userGoal, setUserGoal] = useState<UserGoal | null>(null);
+    const [goal, setGoal] = useState<string>("-");
+
+    const getGoalFromStage = (stage1: string): string => {
+        if (stage1 === "비만") return "다이어트";
+        if (stage1 === "저체중") return "증량";
+        if (stage1 === "정상") return "유지";
+        return "-";
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,6 +41,16 @@ export default function MypageProfileTarget({ foodrecords = [] }: MypageProfileT
                     else if (goalData && !Array.isArray(goalData)) setUserGoal(goalData);
                 }
 
+                // 체형 분류 가져와서 목표 설정
+                const userNumber = localStorage.getItem("user_id");
+                if (userNumber) {
+                    const classifyRes = await getBodyClassification(Number(userNumber));
+                    if (classifyRes.ok) {
+                        const classifyData = await classifyRes.json();
+                        setGoal(getGoalFromStage(classifyData.stage1));
+                    }
+                }
+
             } catch (error) {
                 console.error("Fetch error:", error);
             }
@@ -43,8 +61,8 @@ export default function MypageProfileTarget({ foodrecords = [] }: MypageProfileT
     // 현재 섭취 칼로리 계산
     const currentCal = foodrecords.reduce((acc, cur) => acc + (cur.food_calories || 0), 0);
 
-    // 목표 칼로리 (UserGoal의 target_calory 사용)
-    const goalCal = userGoal?.target_calory || 0;
+    // 목표 칼로리 (UserGoal의 target_calorie 사용)
+    const goalCal = userGoal?.target_calorie || 0;
 
     // 진행률 계산
     const percent = goalCal > 0 ? Math.min(100, Math.round((currentCal / goalCal) * 100)) : 0;
@@ -78,9 +96,9 @@ export default function MypageProfileTarget({ foodrecords = [] }: MypageProfileT
                     </div>
 
                     {/* Right: Button */}
-                    <button className="p-2 text-slate-400 hover:text-slate-600 bg-purple-500 text-white rounded-full text-xs px-3">
-                        목표 변경
-                    </button>
+                    <span className="bg-purple-500 text-white rounded-full text-xs px-3 py-2">
+                        {goal}
+                    </span>
                 </div>
             </div>
         </section>

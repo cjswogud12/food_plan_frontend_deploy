@@ -110,7 +110,7 @@ export async function getUserGoal() {
 // --- 체형 분류 ---
 // user_number를 보내면 stage1, stage2, metrics, reason 등을 반환
 export async function getBodyClassification(userNumber: number) {
-    return getJson(`/classify/bodytype/by-user=${userNumber}`);
+    return postJson(`/classify/bodytype/by-user`, { user_number: userNumber });
 }
 // --- 인바디 기록 조회---
 // user_number와 limit(개수)를 보내면 인바디 기록 배열을 반환

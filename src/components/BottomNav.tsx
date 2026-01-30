@@ -10,7 +10,7 @@ export default function BottomNav() {
         { href: "/record", label: "기록", icon: List },
         { href: "/mypage", label: "마이페이지", icon: User }
     ];
-    if (/*pathname === "/" ||*/ pathname === "/login") return null;
+    if (pathname === "/login" || pathname === "/register" || pathname === "/find-id" || pathname === "/find-password") return null;
 
     return (
         <nav className="bottom-nav">

@@ -1,11 +1,10 @@
 "use client"
-import LoginForm from "@/components/login/LoginForm"
+import LoginForm from "@/components/user/LoginForm"
 
 export default function LoginPage() {
     return (
-        <main style={{ padding: "28px" }}>
-            <h1>로그인</h1>
+        <div className="flex h-full flex-col items-center justify-center bg-white p-4">
             <LoginForm />
-        </main>
+        </div>
     )
 }

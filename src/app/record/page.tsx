@@ -128,7 +128,7 @@ export default function RecordPage() {
                 {/* Header */}
                 <header className="mb-6 pt-4">
                     <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
-                    <h1 className="text-2xl font-bold text-slate-800">식단 기록</h1>
+                    <h1 className="text-2xl font-bold text-slate-800">기록</h1>
                 </header>
 
                 {/* Full Calendar */}

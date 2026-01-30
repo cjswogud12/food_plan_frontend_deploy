@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { Plus, ChevronRight, Utensils } from "lucide-react"
@@ -16,20 +17,39 @@ import { getUser } from "@/api/index"
 
 export default function Mainpage() {
   const { isMobile } = useViewport();
+  const router = useRouter();
 
   // State
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   /*const [mealPlan, setMealPlan] = useState<MealPlan>({
     breakfast: [], lunch: [], dinner: [], snack: []
   });*/
 
-  // Fetch Data
+  // 로그인 체크 및 유저 정보 가져오기
   useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
+
     getUser()
-        .then(res => res.ok ? res.json() : null)
-        .then(data => data && setUser(data))
-        .catch(err => console.error("User fetch error", err));
-}, []);
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setUser(data);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error("User fetch error", err);
+        setIsLoading(false);
+      });
+  }, [router]);
+
+  // 로딩 중이면 빈 화면
+  if (isLoading) {
+    return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
+  }
 
   // Handlers
   const handleAddMenu = (type: string) => {
@@ -116,7 +136,7 @@ export default function Mainpage() {
             {/* The segments add up to total calories consumed */}
             <div className="h-full bg-blue-500" style={{ width: `0%` }} />
             <div className="h-full bg-emerald-500" style={{ width: `0%` }} />
-            <div className="h-full bg-amber-500" style={{ width: `0%`}} />
+            <div className="h-full bg-amber-500" style={{ width: `0%` }} />
           </div>
 
           {/* Legend */}

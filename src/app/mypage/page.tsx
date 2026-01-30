@@ -5,8 +5,8 @@ import { Record as FoodRecord } from "@/types/definitions"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { InbodyRecord } from "@/types/definitions"
-import { getInbody } from "@/api/index"
-import InbodyUpload from "@/components/InbodyUploadAndHistory"      
+import { getInbody, getUserGoal } from "@/api/index"
+import InbodyUpload from "@/components/InbodyUploadAndHistory"
 import MypageInbody from "@/components/mypage/MypageInbody"
 import MypageMenuSeeMore from "@/components/mypage/MypageMenuSeeMore"
 import MypageMenu from "@/components/mypage/MypageMenu"
@@ -19,6 +19,17 @@ export default function Mypage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [inbodyrecords, setInbodyRecords] = useState<Partial<InbodyRecord>[]>([]);
+    const [goal, setGoal] = useState<string>("-");
+
+    // API에서 goal 가져오기
+    useEffect(() => {
+        getUserGoal()
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data?.goal_type) setGoal(data.goal_type);
+            })
+            .catch(err => console.error("Goal fetch error:", err));
+    }, []);
 
     useEffect(() => {
         // 식단 기록 가져오기
@@ -98,13 +109,13 @@ export default function Mypage() {
             <div className="p-4 flex flex-col gap-4 pb-24 bg-purple-100">
                 <h1 className="text-lg font-bold text-slate-800">마이페이지</h1>
                 {/* 1. 유저 프로필 섹션 (mypage_profile_target.tsx) */}
-                <MypageProfileTarget foodrecords={foodrecords} />
+                <MypageProfileTarget foodrecords={foodrecords} goal={goal} />
 
                 {/* 2. 체성분 (mypage_inbody.tsx) */}
                 <MypageInbody />
 
                 {/* 3. 메뉴 (mypage_menu.tsx) */}
-                <MypageMenu />
+                <MypageMenu onGoalChange={setGoal} />
 
                 {/* 4. 더보기 (mypage_menu_see_more.tsx) */}
                 <MypageMenuSeeMore />

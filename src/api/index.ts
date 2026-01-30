@@ -48,14 +48,16 @@ export async function login(id: string, password: string) {
     return res.json()
 }
 
-export async function register(id: string, password: string, username: string) {
+export async function register(id: string, password: string, username: string, age: number, gender: string) {
     const res = await fetch(`${BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             id,
             password,
-            username
+            username,
+            age,
+            gender
         }),
     })
     if (!res.ok) throw new Error((await res.json()).detail || "회원가입 실패")
@@ -64,8 +66,12 @@ export async function register(id: string, password: string, username: string) {
 
 // --- Inbody ---
 
-export async function uploadInbodyImage(formData: FormData) {
-    return postFormData("/inbody-ocr", formData, { timeoutMs: 15000 });
+export async function uploadInbodyImage(
+    formData: FormData,
+    options?: { timeoutMs?: number }
+) {
+    // 예: 백엔드가 /inbody/upload 라면 그에 맞춰 수정
+    return postFormData("/inbody/upload", formData, options);
 }
 
 export async function getInbody() {
@@ -93,6 +99,10 @@ export async function getUser() {
 
 export async function getUserGoal() {
     return getJson("/user/goal");
+}
+
+export async function updateUserGoal(goalType: string) {
+    return postJson("/user/goal", { goal_type: goalType });
 }
 
 // --- 체형 분류 ---

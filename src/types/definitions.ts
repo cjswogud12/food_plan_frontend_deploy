@@ -20,7 +20,7 @@ export interface UserProfile {
     gender: string;
     goal_type: string; // 목표 타입 : 다이어트/ 유지/ 벌크업
     body_fat_percent: number;
-    skeleton_muscle_mass: number;
+    skeletal_muscle_mass: number;
     bmr: number;
     created_at: string;
     updated_at: string;

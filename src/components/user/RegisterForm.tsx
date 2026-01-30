@@ -94,7 +94,6 @@ export default function RegisterForm() {
                 </div>
 
                 {/* Password Confirm */}
-                {/* Password Confirm */}
                 <div>
                     <label className="block text-sm text-slate-600 mb-1">비밀번호 확인</label>
                     <div className="relative w-full">

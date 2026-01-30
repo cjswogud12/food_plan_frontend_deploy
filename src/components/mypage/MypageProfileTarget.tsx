@@ -8,19 +8,27 @@ import { getBodyClassification } from "@/api/index";
 
 interface MypageProfileTargetProps {
     foodrecords?: Record[];
+    goal?: string;
 }
 
-export default function MypageProfileTarget({ foodrecords = [] }: MypageProfileTargetProps) {
+export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }: MypageProfileTargetProps) {
     const [user, setUser] = useState<User | null>(null);
     const [userGoal, setUserGoal] = useState<UserGoal | null>(null);
-    const [goal, setGoal] = useState<string>("-");
+    const [goal, setGoal] = useState<string>(propGoal || "-");
 
     const getGoalFromStage = (stage1: string): string => {
         if (stage1 === "비만") return "다이어트";
-        if (stage1 === "저체중") return "증량";
-        if (stage1 === "정상") return "유지";
+        if (stage1 === "마름") return "증량";
+        if (stage1 === "표준") return "유지";
         return "-";
     };
+
+    // propGoal이 변경되면 goal state 업데이트
+    useEffect(() => {
+        if (propGoal) {
+            setGoal(propGoal);
+        }
+    }, [propGoal]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -95,7 +103,7 @@ export default function MypageProfileTarget({ foodrecords = [] }: MypageProfileT
                         </div>
                     </div>
 
-                    {/* Right: Button */}
+                    {/* Right: Goal Display */}
                     <span className="bg-purple-500 text-white rounded-full text-xs px-3 py-2">
                         {goal}
                     </span>

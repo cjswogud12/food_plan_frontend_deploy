@@ -28,9 +28,18 @@ export default function RecordMealGroup({ title, records, onAddClick }: RecordMe
                 {records.length > 0 ? (
                     <div className="space-y-2">
                         {records.map(record => (
-                            <div key={record.far_id} className="text-sm">
-                                <div className="font-medium text-slate-700 truncate">{record.predicted_food_name}</div>
-                                <div className="text-xs text-purple-600">{record.estimated_calories_kcal} kcal</div>
+                            <div key={record.far_id} className="text-sm flex items-center gap-2">
+                                {record.image_url && (
+                                    <img
+                                        src={record.image_url}
+                                        alt={record.predicted_food_name}
+                                        className="w-10 h-10 rounded-md object-cover"
+                                    />
+                                )}
+                                <div>
+                                    <div className="font-medium text-slate-700 truncate">{record.predicted_food_name}</div>
+                                    <div className="text-xs text-purple-600">{record.estimated_calories_kcal} kcal</div>
+                                </div>
                             </div>
                         ))}
                     </div>

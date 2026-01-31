@@ -6,23 +6,27 @@ import { InbodyRecord } from '@/types/definitions'
 import { getInbody } from "@/api/index"
 
 interface MypageBodyCompositionProps {
+    inbodyDataProp?: Partial<InbodyRecord> | null;
 }
 
-export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
-    const [inbodyData, setInbodyData] = useState<InbodyRecord | null>(null);
+export default function MypageBodyComposition({ inbodyDataProp }: MypageBodyCompositionProps) {
+    const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
 
     useEffect(() => {
+        if (inbodyDataProp) {
+            setInbodyData(inbodyDataProp);
+            return;
+        }
+
         const fetchData = async () => {
             try {
-                const response = await getInbody();
+                const userId = localStorage.getItem("user_id");
+                const response = await getInbody(userId);
                 if (!response.ok) throw new Error("Network response was not ok");
                 const data = await response.json();
 
                 // 만약 배열로 들어온다면 가장 최신(마지막 or 첫번째) 데이터를 사용
                 if (Array.isArray(data) && data.length > 0) {
-                    // 보통 최신순으로 정렬되어 온다고 가정하거나, 가장 마지막 항목이 최신일 수 있음
-                    // 여기서는 배열의 첫 번째 요소를 사용하거나 로직에 맞게 선택
-                    // (API 응답 구조에 따라 수정 필요, 일단 첫번째 사용)
                     setInbodyData(data[0]);
                 } else if (data && !Array.isArray(data)) {
                     setInbodyData(data);
@@ -32,7 +36,7 @@ export default function MypageBodyComposition({ }: MypageBodyCompositionProps) {
             }
         };
         fetchData();
-    }, []);
+    }, [inbodyDataProp]);
 
     return (
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">

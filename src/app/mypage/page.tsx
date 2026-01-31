@@ -5,12 +5,13 @@ import { Record as FoodRecord } from "@/types/definitions"
 import { User, Settings, Megaphone, HelpCircle, ChevronRight, Target, Bell, Link } from "lucide-react"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { InbodyRecord } from "@/types/definitions"
-import { getInbody, getUserGoal } from "@/api/index"
 import InbodyUpload from "@/components/InbodyUploadAndHistory"
 import MypageInbody from "@/components/mypage/MypageInbody"
 import MypageMenuSeeMore from "@/components/mypage/MypageMenuSeeMore"
 import MypageMenu from "@/components/mypage/MypageMenu"
 import MypageProfileTarget from "@/components/mypage/MypageProfileTarget"
+import { getInbody, getUserGoal, getMypage } from "@/api/index"
+import MypageFixLogoutBt from "@/components/mypage/MypageFixLogoutBt"
 
 
 export default function Mypage() {
@@ -31,9 +32,14 @@ export default function Mypage() {
             .catch(err => console.error("Goal fetch error:", err));
     }, []);
 
+    const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
+
+    // ... (rest of the state and useEffects)
+
     useEffect(() => {
-        // 식단 기록 가져오기
-        fetch("http://localhost:8000/api/mypage")
+        // 식단 기록 및 마이페이지 데이터 가져오기
+        const userId = localStorage.getItem("user_id");
+        getMypage(userId)
             .then((res) => {
                 if (!res.ok) {
                     throw new Error("서버 응답 오류")
@@ -41,8 +47,22 @@ export default function Mypage() {
                 return res.json();
             })
             .then((data) => {
-                const recordList = Array.isArray(data) ? data : [data];
-                setFoodRecords(recordList);
+                // 백엔드 응답 구조: { user, body, goal, diet_plan, records }
+                if (data.records) {
+                    setFoodRecords(data.records);
+                } else if (Array.isArray(data)) {
+                    // 혹시 이전 구조일 경우 대비
+                    setFoodRecords(data);
+                }
+
+                if (data.body) {
+                    setInbodyData({
+                        height: data.body.height,
+                        weight: data.body.weight,
+                        skeletal_muscle_mass: data.body.skeletal_muscle_mass,
+                        body_fat_pct: data.body.body_fat_percent // API 응답 필드명 확인 (body_fat_percent -> body_fat_pct 매핑)
+                    });
+                }
                 setLoading(false);
             })
             .catch((err) => {
@@ -51,20 +71,18 @@ export default function Mypage() {
                 setLoading(false);
             });
 
-        // 인바디 기록 가져오기
-        getInbody()
-            .then((res) => {
-                if (!res.ok) throw new Error("인바디 데이터 오류");
-                return res.json();
-            })
-            .then((data) => {
-                const inbodyList = Array.isArray(data) ? data : [data];
-                setInbodyRecords(inbodyList);
-            })
-            .catch((err) => {
-                console.error("인바디 API 호출 실패:", err);
-            });
+        // getInbody() 호출은 중복되므로 제거하거나, refresh 용도로 남겨둘 수 있음.
+        // 여기서는 getMypage에서 다 가져오므로 제거.
     }, []);
+
+    // ...
+
+    // return (
+    //     // ...
+    //     {/* 2. 체성분 (mypage_inbody.tsx) */ }
+    //     < MypageInbody inbodyDataProp = { inbodyData } />
+    //     // ...
+    // );
 
     const mapOcrToDisplay = (data: unknown): Partial<InbodyRecord> | null => {
         const values = (data as { values?: Record<string, unknown> } | null)?.values;
@@ -112,7 +130,7 @@ export default function Mypage() {
                 <MypageProfileTarget foodrecords={foodrecords} goal={goal} />
 
                 {/* 2. 체성분 (mypage_inbody.tsx) */}
-                <MypageInbody />
+                <MypageInbody inbodyDataProp={inbodyData} />
 
                 {/* 3. 메뉴 (mypage_menu.tsx) */}
                 <MypageMenu onGoalChange={setGoal} />
@@ -121,14 +139,7 @@ export default function Mypage() {
                 <MypageMenuSeeMore />
 
                 {/* 5. 추가 버튼 섹션 (회원정보수정, 로그아웃) */}
-                <div className="flex gap-3">
-                    <button className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-slate-600 font-medium hover:bg-gray-50 transition-colors">
-                        회원정보수정
-                    </button>
-                    <button className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-slate-600 font-medium hover:bg-gray-50 transition-colors">
-                        로그아웃
-                    </button>
-                </div>
+                <MypageFixLogoutBt />
             </div>
             <FloatingCameraButton onUploadSuccess={refreshInbody} />
         </>

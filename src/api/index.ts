@@ -48,6 +48,14 @@ export async function login(id: string, password: string) {
     return res.json()
 }
 
+export async function logout() {
+    const res = await fetch(`${BASE_URL}/logout`, {
+        method: "POST",
+    })
+    if (!res.ok) throw new Error((await res.json()).detail || "로그아웃 실패")
+    return res.json()
+}
+
 export async function register(id: string, password: string, username: string, age: number, gender: string) {
     const res = await fetch(`${BASE_URL}/register`, {
         method: "POST",
@@ -74,14 +82,16 @@ export async function uploadInbodyImage(
     return postFormData("/inbody/upload", formData, options);
 }
 
-export async function getInbody() {
-    return getJson("/inbody");
+export async function getInbody(id?: string | null) {
+    const query = id ? `?id=${id}` : "";
+    return getJson(`/inbody${query}`);
 }
 
 // --- Mypage ---
 
-export async function getMypage() {
-    return getJson("/mypage");
+export async function getMypage(id?: string | null) {
+    const query = id ? `?id=${id}` : "";
+    return getJson(`/mypage${query}`);
 }
 
 // --- Record ---
@@ -93,8 +103,9 @@ export async function getRecord(date?: string) {
 
 // --- User ---
 
-export async function getUser() {
-    return getJson("/user");
+export async function getUser(id?: string | null) {
+    const query = id ? `?id=${id}` : "";
+    return getJson(`/user${query}`);
 }
 
 export async function getUserGoal() {

@@ -34,9 +34,11 @@ export default function Mainpage() {
       return;
     }
 
-    getUser()
+    console.log("Fetching user info for ID:", userId); // 디버깅 로그
+    getUser(userId)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
+        console.log("User API Response:", data); // 디버깅 로그
         if (data) setUser(data);
         setIsLoading(false);
       })

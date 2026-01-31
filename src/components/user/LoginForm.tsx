@@ -23,6 +23,7 @@ export default function LoginForm() {
             const res = await login(form.username, form.password)
             if (res && (res.id || res.token)) {
                 localStorage.setItem("user_id", res.id || "dummy_id")
+                if (res.user_number) localStorage.setItem("user_number", res.user_number);
                 router.push("/")
             } else {
                 throw new Error("로그인 실패")

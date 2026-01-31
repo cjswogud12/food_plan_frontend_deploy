@@ -34,7 +34,8 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
         const fetchData = async () => {
             try {
                 // 유저 정보 가져오기
-                const userRes = await getUser();
+                const userId = localStorage.getItem("user_id");
+                const userRes = await getUser(userId);
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     if (Array.isArray(userData) && userData.length > 0) setUser(userData[0]);
@@ -50,13 +51,23 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                 }
 
                 // 체형 분류 가져와서 목표 설정
-                const userNumber = localStorage.getItem("user_id");
-                if (userNumber) {
-                    const classifyRes = await getBodyClassification(Number(userNumber));
-                    if (classifyRes.ok) {
-                        const classifyData = await classifyRes.json();
-                        setGoal(getGoalFromStage(classifyData.stage1));
+                const userNumber = localStorage.getItem("user_number");
+                console.log("체형 분석 요청 시도, user_number:", userNumber); // 디버깅 로그
+
+                if (userNumber && !isNaN(Number(userNumber))) {
+                    try {
+                        const classifyRes = await getBodyClassification(Number(userNumber));
+                        if (classifyRes.ok) {
+                            const classifyData = await classifyRes.json();
+                            setGoal(getGoalFromStage(classifyData.stage1));
+                        } else {
+                            console.error("체형 분석 API 응답 실패:", classifyRes.status);
+                        }
+                    } catch (error) {
+                        console.error("체형 분석 API 호출 중 에러 발생:", error);
                     }
+                } else {
+                    console.warn("유효한 user_number가 없어 체형 분석을 건너뜁니다.");
                 }
 
             } catch (error) {

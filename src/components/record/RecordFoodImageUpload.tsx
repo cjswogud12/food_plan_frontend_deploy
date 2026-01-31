@@ -23,11 +23,17 @@ export default function FoodImageUpload({ mealType, onUploadSuccess, onClose }: 
             const formData = new FormData();
             formData.append('image', file);
             formData.append('meal_type', mealType);
-            
+
             // user_number가 필요하면 추가
-            const userId = localStorage.getItem("user_id");
-            if (userId) {
-                formData.append('user_number', userId);
+            // user_number가 필요하면 추가
+            const userNumber = localStorage.getItem("user_number");
+            if (userNumber) {
+                formData.append('user_number', userNumber);
+            }
+
+            // FormData 확인을 위한 로그 추가
+            for (const pair of formData.entries()) {
+                console.log(`FormData: ${pair[0]}, ${pair[1]}`);
             }
 
             const response = await uploadFoodImage(formData);
@@ -37,11 +43,13 @@ export default function FoodImageUpload({ mealType, onUploadSuccess, onClose }: 
                 alert("음식 이미지가 업로드되었습니다!");
                 onUploadSuccess?.(data);
             } else {
-                alert("업로드에 실패했습니다.");
+                const errText = await response.text();
+                console.error("업로드 실패 상세:", response.status, errText);
+                alert(`업로드에 실패했습니다. (Error: ${response.status}) \n${errText}`);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("업로드 오류:", err);
-            alert("업로드 중 오류가 발생했습니다.");
+            alert(`업로드 중 오류가 발생했습니다: ${err.message}`);
         } finally {
             setIsUploading(false);
             e.target.value = '';

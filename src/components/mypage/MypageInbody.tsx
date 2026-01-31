@@ -7,9 +7,10 @@ import { getInbody } from "@/api/index"
 
 interface MypageBodyCompositionProps {
     inbodyDataProp?: Partial<InbodyRecord> | null;
+    onInbodyUpdate?: () => void;
 }
 
-export default function MypageBodyComposition({ inbodyDataProp }: MypageBodyCompositionProps) {
+export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }: MypageBodyCompositionProps) {
     const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
 
     useEffect(() => {
@@ -51,6 +52,8 @@ export default function MypageBodyComposition({ inbodyDataProp }: MypageBodyComp
                     } else if (data && !Array.isArray(data)) {
                         setInbodyData(data);
                     }
+                    // 상위 컴포넌트에 업데이트 알림 (예: 식단 목표 갱신 등)
+                    if (onInbodyUpdate) onInbodyUpdate();
                 }
             } catch (error) {
                 console.error("Failed to refresh data after upload:", error);

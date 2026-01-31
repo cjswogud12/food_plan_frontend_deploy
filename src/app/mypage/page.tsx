@@ -21,6 +21,7 @@ export default function Mypage() {
     const [error, setError] = useState<string | null>(null);
     const [inbodyrecords, setInbodyRecords] = useState<Partial<InbodyRecord>[]>([]);
     const [goal, setGoal] = useState<string>("-");
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // API에서 goal 가져오기
     useEffect(() => {
@@ -127,10 +128,13 @@ export default function Mypage() {
             <div className="p-4 flex flex-col gap-4 pb-24 bg-purple-100">
                 <h1 className="text-lg font-bold text-slate-800">마이페이지</h1>
                 {/* 1. 유저 프로필 섹션 (mypage_profile_target.tsx) */}
-                <MypageProfileTarget foodrecords={foodrecords} goal={goal} />
+                <MypageProfileTarget key={refreshKey} foodrecords={foodrecords} goal={goal} />
 
                 {/* 2. 체성분 (mypage_inbody.tsx) */}
-                <MypageInbody inbodyDataProp={inbodyData} />
+                <MypageInbody
+                    inbodyDataProp={inbodyData}
+                    onInbodyUpdate={() => setRefreshKey(prev => prev + 1)}
+                />
 
                 {/* 3. 메뉴 (mypage_menu.tsx) */}
                 <MypageMenu onGoalChange={setGoal} />

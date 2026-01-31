@@ -87,7 +87,11 @@ export default function RecordPage() {
     const dateString = toDateString(d);
 
     try {
-      const response = await getRecord(dateString);
+      // 로컬스토리지에서 userNumber 가져오기 (없으면 undefined)
+      const userNumberStr = localStorage.getItem("user_number");
+      const userNumber = userNumberStr ? Number(userNumberStr) : undefined;
+
+      const response = await getRecord(dateString, userNumber);
       if (!response.ok) throw new Error("Failed to fetch records");
 
       const data = await response.json();
@@ -105,9 +109,13 @@ export default function RecordPage() {
     const formData = new FormData();
     formData.append("image", file);
     formData.append("meal_type", mealType);
+    formData.append("record_date", toDateString(selectedDate));
 
-    const userId = localStorage.getItem("user_id");
-    if (userId) formData.append("user_number", userId);
+    const userNumber = localStorage.getItem("user_number");
+    if (userNumber) formData.append("user_number", userNumber);
+
+    // 디버깅용 로그
+    for (const p of formData.entries()) console.log(`[RecordPage] Upload: ${p[0]} = ${p[1]}`);
 
     try {
       const response = await uploadFoodImage(formData);

@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { User as UserIcon } from "lucide-react";
 import { Record, User, UserGoal } from "@/types/definitions";
-import { getUser, getUserGoal } from "@/api/index";
-import { getBodyClassification } from "@/api/index";
+import { getUser, getUserGoal, getInbody, getBodyClassification } from "@/api/index";
 
 interface MypageProfileTargetProps {
     foodrecords?: Record[];
@@ -16,11 +15,13 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
     const [userGoal, setUserGoal] = useState<UserGoal | null>(null);
     const [goal, setGoal] = useState<string>(propGoal || "-");
 
-    const getGoalFromStage = (stage1: string): string => {
-        if (stage1 === "비만") return "다이어트";
-        if (stage1 === "마름") return "증량";
-        if (stage1 === "표준") return "유지";
-        return "-";
+    const getGoalFromStage = (stage1: string | number): string => {
+        console.log("매핑 전 stage1 값:", stage1); // 디버깅용 로그
+        const s = String(stage1).trim();
+        if (s === "비만" || s === "1" || s === "DIET") return "다이어트";
+        if (s === "표준" || s === "2" || s === "MAINTAIN") return "유지";
+        if (s === "마름" || s === "3" || s === "BULKUP") return "증량"; // 혹은 근육증가
+        return s; // 매핑 안 되면 원래 값 표시
     };
 
     // propGoal이 변경되면 goal state 업데이트
@@ -37,6 +38,7 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                 const userId = localStorage.getItem("user_id");
                 const userRes = await getUser(userId);
                 let currentUserNumber: number | null = null;
+                let userGender: string = "M"; // 기본값
 
                 if (userRes.ok) {
                     const userData = await userRes.json();
@@ -50,7 +52,7 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
 
                     if (targetUser) {
                         setUser(targetUser);
-                        // 최신 user_number 확보 및 로컬스토리지 갱신
+                        if (targetUser.gender) userGender = targetUser.gender;
                         if (targetUser.user_number) {
                             currentUserNumber = targetUser.user_number;
                             localStorage.setItem("user_number", String(currentUserNumber));
@@ -66,19 +68,51 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                     else if (goalData && !Array.isArray(goalData)) setUserGoal(goalData);
                 }
 
-                // 체형 분류 가져와서 목표 설정 (확보한 최신 user_number 사용)
-                // 만약 API에서 못 가져왔다면 기존 로컬스토리지 값이라도 시도
+                // 체형 분류 가져와서 목표 설정
                 const targetNumber = currentUserNumber || Number(localStorage.getItem("user_number"));
                 console.log("체형 분석 요청 시도, user_number:", targetNumber);
 
                 if (targetNumber && !isNaN(targetNumber)) {
+                    // 최신 인바디 데이터 가져오기 (필수값 확보)
+                    let bodyData: any = {
+                        // 백엔드가 요구하는 필드명 'gender'로 수정 (값은 M/F)
+                        gender: (userGender === 'M' || userGender === '남') ? 'M' : 'F',
+                        // 기본값 세팅
+                        height_cm: 170,
+                        weight_kg: 70,
+                        body_fat_kg: 10,
+                        body_fat_pct: 15,
+                        skeletal_muscle_kg: 30
+                    };
+
                     try {
-                        const classifyRes = await getBodyClassification(targetNumber);
+                        const inbodyRes = await getInbody(userId);
+                        if (inbodyRes.ok) {
+                            const inbodyJson = await inbodyRes.json();
+                            const latestInfo = Array.isArray(inbodyJson) ? inbodyJson[0] : inbodyJson;
+                            if (latestInfo) {
+                                bodyData.height_cm = latestInfo.height || 170;
+                                bodyData.weight_kg = latestInfo.weight || 70;
+                                bodyData.skeletal_muscle_kg = latestInfo.skeletal_muscle_mass || 30;
+                                bodyData.body_fat_pct = latestInfo.body_fat_pct || 15;
+                                // 체지방량(kg)이 없다면 계산해서라도 넣어야 함: 체중 * (체지방률/100)
+                                if (latestInfo.weight && latestInfo.body_fat_pct) {
+                                    bodyData.body_fat_kg = (latestInfo.weight * (latestInfo.body_fat_pct / 100));
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("인바디 데이터 조회 실패, 기본값 사용");
+                    }
+
+                    try {
+                        const classifyRes = await getBodyClassification(targetNumber, bodyData);
                         if (classifyRes.ok) {
                             const classifyData = await classifyRes.json();
                             setGoal(getGoalFromStage(classifyData.stage1));
                         } else {
-                            console.error("체형 분석 API 응답 실패:", classifyRes.status);
+                            const errDetail = await classifyRes.text();
+                            console.error("체형 분석 API 응답 실패:", classifyRes.status, errDetail);
                         }
                     } catch (error) {
                         console.error("체형 분석 API 호출 중 에러 발생:", error);

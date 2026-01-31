@@ -102,8 +102,11 @@ export async function getMypage(id?: string | null) {
 
 // --- Record ---
 
-export async function getRecord(date?: string) {
-    const query = date ? `?date=${date}` : "";
+export async function getRecord(date?: string, userNumber?: number) {
+    let query = date ? `?date=${date}` : "";
+    if (userNumber) {
+        query += query ? `&user_number=${userNumber}` : `?user_number=${userNumber}`;
+    }
     return getJson(`/record${query}`);
 }
 
@@ -124,8 +127,13 @@ export async function updateUserGoal(goalType: string) {
 
 // --- 체형 분류 ---
 // user_number를 보내면 stage1, stage2, metrics, reason 등을 반환
-export async function getBodyClassification(userNumber: number) {
-    return postJson(`/classify/bodytype`, { user_number: userNumber });
+// --- 체형 분류 ---
+export async function getBodyClassification(userNumber: number, bodyData?: any) {
+    const payload = {
+        user_number: userNumber,
+        ...(bodyData || {})
+    };
+    return postJson(`/classify/bodytype?user_number=${userNumber}`, payload);
 }
 // --- 인바디 기록 조회---
 // user_number와 limit(개수)를 보내면 인바디 기록 배열을 반환

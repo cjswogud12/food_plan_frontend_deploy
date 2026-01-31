@@ -9,6 +9,7 @@ export interface User {
     email: string;
     provider_user_id: string; //소셜 로그인 용 아이디
     role: string; //권한
+    gender?: string;
 }
 
 export interface UserProfile {

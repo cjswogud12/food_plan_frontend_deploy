@@ -10,9 +10,8 @@ export default function MypageFixLogoutbt() {
         try {
             await logout();
             // 로그아웃 성공 후 처리
-            localStorage.removeItem("user_id");
-            localStorage.removeItem("user_number");
-            localStorage.removeItem("username"); // 혹시 저장했다면 
+            localStorage.clear();
+            sessionStorage.clear();
             alert("로그아웃 되었습니다.");
             router.push("/login");
         } catch (error) {

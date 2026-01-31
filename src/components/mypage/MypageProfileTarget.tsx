@@ -33,13 +33,29 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 유저 정보 가져오기
+                // 유저 정보 가져오기 (가장 먼저 수행하여 최신 user_number 확보)
                 const userId = localStorage.getItem("user_id");
                 const userRes = await getUser(userId);
+                let currentUserNumber: number | null = null;
+
                 if (userRes.ok) {
                     const userData = await userRes.json();
-                    if (Array.isArray(userData) && userData.length > 0) setUser(userData[0]);
-                    else if (userData && !Array.isArray(userData)) setUser(userData);
+                    let targetUser: User | null = null;
+
+                    if (Array.isArray(userData) && userData.length > 0) {
+                        targetUser = userData[0];
+                    } else if (userData && !Array.isArray(userData)) {
+                        targetUser = userData;
+                    }
+
+                    if (targetUser) {
+                        setUser(targetUser);
+                        // 최신 user_number 확보 및 로컬스토리지 갱신
+                        if (targetUser.user_number) {
+                            currentUserNumber = targetUser.user_number;
+                            localStorage.setItem("user_number", String(currentUserNumber));
+                        }
+                    }
                 }
 
                 // 유저 목표 가져오기
@@ -50,13 +66,14 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                     else if (goalData && !Array.isArray(goalData)) setUserGoal(goalData);
                 }
 
-                // 체형 분류 가져와서 목표 설정
-                const userNumber = localStorage.getItem("user_number");
-                console.log("체형 분석 요청 시도, user_number:", userNumber); // 디버깅 로그
+                // 체형 분류 가져와서 목표 설정 (확보한 최신 user_number 사용)
+                // 만약 API에서 못 가져왔다면 기존 로컬스토리지 값이라도 시도
+                const targetNumber = currentUserNumber || Number(localStorage.getItem("user_number"));
+                console.log("체형 분석 요청 시도, user_number:", targetNumber);
 
-                if (userNumber && !isNaN(Number(userNumber))) {
+                if (targetNumber && !isNaN(targetNumber)) {
                     try {
-                        const classifyRes = await getBodyClassification(Number(userNumber));
+                        const classifyRes = await getBodyClassification(targetNumber);
                         if (classifyRes.ok) {
                             const classifyData = await classifyRes.json();
                             setGoal(getGoalFromStage(classifyData.stage1));

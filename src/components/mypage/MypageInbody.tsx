@@ -38,6 +38,27 @@ export default function MypageBodyComposition({ inbodyDataProp }: MypageBodyComp
         fetchData();
     }, [inbodyDataProp]);
 
+    const handleUploadSuccess = () => {
+        // 업로드 성공 시 무조건 서버에서 최신 데이터를 다시 가져옴
+        const fetchData = async () => {
+            try {
+                const userId = localStorage.getItem("user_id");
+                const response = await getInbody(userId);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        setInbodyData(data[0]);
+                    } else if (data && !Array.isArray(data)) {
+                        setInbodyData(data);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to refresh data after upload:", error);
+            }
+        };
+        fetchData();
+    };
+
     return (
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <div className="card-container">
@@ -70,7 +91,7 @@ export default function MypageBodyComposition({ inbodyDataProp }: MypageBodyComp
                         </span>
                     </div>
                 </div>
-                <InbodyUpload />
+                <InbodyUpload onUploadSuccess={handleUploadSuccess} />
             </div>
         </section>
     );

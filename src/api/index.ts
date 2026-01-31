@@ -14,7 +14,8 @@ export async function postFormData(
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: "POST",
             body: formData,
-            signal: controller.signal
+            signal: controller.signal,
+            credentials: "include"
         });
         return response;
     } finally {
@@ -26,13 +27,16 @@ export async function postJson(endpoint: string, data: object) {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        credentials: "include"
     });
     return response;
 }
 
 export async function getJson(endpoint: string) {
-    const response = await fetch(`${BASE_URL}${endpoint}`);
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+        credentials: "include"
+    });
     return response;
 }
 
@@ -43,6 +47,7 @@ export async function login(id: string, password: string) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, password }),
+        credentials: "include"
     })
     if (!res.ok) throw new Error((await res.json()).detail || "로그인 실패")
     return res.json()
@@ -51,6 +56,7 @@ export async function login(id: string, password: string) {
 export async function logout() {
     const res = await fetch(`${BASE_URL}/logout`, {
         method: "POST",
+        credentials: "include"
     })
     if (!res.ok) throw new Error((await res.json()).detail || "로그아웃 실패")
     return res.json()
@@ -79,7 +85,7 @@ export async function uploadInbodyImage(
     options?: { timeoutMs?: number }
 ) {
     // 예: 백엔드가 /inbody/upload 라면 그에 맞춰 수정
-    return postFormData("/inbody/upload", formData, options);
+    return postFormData("/inbody-ocr", formData, options);
 }
 
 export async function getInbody(id?: string | null) {
@@ -119,7 +125,7 @@ export async function updateUserGoal(goalType: string) {
 // --- 체형 분류 ---
 // user_number를 보내면 stage1, stage2, metrics, reason 등을 반환
 export async function getBodyClassification(userNumber: number) {
-    return postJson(`/classify/bodytype/by-user`, { user_number: userNumber });
+    return postJson(`/classify/bodytype`, { user_number: userNumber });
 }
 // --- 인바디 기록 조회---
 // user_number와 limit(개수)를 보내면 인바디 기록 배열을 반환

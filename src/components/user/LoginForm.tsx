@@ -36,9 +36,10 @@ export default function LoginForm() {
         }
     }
 
-    // 구글 소셜 로그인 기능은 추가 안함.
+    // 구글 소셜 로그인 - 백엔드 OAuth 엔드포인트로 리다이렉트
     const handleGoogleLogin = () => {
-        alert("구글 로그인 실패")
+        // 백엔드에서 구글 OAuth URL 설정 필요
+        window.location.href = "http://localhost:8000/api/auth/google";
     }
     return (
         <main className="flex flex-col w-full h-full justify-center">

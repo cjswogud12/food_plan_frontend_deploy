@@ -5,7 +5,7 @@ import { useViewport } from "@/context/ViewportContext";
 import FloatingCameraButton from "@/components/FloatingCameraButton";
 import CalendarFull from "@/components/MainCalendarFull";
 import { FoodAnalysisResult } from "@/types/definitions";
-import { getRecord, uploadFoodImage } from "@/api/index";
+import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord } from "@/api/index";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
@@ -17,7 +17,7 @@ interface DailyMealData {
 }
 
 // ✅ 백엔드 주소 (나중에 env로 빼는 걸 추천)
-const API_ORIGIN = "http://localhost:8000";
+const API_ORIGIN = "http://localhost:8000/api";
 
 /**
  * ✅ 백엔드 /api/record 응답(배열)을 끼니별로 그룹핑
@@ -104,6 +104,40 @@ export default function RecordPage() {
     }
   };
 
+  // 삭제 핸들러
+  const handleDeleteDate = async () => {
+    if (!confirm("해당 날짜의 모든 기록을 삭제하시겠습니까?")) return;
+
+    try {
+      const userNumber = localStorage.getItem("user_number");
+      const userNum = userNumber ? Number(userNumber) : undefined;
+      await deleteDayRecords(toDateString(selectedDate), userNum);
+      alert("삭제되었습니다.");
+      fetchRecords(selectedDate); // Refresh
+    } catch (error) {
+      console.error("Delete Error", error);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
+  // 개별/일괄 기록 삭제 핸들러
+  const handleDeleteRecord = async (recordIds: number | number[]) => {
+    try {
+      if (Array.isArray(recordIds)) {
+        // 일괄 삭제
+        await Promise.all(recordIds.map(id => deleteRecord(id)));
+      } else {
+        // 단일 삭제
+        await deleteRecord(recordIds);
+      }
+      alert("삭제가 완료되었습니다.");
+      fetchRecords(selectedDate);
+    } catch (error) {
+      console.error("Delete Record Error", error);
+      alert("기록 삭제 실패");
+    }
+  };
+
   // 파일 선택 후 업로드 처리
   const handleFileUpload = async (mealType: keyof typeof fileInputRefs, file: File) => {
     const formData = new FormData();
@@ -125,7 +159,14 @@ export default function RecordPage() {
         // ✅ 업로드 후 새로고침
         await fetchRecords(selectedDate);
       } else {
-        alert("업로드 실패");
+        const errorText = await response.text();
+        console.error("Upload failed:", response.status, errorText);
+        try {
+          const errorJson = JSON.parse(errorText);
+          alert(`업로드 실패: ${errorJson.detail || errorText}`);
+        } catch {
+          alert(`업로드 실패 (${response.status}): ${errorText}`);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -157,11 +198,19 @@ export default function RecordPage() {
     <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col overflow-y-auto">
       <div className="p-4 max-w-md mx-auto w-full pb-24">
         {/* Header */}
-        <header className="mb-6 pt-4">
-          <span className="block text-sm text-slate-500 mb-1">
-            {isMobile ? "모바일" : "PC"}
-          </span>
-          <h1 className="text-2xl font-bold text-slate-800">기록</h1>
+        <header className="mb-6 pt-4 flex justify-between items-center">
+          <div>
+            <span className="block text-sm text-slate-500 mb-1">
+              {isMobile ? "모바일" : "PC"}
+            </span>
+            <h1 className="text-2xl font-bold text-slate-800">기록</h1>
+          </div>
+          <button
+            onClick={handleDeleteDate}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition-colors"
+          >
+            기록 삭제
+          </button>
         </header>
 
         {/* Full Calendar */}
@@ -191,12 +240,32 @@ export default function RecordPage() {
           </div>
         </section>
 
-        {/* Meal Lists - 2x2 Grid */}
-        <section className="grid grid-cols-2 gap-3 pb-8">
-          <RecordMealGroup title="아침" records={mealData.breakfast} onAddClick={() => handleAddMeal("breakfast")} />
-          <RecordMealGroup title="점심" records={mealData.lunch} onAddClick={() => handleAddMeal("lunch")} />
-          <RecordMealGroup title="저녁" records={mealData.dinner} onAddClick={() => handleAddMeal("dinner")} />
-          <RecordMealGroup title="간식" records={mealData.snack} onAddClick={() => handleAddMeal("snack")} />
+        {/* Meal Lists - Vertical Stack */}
+        <section className="flex flex-col gap-4 pb-8">
+          <RecordMealGroup
+            title="아침"
+            records={mealData.breakfast}
+            onAddClick={() => handleAddMeal("breakfast")}
+            onDeleteRecord={handleDeleteRecord}
+          />
+          <RecordMealGroup
+            title="점심"
+            records={mealData.lunch}
+            onAddClick={() => handleAddMeal("lunch")}
+            onDeleteRecord={handleDeleteRecord}
+          />
+          <RecordMealGroup
+            title="저녁"
+            records={mealData.dinner}
+            onAddClick={() => handleAddMeal("dinner")}
+            onDeleteRecord={handleDeleteRecord}
+          />
+          <RecordMealGroup
+            title="간식"
+            records={mealData.snack}
+            onAddClick={() => handleAddMeal("snack")}
+            onDeleteRecord={handleDeleteRecord}
+          />
         </section>
 
         {/* 각 시간 별 음식 저장 */}

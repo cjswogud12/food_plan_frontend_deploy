@@ -246,19 +246,19 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
 
             {/* 챗봇 팝업 모달 */}
             {showChatbot && (
-                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-md h-[80vh] flex flex-col overflow-hidden shadow-2xl">
-                        {/* 팝업 헤더 */}
-                        <div className="flex justify-end p-2 bg-gray-100">
+                <div className="absolute inset-0 z-[100] flex flex-col">
+                    <div className="w-full h-full overflow-hidden relative">
+                        {/* 팝업 헤더 - 닫기 버튼 */}
+                        <div className="absolute top-4 right-4 z-50">
                             <button
                                 onClick={closeChatbot}
-                                className="p-2 hover:bg-gray-200 rounded-full"
+                                className="p-2 bg-white rounded-full text-black hover:bg-gray-100 shadow-md transition-colors border border-gray-200"
                             >
                                 <X size={24} />
                             </button>
                         </div>
                         {/* 챗봇 컴포넌트 */}
-                        <div className="flex-1 overflow-hidden">
+                        <div className="w-full h-full">
                             <AiChatbot />
                         </div>
                     </div>

@@ -23,18 +23,7 @@ export default function FoodImageUpload({ mealType, onUploadSuccess, onClose }: 
             const formData = new FormData();
             formData.append('image', file);
             formData.append('meal_type', mealType);
-
-            // user_number가 필요하면 추가
-            // user_number가 필요하면 추가
-            const userNumber = localStorage.getItem("user_number");
-            if (userNumber) {
-                formData.append('user_number', userNumber);
-            }
-
-            // FormData 확인을 위한 로그 추가
-            for (const pair of formData.entries()) {
-                console.log(`FormData: ${pair[0]}, ${pair[1]}`);
-            }
+            // user_number는 백엔드 세션에서 처리
 
             const response = await uploadFoodImage(formData);
 

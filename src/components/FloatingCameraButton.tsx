@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Camera, Plus, X, MessageCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import AiChatbot from "@/components/AiChatBot/Aichatbot"
-import { uploadInbodyImage } from "@/api/index";
+import { uploadInbodyImage, uploadFoodImage } from "@/api/index";
 
 interface FloatingCameraButtonProps {
     onUploadSuccess?: (data?: unknown) => void;
@@ -14,6 +15,9 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
     const [showCamera, setShowCamera] = useState(false);
     const [showChatbot, setShowChatbot] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [cameraMode, setCameraMode] = useState<'inbody' | 'food'>('food');
+    const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
+    const [showMealOptions, setShowMealOptions] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -44,8 +48,15 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
             const formData = new FormData();
             formData.append('image', blob, `photo_${Date.now()}.jpg`);
 
-            // API 호출
-            const response = await uploadInbodyImage(formData);
+            // 음식 모드일 때 meal_type 추가 (user_number는 백엔드 세션에서 처리)
+            if (cameraMode === 'food') {
+                formData.append('meal_type', mealType);
+            }
+
+            // 모드에 따라 다른 API 호출
+            const response = cameraMode === 'inbody'
+                ? await uploadInbodyImage(formData)
+                : await uploadFoodImage(formData);
             let responseData: unknown = undefined;
             const success = response.ok;
 
@@ -55,7 +66,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                 } catch {
                     // Ignore JSON parse errors for non-JSON responses
                 }
-                alert("이미지가 업로드되었습니다!");
+                alert(cameraMode === 'inbody' ? "인바디 이미지가 업로드되었습니다!" : "음식 이미지가 업로드되었습니다!");
                 onUploadSuccess?.(responseData);
                 closeCamera();
             } else {
@@ -70,6 +81,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
             setIsProcessing(false);
         }
     };
+
 
     // 카메라 시작
     const startCamera = async () => {
@@ -194,6 +206,69 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                         >
                             <X size={24} />
                         </button>
+                        {/* 모드 선택 탭 */}
+                        <div className="flex justify-center items-center gap-2 p-3">
+                            <Button
+                                onClick={() => {
+                                    setCameraMode('inbody');
+                                    setShowMealOptions(false);
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className={`rounded-full ${cameraMode === 'inbody'
+                                    ? 'bg-white text-black hover:bg-white/90'
+                                    : 'bg-white/20 text-white/70 hover:bg-white/30'}`}
+                            >
+                                인바디
+                            </Button>
+
+                            {/* 음식 기록 버튼 - FAB 스타일 */}
+                            <div className="relative">
+                                <Button
+                                    onClick={() => {
+                                        setCameraMode('food');
+                                        setShowMealOptions(!showMealOptions);
+                                    }}
+                                    variant="ghost"
+                                    size="sm"
+                                    className={`rounded-full ${cameraMode === 'food'
+                                        ? 'bg-white text-black hover:bg-white/90'
+                                        : 'bg-white/20 text-white/70 hover:bg-white/30'}`}
+                                >
+                                    음식 기록
+                                </Button>
+
+                                {/* FAB 서브메뉴 - 아래로 펼쳐짐 */}
+                                {showMealOptions && cameraMode === 'food' && (
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 flex flex-col gap-2 z-50">
+                                        {[
+                                            { key: 'breakfast', label: '아침' },
+                                            { key: 'lunch', label: '점심' },
+                                            { key: 'dinner', label: '저녁' },
+                                            { key: 'snack', label: '간식' }
+                                        ].map(({ key, label }, index) => (
+                                            <Button
+                                                key={key}
+                                                onClick={() => {
+                                                    setMealType(key as typeof mealType);
+                                                    setShowMealOptions(false);
+                                                }}
+                                                variant="ghost"
+                                                size="xs"
+                                                className={`rounded-full whitespace-nowrap transition-all duration-200 ${mealType === key
+                                                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                                                    : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                                                style={{
+                                                    animation: `fadeInUp 0.2s ease-out ${index * 0.05}s both`
+                                                }}
+                                            >
+                                                {label}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* 비디오/이미지 영역 */}

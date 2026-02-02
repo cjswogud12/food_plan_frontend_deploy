@@ -110,6 +110,28 @@ export async function getRecord(date?: string, userNumber?: number) {
     return getJson(`/record${query}`);
 }
 
+export async function deleteDayRecords(date: string, userNumber?: number) {
+    let query = `?date=${date}`;
+    if (userNumber) {
+        query += `&user_number=${userNumber}`;
+    }
+    const response = await fetch(`${BASE_URL}/record${query}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+    if (!response.ok) throw new Error("Failed to delete records");
+    return response.json();
+}
+
+export async function deleteRecord(recordId: number) {
+    const response = await fetch(`${BASE_URL}/record?record_id=${recordId}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+    // if (!response.ok) throw new Error("Failed to delete record"); // 백엔드 응답이 204일수도 있고 200일수도 있음
+    return response;
+}
+
 // --- User ---
 
 export async function getUser(id?: string | null) {
@@ -144,4 +166,9 @@ export async function getInbodyHistory(userNumber: number, limit: number = 10) {
 // --- 음식 이미지 업로드 ---
 export async function uploadFoodImage(formData: FormData) {
     return postFormData("/vision/food", formData, { timeoutMs: 15000 });
+}
+
+// --- Chatbot ---
+export async function chat(message: string, context: any) {
+    return postJson("/chat", { message, context });
 }

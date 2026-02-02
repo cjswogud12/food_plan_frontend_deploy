@@ -100,7 +100,7 @@ export async function getMypage(id?: string | null) {
     return getJson(`/mypage${query}`);
 }
 
-// --- Record ---
+// --- Record 음식 삭제 ---
 
 export async function getRecord(date?: string, userNumber?: number) {
     let query = date ? `?date=${date}` : "";
@@ -124,7 +124,7 @@ export async function deleteDayRecords(date: string, userNumber?: number) {
 }
 
 export async function deleteRecord(recordId: number) {
-    const response = await fetch(`${BASE_URL}/record?record_id=${recordId}`, {
+    const response = await fetch(`${BASE_URL}/record/${recordId}`, {
         method: "DELETE",
         credentials: "include"
     });

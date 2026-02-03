@@ -18,7 +18,7 @@ interface DailyMealData {
 }
 
 // ✅ 백엔드 주소 (나중에 env로 빼는 걸 추천)
-const API_ORIGIN = "http://localhost:8000/api";
+const API_ORIGIN = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 /**
  * ✅ 백엔드 /api/record 응답(배열)을 끼니별로 그룹핑

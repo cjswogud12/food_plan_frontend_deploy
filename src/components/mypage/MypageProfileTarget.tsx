@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { User as UserIcon } from "lucide-react";
-import { Record, User, UserGoal } from "@/types/definitions";
+import { Record, UserGoal, User } from "@/types/definitions";
 import { getUser, getUserGoal, getInbody, getBodyClassification } from "@/api/index";
+import { useUserStore } from "@/store";
 
 interface MypageProfileTargetProps {
     foodrecords?: Record[];
@@ -11,8 +12,10 @@ interface MypageProfileTargetProps {
 }
 
 export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }: MypageProfileTargetProps) {
-    const [user, setUser] = useState<User | null>(null);
-    const [userGoal, setUserGoal] = useState<UserGoal | null>(null);
+    // Zustand Store
+    const { user, setUser, userGoal, setUserGoal } = useUserStore();
+
+    // Local State
     const [goal, setGoal] = useState<string>(propGoal || "-");
 
     const getGoalFromStage = (stage1: string | number): string => {

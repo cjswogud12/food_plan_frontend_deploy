@@ -7,6 +7,7 @@ import CalendarFull from "@/components/MainCalendarFull";
 import { FoodAnalysisResult } from "@/types/definitions";
 import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord } from "@/api/index";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
+import { useDietStore } from "@/store";
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
 interface DailyMealData {
@@ -53,6 +54,9 @@ function groupByMealType(rows: any[]): DailyMealData {
 
 export default function RecordPage() {
   const { isMobile } = useViewport();
+
+  // Zustand Store - 체크된 음식 가져오기
+  const { checkedMeals } = useDietStore();
 
   // State
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -175,18 +179,33 @@ export default function RecordPage() {
   };
 
   // Calculate Totals
+  // 선택된 날짜의 체크된 음식 가져오기
+  const dateString = toDateString(selectedDate);
+  const checkedForDate = checkedMeals[dateString] || { breakfast: [], lunch: [], dinner: [] };
+
+  // 체크된 음식에 isFromPlan 플래그 추가
+  const addPlanFlag = (items: any[]) => items.map(item => ({ ...item, isFromPlan: true }));
+
+  // API 데이터 + 체크된 음식 합치기
+  const combinedMealData = {
+    breakfast: [...mealData.breakfast, ...addPlanFlag(checkedForDate.breakfast || [])],
+    lunch: [...mealData.lunch, ...addPlanFlag(checkedForDate.lunch || [])],
+    dinner: [...mealData.dinner, ...addPlanFlag(checkedForDate.dinner || [])],
+    snack: mealData.snack,
+  };
+
   const allRecords = [
-    ...mealData.breakfast,
-    ...mealData.lunch,
-    ...mealData.dinner,
-    ...mealData.snack,
+    ...combinedMealData.breakfast,
+    ...combinedMealData.lunch,
+    ...combinedMealData.dinner,
+    ...combinedMealData.snack,
   ];
 
   // ✅ 백엔드 필드명(food_*) 기준으로 합산 (estimated_* 쓰면 계속 0 나올 수 있음)
-  const totalCalories = allRecords.reduce((sum: number, r: any) => sum + (r.food_calories || 0), 0);
-  const totalCarbs = allRecords.reduce((sum: number, r: any) => sum + (r.food_carbs || 0), 0);
-  const totalProteins = allRecords.reduce((sum: number, r: any) => sum + (r.food_protein || 0), 0);
-  const totalFats = allRecords.reduce((sum: number, r: any) => sum + (r.food_fats || 0), 0);
+  const totalCalories = allRecords.reduce((sum: number, r: any) => sum + (r.food_calories || r.calories || 0), 0);
+  const totalCarbs = allRecords.reduce((sum: number, r: any) => sum + (r.food_carbs || r.carbohydrate || 0), 0);
+  const totalProteins = allRecords.reduce((sum: number, r: any) => sum + (r.food_protein || r.protein || 0), 0);
+  const totalFats = allRecords.reduce((sum: number, r: any) => sum + (r.food_fats || r.fat || 0), 0);
 
   // API Fetch for Selected Date
   useEffect(() => {
@@ -244,25 +263,25 @@ export default function RecordPage() {
         <section className="flex flex-col gap-4 pb-8">
           <RecordMealGroup
             title="아침"
-            records={mealData.breakfast}
+            records={combinedMealData.breakfast}
             onAddClick={() => handleAddMeal("breakfast")}
             onDeleteRecord={handleDeleteRecord}
           />
           <RecordMealGroup
             title="점심"
-            records={mealData.lunch}
+            records={combinedMealData.lunch}
             onAddClick={() => handleAddMeal("lunch")}
             onDeleteRecord={handleDeleteRecord}
           />
           <RecordMealGroup
             title="저녁"
-            records={mealData.dinner}
+            records={combinedMealData.dinner}
             onAddClick={() => handleAddMeal("dinner")}
             onDeleteRecord={handleDeleteRecord}
           />
           <RecordMealGroup
             title="간식"
-            records={mealData.snack}
+            records={combinedMealData.snack}
             onAddClick={() => handleAddMeal("snack")}
             onDeleteRecord={handleDeleteRecord}
           />

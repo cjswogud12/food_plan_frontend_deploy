@@ -4,9 +4,9 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
-import { Plus, ChevronRight, Utensils } from "lucide-react"
-import { User } from "@/types/definitions"
+import { Plus, ChevronRight, Utensils, Check, Square } from "lucide-react"
 import { getUser, getDietplan, getUserGoal, getTodayIntake } from "@/api/index"
+import { useUserStore, useDietStore } from "@/store"
 
 /*interface MealPlan {
   breakfast: any[];
@@ -19,11 +19,15 @@ export default function Mainpage() {
   const { isMobile } = useViewport();
   const router = useRouter();
 
-  // State
-  const [user, setUser] = useState<User | null>(null);
+  // Zustand Store 전역 상태관리
+  const { user, setUser } = useUserStore();
+  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck } = useDietStore();
+
+  // 오늘 날짜 (YYYY-MM-DD)
+  const today = new Date().toISOString().split('T')[0];
+
+  // Local State 로컬 상태관리
   const [isLoading, setIsLoading] = useState(true);
-  const [dietPlan, setDietPlan] = useState<any>(null);
-  const [todayIntake, setTodayIntake] = useState<any>(null);
   /*const [mealPlan, setMealPlan] = useState<MealPlan>({
     breakfast: [], lunch: [], dinner: [], snack: []
   });*/
@@ -52,6 +56,13 @@ export default function Mainpage() {
 
   useEffect(() => {
     if (!user) return;  // user 정보가 있어야 함
+
+    // 캐시된 데이터가 있고 1시간 이내면 API 호출 건너뛰기
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (dietPlan && lastFetched && (Date.now() - lastFetched < ONE_HOUR)) {
+      console.log("Using cached diet plan");
+      return;
+    }
 
     getUserGoal()
       .then(res => res.ok ? res.json() : null)
@@ -90,45 +101,77 @@ export default function Mainpage() {
     // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
   };
 
-  const PlanSection = ({ title, type, items }: { title: string, type: string, items: any[] }) => (
-    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-bold text-slate-700">{title}</h3>
-        <button
-          onClick={() => handleAddMenu(title)}
-          className="bg-purple-50 text-purple-600 hover:bg-purple-100 p-1.5 rounded-full transition-colors"
-        >
-          <Plus size={16} />
-        </button>
-      </div>
+  const PlanSection = ({ title, type, items }: { title: string, type: 'breakfast' | 'lunch' | 'dinner', items: any[] }) => {
+    const todayChecked = checkedMeals[today]?.[type] || [];
 
-      {items.length > 0 ? (
-        <ul className="space-y-2">
-          {items.map((item, idx) => (
-            <li
-              key={idx}
-              onClick={() => handleAddMenu(`${title} 상세`)}
-              className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 cursor-pointer active:scale-[0.98] transition-all"
-            >
-              <div>
-                <span className="block text-sm font-medium text-slate-700">{item.food_name || item.name}</span>
-                <span className="text-xs text-slate-400">{item.calories || item.food_calories} kcal</span>
-              </div>
-              <ChevronRight size={14} className="text-slate-300" />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div
-          onClick={() => handleAddMenu(title)}
-          className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-        >
-          <Utensils size={16} className="text-slate-300" />
-          <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
+    const isItemChecked = (item: any) => {
+      const itemName = item.food_name || item.name;
+      return todayChecked.some((f: any) => (f.food_name || f.name) === itemName);
+    };
+
+    const handleCheckClick = (e: React.MouseEvent, item: any) => {
+      e.stopPropagation();
+      toggleMealCheck(today, type, item);
+    };
+
+    return (
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-bold text-slate-700">{title}</h3>
+          <button
+            onClick={() => handleAddMenu(title)}
+            className="bg-purple-50 text-purple-600 hover:bg-purple-100 p-1.5 rounded-full transition-colors"
+          >
+            <Plus size={16} />
+          </button>
         </div>
-      )}
-    </div>
-  );
+
+        {items.length > 0 ? (
+          <ul className="space-y-2">
+            {items.map((item, idx) => (
+              <li
+                key={idx}
+                className={`flex justify-between items-center p-2.5 rounded-xl border transition-all ${isItemChecked(item)
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-slate-50 border-slate-100'
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={(e) => handleCheckClick(e, item)}
+                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${isItemChecked(item)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
+                      }`}
+                  >
+                    {isItemChecked(item) ? <Check size={14} /> : <Square size={14} />}
+                  </button>
+                  <div>
+                    <span className={`block text-sm font-medium ${isItemChecked(item) ? 'text-green-700 line-through' : 'text-slate-700'
+                      }`}>
+                      {item.food_name || item.name}
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      {item.calories || item.food_calories} kcal
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight size={14} className="text-slate-300" />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div
+            onClick={() => handleAddMenu(title)}
+            className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+          >
+            <Utensils size={16} className="text-slate-300" />
+            <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col overflow-y-auto pb-24">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import InbodyUpload from '@/components/InbodyUploadAndHistory'
 import { InbodyRecord } from '@/types/definitions'
 import { getInbody } from "@/api/index"
+import { useInbodyStore } from "@/store"
 
 interface MypageBodyCompositionProps {
     inbodyDataProp?: Partial<InbodyRecord> | null;
@@ -11,7 +12,8 @@ interface MypageBodyCompositionProps {
 }
 
 export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }: MypageBodyCompositionProps) {
-    const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
+    // Zustand Store
+    const { inbodyData, setInbodyData } = useInbodyStore();
 
     useEffect(() => {
         if (inbodyDataProp) {

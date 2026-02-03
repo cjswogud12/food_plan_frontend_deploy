@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from "lucide-react";
-import { User } from "@/types/definitions"
 import { getUser, getRecord, getMypage, chat } from "@/api/index"
+import { useUserStore, useDietStore } from "@/store"
 
 interface Message {
     id: number;
@@ -16,6 +16,11 @@ interface Message {
 }
 
 export default function AiChatbot() {
+    // Zustand Store
+    const { user, setUser, userGoal, setUserGoal } = useUserStore();
+    const { todayRecord, setTodayRecord } = useDietStore();
+
+    // Local State
     const [messages, setMessages] = useState<Message[]>([
         {
             id: 1,
@@ -24,9 +29,6 @@ export default function AiChatbot() {
         },
     ]);
     const [inputValue, setInputValue] = useState("");
-    const [user, setUser] = useState<User | null>(null);
-    const [todayRecord, setTodayRecord] = useState<any>(null);
-    const [userGoal, setUserGoal] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const scrollEndRef = useRef<HTMLDivElement>(null);
 

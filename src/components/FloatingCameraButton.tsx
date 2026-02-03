@@ -172,7 +172,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                 {/* 확장 버튼 (챗봇) */}
                 <button
                     onClick={openChatbot}
-                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                    className={`w-12 h-12 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:opacity-90 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                 >
                     <MessageCircle size={24} />
                 </button>
@@ -180,7 +180,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                 {/* 확장 버튼 (카메라) */}
                 <button
                     onClick={openCamera}
-                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                    className={`w-12 h-12 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:opacity-90 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                 >
                     <Camera size={24} />
                 </button>
@@ -188,7 +188,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                 {/* 메인 FAB 버튼 (+) */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-700 ${isOpen ? 'rotate-45' : 'rotate-0'}`}
+                    className={`w-14 h-14 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:opacity-90 ${isOpen ? 'rotate-45' : 'rotate-0'}`}
                 >
                     <Plus size={28} />
                 </button>
@@ -256,7 +256,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                                 variant="ghost"
                                                 size="xs"
                                                 className={`rounded-full whitespace-nowrap transition-all duration-200 ${mealType === key
-                                                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                                                    ? 'bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white hover:opacity-90'
                                                     : 'bg-gray-800 text-white hover:bg-gray-700'}`}
                                                 style={{
                                                     animation: `fadeInUp 0.2s ease-out ${index * 0.05}s both`
@@ -304,7 +304,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                 <button
                                     onClick={handleSubmit}
                                     disabled={isProcessing}
-                                    className="px-6 py-3 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 disabled:opacity-50"
+                                    className="px-6 py-3 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full font-medium hover:opacity-90 disabled:opacity-50"
                                 >
                                     {isProcessing ? "처리 중.." : "사용하기"}
                                 </button>

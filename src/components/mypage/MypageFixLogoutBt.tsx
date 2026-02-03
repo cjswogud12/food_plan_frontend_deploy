@@ -22,12 +22,12 @@ export default function MypageFixLogoutbt() {
 
     return (
         <div className="flex gap-3">
-            <button className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-slate-600 font-medium hover:bg-gray-50 transition-colors">
+            <button className="flex-1 py-3 bg-gradient-to-br from-indigo-300 via-purple-300 to-pink-300 text-white rounded-xl font-bold shadow-sm hover:opacity-90 transition-all">
                 회원정보수정
             </button>
             <button
                 onClick={handleLogout}
-                className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-slate-600 font-medium hover:bg-gray-50 transition-colors">
+                className="flex-1 py-3 bg-white border-2 border-slate-100 text-slate-500 rounded-xl font-bold hover:bg-slate-50 transition-all">
                 로그아웃
             </button>
         </div>

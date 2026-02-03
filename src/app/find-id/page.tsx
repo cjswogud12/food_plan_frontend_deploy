@@ -46,19 +46,19 @@ export default function FindIdPage() {
 
                 <button
                     onClick={handleFindId}
-                    className="w-full mt-3 bg-purple-400 text-white font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all"
+                    className="w-full mt-3 bg-gradient-to-br from-indigo-300 to-purple-300 text-white font-bold py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
                 >
                     아이디 찾기
                 </button>
                 <button
                     onClick={() => router.push('/find-password')}
-                    className="w-full mt-3 bg-purple-100 text-black font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all"
+                    className="w-full mt-3 bg-slate-100 text-slate-600 font-bold py-3 rounded-lg hover:bg-slate-200 active:scale-[0.98] transition-all"
                 >
                     비밀번호 찾기 페이지로 이동
                 </button>
                 <button
                     onClick={() => router.push('/login')}
-                    className="w-full mt-3 bg-purple-100 text-black font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all"
+                    className="w-full mt-3 bg-slate-100 text-slate-600 font-bold py-3 rounded-lg hover:bg-slate-200 active:scale-[0.98] transition-all"
                 >
                     로그인 페이지로 이동
                 </button>

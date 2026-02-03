@@ -90,7 +90,7 @@ export default function MypageDetailModal({ isOpen, onClose, inbodyData }: Mypag
                 <div className="p-4 border-t bg-slate-50">
                     <button
                         onClick={onClose}
-                        className="w-full py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors"
+                        className="w-full py-3 bg-indigo-300 text-white font-bold rounded-xl hover:bg-indigo-400 transition-colors shadow-sm"
                     >
                         닫기
                     </button>

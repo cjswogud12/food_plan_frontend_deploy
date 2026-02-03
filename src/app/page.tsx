@@ -59,12 +59,12 @@ export default function Mainpage() {
   };
 
   const PlanSection = ({ title, type, items }: { title: string, type: string, items: any[] }) => (
-    <div className="bg-white/60 backdrop-blur-sm p-4 rounded-2xl border border-white shadow-sm">
+    <div className="bg-white border-2 border-indigo-50 p-4 rounded-2xl shadow-sm">
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-bold text-slate-700">{title}</h3>
         <button
           onClick={() => handleAddMenu(title)}
-          className="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white p-1.5 rounded-full hover:opacity-90 transition-opacity"
+          className="bg-indigo-100 text-indigo-500 p-1.5 rounded-full hover:bg-indigo-200 transition-colors"
         >
           <Plus size={16} />
         </button>
@@ -104,14 +104,14 @@ export default function Mainpage() {
       <header className="px-6 pt-8 pb-4">
         <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
         <h1 className="text-xl font-bold text-slate-800 tracking-tight leading-snug">
-          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{user?.username || '사용자'}</span>님 안녕하세요.
+          <span className="text-indigo-900">{user?.username || '사용자'}</span>님 안녕하세요.
         </h1>
       </header>
 
       <div className="px-5 space-y-5">
 
         {/* Assistant Message */}
-        <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-xl p-3 text-slate-800 shadow-sm border border-white/50 flex items-center gap-3">
+        <section className="bg-gradient-to-br from-white to-indigo-50 rounded-xl p-3 text-slate-800 shadow-sm border border-indigo-100/50 flex items-center gap-3">
           <div className="bg-white/20 p-2.5 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -123,7 +123,7 @@ export default function Mainpage() {
         </section>
 
         {/* Compact Nutrition Graph (One Graph) */}
-        <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50">
+        <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right">
@@ -134,11 +134,11 @@ export default function Mainpage() {
 
           {/* Stacked Bar Graph */}
           {/* Total width represents Goal. Filled width represents Calories (C+P+F) */}
-          <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex relative">
+          <div className="h-6 w-full bg-indigo-50 rounded-full overflow-hidden flex relative border border-indigo-100/50 shadow-inner">
             {/* The segments add up to total calories consumed */}
-            <div className="h-full bg-blue-500" style={{ width: `0%` }} />
-            <div className="h-full bg-emerald-500" style={{ width: `0%` }} />
-            <div className="h-full bg-amber-500" style={{ width: `0%` }} />
+            <div className="h-full bg-indigo-400" style={{ width: `0%` }} />
+            <div className="h-full bg-purple-400" style={{ width: `0%` }} />
+            <div className="h-full bg-pink-400" style={{ width: `0%` }} />
           </div>
 
           {/* Legend */}
@@ -150,22 +150,22 @@ export default function Mainpage() {
               <span className="text-[10px] text-slate-500 font-medium">칼로리 {/*nutrition.calories.current*/}kcal</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
               <span className="text-[10px] text-slate-500">탄수화물 {/*nutrition.carbs*/}g</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
               <span className="text-[10px] text-slate-500">단백질 {/*nutrition.protein*/}g</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
               <span className="text-[10px] text-slate-500">지방 {/*nutrition.fat*/}g</span>
             </div>
           </div>
         </section>
 
         {/* Meal Plan Planning */}
-        <section className="space-y-3 bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50">
+        <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
           </div>

@@ -15,7 +15,7 @@ function CallbackContent() {
     }
 
     return (
-        <main className="flex flex-col w-full h-screen justify-center items-center bg-gradient-to-b from-purple-50 to-white">
+        <main className="flex flex-col w-full h-screen justify-center items-center bg-gradient-to-b from-indigo-50 to-white">
             <div className="flex flex-col items-center w-full max-w-[360px] mx-auto p-8 bg-white rounded-2xl shadow-lg">
                 {/* 환영 아이콘 */}
                 <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6">

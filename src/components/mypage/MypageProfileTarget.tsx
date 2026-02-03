@@ -126,7 +126,7 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
     const percent = goalCal > 0 ? Math.min(100, Math.round((currentCal / goalCal) * 100)) : 0;
 
     return (
-        <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50">
+        <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
             <div className="card-container w-full">
                 <div className="flex items-center justify-between">
                     {/* Left: User Info */}
@@ -147,7 +147,7 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
 
                         <div className="relative z-10 flex flex-col items-center">
                             <span className="text-[10px] text-slate-500 font-extrabold tracking-[0.2em] mb-0.5">나의 목표</span>
-                            <span className="text-lg font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-sm">
+                            <span className="text-xl font-black text-indigo-900 drop-shadow-sm">
                                 {displayGoal}
                             </span>
                         </div>

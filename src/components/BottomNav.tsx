@@ -21,7 +21,7 @@ export default function BottomNav() {
                         key={item.href}
                         href={item.href}
                         className={`transition-all duration-300 flex flex-col items-center justify-center w-full h-full pb-1 rounded-2xl ${isActive
-                            ? "bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white shadow-lg scale-105 -translate-y-2"
+                            ? "text-indigo-600 bg-indigo-50 shadow-sm scale-105 -translate-y-2"
                             : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
                             }`}
                     >

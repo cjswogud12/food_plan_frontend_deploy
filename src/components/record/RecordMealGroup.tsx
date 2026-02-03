@@ -62,10 +62,10 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
   };
 
   return (
-    <div className="bg-white/80 rounded-2xl p-3 shadow relative transition-all">
+    <div className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-4 shadow-sm border border-indigo-100/50 relative transition-all">
       {/* Header */}
-      <div className="flex items-center justify-between mb-2 h-8">
-        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+      <div className="flex items-center justify-between mb-3 h-8">
+        <h3 className="font-bold text-slate-700 flex items-center gap-2 text-lg">
           {title}
         </h3>
 
@@ -76,7 +76,7 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
             {/* Add Option */}
             <button
               onClick={handleAdd}
-              className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 shadow-md flex items-center justify-center hover:bg-blue-200 transition-colors"
+              className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 shadow-sm flex items-center justify-center hover:bg-indigo-100 transition-colors border border-indigo-100"
               title="추가하기"
             >
               <ImageIcon size={16} />
@@ -84,7 +84,7 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
             {/* Delete Option - Opens Modal */}
             <button
               onClick={handleOpenDeleteModal}
-              className="w-8 h-8 rounded-full bg-red-100 text-red-600 shadow-md flex items-center justify-center hover:bg-red-200 transition-colors"
+              className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 shadow-sm flex items-center justify-center hover:bg-rose-100 transition-colors border border-rose-100"
               title="삭제하기"
             >
               <Trash size={16} />
@@ -94,13 +94,13 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
           {/* Main Toggle Button */}
           <button
             onClick={toggleMenu}
-            className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm transition-all duration-200 z-10 
-                    bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white hover:opacity-90
+            className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 z-10 
+                    bg-indigo-300 text-white hover:bg-indigo-400
                     ${isOpen ? 'rotate-45' : ''}
                 `}
             aria-label={`${title} 메뉴`}
           >
-            <Plus size={18} />
+            <Plus size={20} />
           </button>
         </div>
       </div>

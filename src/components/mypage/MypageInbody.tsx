@@ -93,7 +93,7 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
 
 
     return (
-        <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50 relative">
+        <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50 relative">
 
             {/* Header with Title and Menu */}
             <div className="flex justify-between items-center mb-4 relative z-20">
@@ -109,7 +109,7 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
                                 setIsDetailModalOpen(true);
                                 setIsMenuOpen(false);
                             }}
-                            className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white shadow-md flex items-center justify-center hover:opacity-90"
+                            className="w-9 h-9 rounded-full bg-indigo-50 text-indigo-400 shadow-sm flex items-center justify-center hover:bg-indigo-100 transition-colors"
                             title="상세보기"
                         >
                             <Activity size={16} />

@@ -222,7 +222,7 @@ export default function RecordPage() {
 
         {/* Daily Summary (Connected Gradient) */}
         <section className="mb-6 rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-          <div className="flex w-full bg-gradient-to-r from-sky-100 via-pink-100 to-yellow-100">
+          <div className="flex w-full bg-gradient-to-r from-white to-indigo-50">
             {/* Calories */}
             <div className="flex-1 flex flex-col items-center justify-center py-4 border-r border-white/50">
               <span className="text-xs font-bold text-slate-600 mb-1 whitespace-nowrap">칼로리</span>

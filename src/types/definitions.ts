@@ -91,6 +91,7 @@ export interface InbodyRecord {
     body_fat_pct: number; //체지방률
     skeletal_muscle_mass: number; //골격근량
     bmr: number; //기초대사량
+    bmi?: number; // BMI (Additional)
     bisceral_fat_level: number; //비만지수
     inbody_score: number; //인바디 점수
     abdominal_fat_ratio: number; //복부지방률

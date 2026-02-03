@@ -12,24 +12,28 @@ export default function MypageMenu({ onGoalChange }: MypageMenuProps) {
     const [showGoalModal, setShowGoalModal] = useState(false);
 
     const handleSelectGoal = async (selectedGoal: string) => {
+        // UI 즉시 업데이트 (Optimistic update)
+        onGoalChange?.(selectedGoal);
+        setShowGoalModal(false);
+
         try {
             const res = await updateUserGoal(selectedGoal);
-            if (res.ok) {
-                onGoalChange?.(selectedGoal);
+            if (!res.ok) {
+                console.error("목표 업데이트 서버 요청 실패");
+                // 필요 시 에러 처리 또는 롤백 로직 추가
             }
         } catch (error) {
             console.error("목표 업데이트 실패:", error);
         }
-        setShowGoalModal(false);
     };
 
     return (
         <>
-            <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
                 <div className="card-container w-full">
                     <div className="grid grid-cols-4 gap-4 text-center">
                         <button className="flex flex-col items-center gap-2 group">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-500 rounded-full group-hover:from-indigo-100 group-hover:to-purple-100 transition-all">
                                 <User size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">내 정보</span>
@@ -38,19 +42,19 @@ export default function MypageMenu({ onGoalChange }: MypageMenuProps) {
                             onClick={() => setShowGoalModal(true)}
                             className="flex flex-col items-center gap-2 group"
                         >
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-indigo-50 text-indigo-400 rounded-full group-hover:bg-indigo-100 transition-colors">
                                 <Target size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">목표 설정</span>
                         </button>
                         <button className="flex flex-col items-center gap-2 group">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-indigo-50 text-indigo-400 rounded-full group-hover:bg-indigo-100 transition-colors">
                                 <Bell size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">알림 설정</span>
                         </button>
                         <button className="flex flex-col items-center gap-2 group">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-indigo-50 text-indigo-400 rounded-full group-hover:bg-indigo-100 transition-colors">
                                 <Link size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">계정 연동</span>
@@ -67,19 +71,19 @@ export default function MypageMenu({ onGoalChange }: MypageMenuProps) {
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => handleSelectGoal("다이어트")}
-                                className="py-3 bg-purple-100 rounded-xl text-purple-700 font-medium hover:bg-purple-200"
+                                className="py-3 bg-white border-2 border-slate-100 rounded-xl text-slate-600 font-bold hover:border-indigo-200 hover:text-indigo-500 transition-all"
                             >
                                 다이어트
                             </button>
                             <button
                                 onClick={() => handleSelectGoal("유지")}
-                                className="py-3 bg-purple-100 rounded-xl text-purple-700 font-medium hover:bg-purple-200"
+                                className="py-3 bg-white border-2 border-slate-100 rounded-xl text-slate-600 font-bold hover:border-indigo-200 hover:text-indigo-500 transition-all"
                             >
                                 유지
                             </button>
                             <button
                                 onClick={() => handleSelectGoal("증량")}
-                                className="py-3 bg-purple-100 rounded-xl text-purple-700 font-medium hover:bg-purple-200"
+                                className="py-3 bg-white border-2 border-slate-100 rounded-xl text-slate-600 font-bold hover:border-indigo-200 hover:text-indigo-500 transition-all"
                             >
                                 증량
                             </button>

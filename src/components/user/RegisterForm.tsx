@@ -66,7 +66,7 @@ export default function RegisterForm() {
                             onChange={(e) => setForm({ ...form, username: e.target.value })}
                         />
                         <button
-                            className="w-full mt-6 bg-gradient-to-r from-purple-200 to-purple-200 text-black font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                            className="w-full mt-6 bg-gradient-to-br from-indigo-300 to-purple-300 text-white font-bold py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed">
                             중복 확인
                         </button>
                     </div>
@@ -142,8 +142,8 @@ export default function RegisterForm() {
                             type="button"
                             onClick={() => setForm({ ...form, gender: "남자" })}
                             className={`flex-1 py-3 rounded-lg font-bold ${form.gender === "남자"
-                                ? "bg-gradient-to-r from-purple-200 to-purple-200 text-black"
-                                : "bg-purple-100 text-slate-600 hover:bg-purple-100"
+                                ? "bg-gradient-to-br from-indigo-300 to-purple-300 text-white shadow-md"
+                                : "bg-purple-50 text-slate-500 hover:bg-purple-100"
                                 }`}
                         >
                             남자
@@ -152,8 +152,8 @@ export default function RegisterForm() {
                             type="button"
                             onClick={() => setForm({ ...form, gender: "여자" })}
                             className={`flex-1 py-3 rounded-lg font-bold ${form.gender === "여자"
-                                ? "bg-gradient-to-r from-purple-200 to-purple-200 text-black"
-                                : "bg-purple-100 text-slate-600 hover:bg-purple-100"
+                                ? "bg-gradient-to-br from-indigo-300 to-purple-300 text-white shadow-md"
+                                : "bg-purple-50 text-slate-500 hover:bg-purple-100"
                                 }`}
                         >
                             여자
@@ -166,7 +166,7 @@ export default function RegisterForm() {
             <button
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="w-full mt-3 bg-purple-400 text-white font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all"
+                className="w-full mt-3 bg-gradient-to-br from-indigo-300 to-purple-300 text-white font-bold py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
             >
                 회원가입하기
             </button>
@@ -174,7 +174,7 @@ export default function RegisterForm() {
             {/* Back Button */}
             <button
                 onClick={() => router.push('/login')}
-                className="w-full mt-3 bg-gradient-to-r from-purple-200 to-purple-200 text-black font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full mt-3 bg-slate-100 text-slate-600 font-bold py-3 rounded-lg hover:bg-slate-200 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
             >
                 홈으로
             </button>

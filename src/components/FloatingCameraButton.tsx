@@ -170,25 +170,31 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
             {/* FAB 컨테이너 */}
             <div className="absolute bottom-24 right-4 flex flex-col items-center gap-3 z-50">
                 {/* 확장 버튼 (챗봇) */}
-                <button
-                    onClick={openChatbot}
-                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
-                >
-                    <MessageCircle size={24} />
-                </button>
+                <div className={`flex flex-col items-center gap-1 transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
+                    <button
+                        onClick={openChatbot}
+                        className="w-12 h-12 bg-white text-indigo-500 rounded-full shadow-md flex items-center justify-center hover:bg-indigo-50 border border-indigo-100"
+                    >
+                        <MessageCircle size={24} />
+                    </button>
+                    <span className="text-xs font-medium text-slate-600 bg-white/80 px-2 py-0.5 rounded-full shadow-sm backdrop-blur-sm">챗봇</span>
+                </div>
 
                 {/* 확장 버튼 (카메라) */}
-                <button
-                    onClick={openCamera}
-                    className={`w-12 h-12 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-600 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
-                >
-                    <Camera size={24} />
-                </button>
+                <div className={`flex flex-col items-center gap-1 transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
+                    <button
+                        onClick={openCamera}
+                        className="w-12 h-12 bg-white text-indigo-500 rounded-full shadow-md flex items-center justify-center hover:bg-indigo-50 border border-indigo-100"
+                    >
+                        <Camera size={24} />
+                    </button>
+                    <span className="text-xs font-medium text-slate-600 bg-white/80 px-2 py-0.5 rounded-full shadow-sm backdrop-blur-sm">촬영</span>
+                </div>
 
                 {/* 메인 FAB 버튼 (+) */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-purple-700 ${isOpen ? 'rotate-45' : 'rotate-0'}`}
+                    className={`w-14 h-14 bg-indigo-400 text-white rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:bg-indigo-500 border-4 border-white ${isOpen ? 'rotate-45' : 'rotate-0'}`}
                 >
                     <Plus size={28} />
                 </button>
@@ -256,7 +262,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                                 variant="ghost"
                                                 size="xs"
                                                 className={`rounded-full whitespace-nowrap transition-all duration-200 ${mealType === key
-                                                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                                                    ? 'bg-gradient-to-br from-indigo-300 to-purple-300 text-white hover:opacity-90'
                                                     : 'bg-gray-800 text-white hover:bg-gray-700'}`}
                                                 style={{
                                                     animation: `fadeInUp 0.2s ease-out ${index * 0.05}s both`
@@ -304,7 +310,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                 <button
                                     onClick={handleSubmit}
                                     disabled={isProcessing}
-                                    className="px-6 py-3 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 disabled:opacity-50"
+                                    className="px-6 py-3 bg-gradient-to-br from-indigo-300 to-purple-300 text-white rounded-full font-medium hover:opacity-90 disabled:opacity-50"
                                 >
                                     {isProcessing ? "처리 중.." : "사용하기"}
                                 </button>

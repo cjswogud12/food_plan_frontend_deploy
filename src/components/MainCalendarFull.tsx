@@ -41,30 +41,30 @@ export default function CalendarFull({ selectedDate, onDateSelect, recordedDays 
     const formatHeaderDate = (date: Date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
 
     return (
-        <div className="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <div className="w-full bg-white p-4 rounded-2xl shadow-sm border-2 border-indigo-50">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <button onClick={prevMonth} className="p-2 text-slate-500 hover:text-purple-600">&lt;</button>
+                <button onClick={prevMonth} className="p-2 text-slate-500 hover:text-indigo-600">&lt;</button>
                 <span
                     onClick={() => window.location.href = '/'}
-                    className="font-bold text-lg text-slate-800 cursor-pointer hover:text-purple-600 transition-colors"
+                    className="font-bold text-lg text-slate-800 cursor-pointer hover:text-indigo-600 transition-colors"
                 >
                     {formatHeaderDate(currentMonthDate)}</span>
-                <button onClick={nextMonth} className="p-2 text-slate-500 hover:text-purple-600">&gt;</button>
+                <button onClick={nextMonth} className="p-2 text-slate-500 hover:text-indigo-600">&gt;</button>
             </div>
 
 
             {/* <div className=""> */}
             {/* 헤더 (년 월 및 이전/다음 주 이동) */}
             {/* <div className="calendar-header flex justify-between items-center mb-4 px-2">
-                <button onClick={prevWeek} className="p-2 text-slate-500 hover:text-purple-600">&lt;</button>
+                <button onClick={prevWeek} className="p-2 text-slate-500 hover:text-indigo-600">&lt;</button>
                 <span
                     onClick={() => window.location.href = '/calender_particular'}
-                    className="font-bold text-lg text-slate-800 cursor-pointer hover:text-purple-600 transition-colors"
+                    className="font-bold text-lg text-slate-800 cursor-pointer hover:text-indigo-600 transition-colors"
                 >
                     {formatHeaderDate(weekDays[0])}
                 </span>
-                <button onClick={nextWeek} className="p-2 text-slate-500 hover:text-purple-600">&gt;</button>
+                <button onClick={nextWeek} className="p-2 text-slate-500 hover:text-indigo-600">&gt;</button>
             </div> */}
 
             {/* Weekdays */}
@@ -77,9 +77,18 @@ export default function CalendarFull({ selectedDate, onDateSelect, recordedDays 
             {/* Days Grid */}
             <div className="grid grid-cols-7 gap-y-4 text-center">
                 {days.map((d, i) => {
+                    const offsetDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+                    const dateStr = offsetDate.toISOString().split('T')[0];
+                    const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
                     const isCurrentMonth = d.getMonth() === month;
-                    const isToday = d.toDateString() === new Date().toDateString();
+                    const isToday = dateStr === todayStr;
                     const isSelected = d.toDateString() === selectedDate.toDateString();
+                    const hasRecord = recordedDays.includes(dateStr);
+
+                    // 과거 여부 판단 (오늘 이전)
+                    const isPast = dateStr < todayStr;
+                    // 기록 누락 여부 로직 삭제됨
 
                     return (
                         <div key={i} className="flex flex-col items-center" onClick={() => onDateSelect(d)}>
@@ -87,16 +96,19 @@ export default function CalendarFull({ selectedDate, onDateSelect, recordedDays 
                                 className={`
                                     w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium cursor-pointer transition-all
                                     ${!isCurrentMonth ? "text-slate-300" : "text-slate-700 hover:bg-slate-100"}
-                                    ${isSelected ? "bg-purple-600 text-white shadow-md" : ""}
-                                    ${isToday && !isSelected ? "border border-purple-200 text-purple-600" : ""}
+                                    ${isSelected
+                                        ? "bg-indigo-400 text-white shadow-md"
+                                        : isCurrentMonth && hasRecord
+                                            ? "bg-indigo-100 text-indigo-600 font-bold"
+                                            : ""
+                                    }
+                                    ${isToday && !isSelected && !hasRecord ? "border border-indigo-200 text-indigo-600" : ""}
                                 `}
                             >
                                 {d.getDate()}
                             </span>
-                            {/* Mock Dot for record existence */}
-                            {isCurrentMonth && recordedDays.includes(d.toISOString().split('T')[0]) && (
-                                <div className={`w-1 h-1 rounded-full mt-1 ${isSelected ? "bg-white" : "bg-purple-400"}`}></div>
-                            )}
+
+                            {/* Status Dots Removed */}
                         </div>
                     );
                 })}

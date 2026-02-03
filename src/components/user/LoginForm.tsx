@@ -97,7 +97,7 @@ export default function LoginForm() {
                 <button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="w-full mt-3 bg-purple-400 text-white font-bold py-3 rounded-lg hover:bg-purple-500 active:scale-[0.98] transition-all"
+                    className="w-full mt-3 bg-gradient-to-br from-indigo-300 to-purple-300 text-white font-bold py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
                 >
                     {"로그인"}
                 </button>

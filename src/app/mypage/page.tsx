@@ -28,7 +28,11 @@ export default function Mypage() {
         getUserGoal()
             .then(res => res.ok ? res.json() : null)
             .then(data => {
-                if (data?.goal_type) setGoal(data.goal_type);
+                if (Array.isArray(data) && data.length > 0) {
+                    setGoal(data[0].goal_type);
+                } else if (data?.goal_type) {
+                    setGoal(data.goal_type);
+                }
             })
             .catch(err => console.error("Goal fetch error:", err));
     }, []);
@@ -125,7 +129,7 @@ export default function Mypage() {
             <header>
                 <span>{isMobile ? '모바일' : 'PC'}</span>
             </header>
-            <div className="p-4 flex flex-col gap-4 pb-24 bg-purple-100">
+            <div className="p-4 flex flex-col gap-4 pb-24 bg-white">
                 <h1 className="text-lg font-bold text-slate-800">마이페이지</h1>
                 {/* 1. 유저 프로필 섹션 (mypage_profile_target.tsx) */}
                 <MypageProfileTarget key={refreshKey} foodrecords={foodrecords} goal={goal} />

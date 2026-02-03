@@ -139,13 +139,27 @@ export default function Mainpage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={(e) => handleCheckClick(e, item)}
-                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${isItemChecked(item)
+                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors shrink-0 ${isItemChecked(item)
                       ? 'bg-green-500 text-white'
                       : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
                       }`}
                   >
                     {isItemChecked(item) ? <Check size={14} /> : <Square size={14} />}
                   </button>
+
+                  {/* Food Image */}
+                  {item.image_url ? (
+                    <img
+                      src={item.image_url}
+                      alt={item.food_name || item.name}
+                      className="w-10 h-10 rounded-lg object-cover bg-slate-200 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                      <Utensils size={16} className="text-slate-300" />
+                    </div>
+                  )}
+
                   <div>
                     <span className={`block text-sm font-medium ${isItemChecked(item) ? 'text-green-700 line-through' : 'text-slate-700'
                       }`}>
@@ -207,22 +221,28 @@ export default function Mainpage() {
             </div>
           </div>
 
-          {/* Stacked Bar Graph */}
-          {/* Total width represents Goal. Filled width represents Calories (C+P+F) */}
-          <div className="h-6 w-full bg-indigo-50 rounded-full overflow-hidden flex relative border border-indigo-100/50 shadow-inner">
-            {/* The segments add up to total calories consumed */}
-            <div className="h-full bg-indigo-400" style={{ width: `0%` }} />
-            <div className="h-full bg-purple-400" style={{ width: `0%` }} />
-            <div className="h-full bg-pink-400" style={{ width: `0%` }} />
-          </div>
+          {/* Stacked Bar Graph Logic */}
+          {(() => {
+            const carbs = todayIntake?.total_carbs_g || 0;
+            const protein = todayIntake?.total_protein_g || 0;
+            const fat = todayIntake?.total_fat_g || 0;
+            const totalGrams = carbs + protein + fat || 1; // Prevent division by zero
+
+            const carbsPercent = (carbs / totalGrams) * 100;
+            const proteinPercent = (protein / totalGrams) * 100;
+            const fatPercent = (fat / totalGrams) * 100;
+
+            return (
+              <div className="h-6 w-full bg-indigo-50 rounded-full overflow-hidden flex relative border border-indigo-100/50 shadow-inner">
+                <div className="h-full bg-indigo-400 transition-all duration-500 ease-in-out" style={{ width: `${carbsPercent}%` }} />
+                <div className="h-full bg-purple-400 transition-all duration-500 ease-in-out" style={{ width: `${proteinPercent}%` }} />
+                <div className="h-full bg-pink-400 transition-all duration-500 ease-in-out" style={{ width: `${fatPercent}%` }} />
+              </div>
+            );
+          })()}
 
           {/* Legend */}
           <div className="flex w-full justify-between items-center mt-3 px-1">
-            {/* Explicit Calorie Legend Item */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-500"></div>
-              <span className="text-[10px] text-slate-500 font-medium">칼로리 {todayIntake?.total_calories_kcal || 0}kcal</span>
-            </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
               <span className="text-[10px] text-slate-500">탄수화물 {todayIntake?.total_carbs_g || 0}g</span>

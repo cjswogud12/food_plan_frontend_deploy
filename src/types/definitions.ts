@@ -160,3 +160,10 @@ export interface FoodAnalysisResult {
     status: number; //분석 결과 상태 (PENDING: 기록 확정 전, CONFIRMED: 식단 기록으로 확정됨)
     created_at: string; //음식 분석 결과 생성일
 }
+
+export interface DietPlanItem {
+    food_name: string;
+    food_calories: number;
+    image_url?: string;
+    // 필요한 경우 다른 필드 추가 (예: carbohydrates, protein, fat 등)
+}

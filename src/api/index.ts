@@ -129,23 +129,39 @@ export async function getRecord(date?: string, userNumber?: number) {
 
 export async function deleteDayRecords(date: string, userNumber?: number) {
     let query = `?date=${date}`;
-    if (userNumber) {
-        query += `&user_number=${userNumber}`;
-    }
+    if (userNumber) query += `&user_number=${userNumber}`;
+
+    const authHeader = await getAuthHeader();
+
     const response = await fetch(`${BASE_URL}/record${query}`, {
         method: "DELETE",
-        credentials: "include"
+        headers: {
+            ...authHeader,
+        },
+        // credentials: "include", // 쿠키 기반이 아니면 필요 없음 (원하면 유지해도 됨)
     });
-    if (!response.ok) throw new Error("Failed to delete records");
+
+    if (!response.ok) {
+        const t = await response.text();
+        throw new Error(`Failed to delete records (${response.status}): ${t}`);
+    }
+
+    // 백엔드가 204 No Content 반환하면 json() 하면 에러남
+    if (response.status === 204) return null;
     return response.json();
 }
 
 export async function deleteRecord(recordId: number) {
+    const authHeader = await getAuthHeader();
+
     const response = await fetch(`${BASE_URL}/record/${recordId}`, {
         method: "DELETE",
-        credentials: "include"
+        headers: {
+            ...authHeader,
+        },
+        // credentials: "include",
     });
-    // if (!response.ok) throw new Error("Failed to delete record"); // 백엔드 응답이 204일수도 있고 200일수도 있음
+
     return response;
 }
 
@@ -191,7 +207,7 @@ export async function chat(message: string, context: any) {
 }
 //-----식단 계획---------
 export async function getDietplan(user_number: number, id: string, goal_type: string, target_calorie: number) {
-    const res = await fetch(`${BASE_URL}/diet-plan`, {
+    const response = await postJson("/diet-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -200,9 +216,10 @@ export async function getDietplan(user_number: number, id: string, goal_type: st
             goal_type,
             target_calorie
         })
-    })
-    if (!res.ok) throw new Error("식단 생성 실패")
-    return res.json()
+    });
+
+    if (!response.ok) throw new Error("식단 생성 실패");
+    return response.json();
 }
 
 // --- 오늘의 섭취 ---

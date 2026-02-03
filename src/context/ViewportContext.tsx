@@ -5,28 +5,33 @@
 
 "use client"
 
-import {createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 //context 생성
-const ViewportContext = createContext({ isMobile: false});
+const ViewportContext = createContext({ isMobile: false });
 
 //Provider 컴포넌트
-export function ViewportProvider({ children }: { children: ReactNode}) {
+export function ViewportProvider({ children }: { children: ReactNode }) {
     const [isMobile, setIsMobile] = useState(false);
 
-    useEffect(()=>{
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(max-width: 768px)");
+
+        // 초기값 설정
+        setIsMobile(mediaQuery.matches);
+
+        // 변경 감지 핸들러
+        const handleChange = (e: MediaQueryListEvent) => {
+            setIsMobile(e.matches);
         };
 
-        checkMobile();
-        window.addEventListener("resize", checkMobile);
-        return () => window.removeEventListener("resize", checkMobile);
+        mediaQuery.addEventListener("change", handleChange);
+        return () => mediaQuery.removeEventListener("change", handleChange);
     }, []);
 
     return (
         <ViewportContext.Provider value={{ isMobile }}>
-            { children }
+            {children}
         </ViewportContext.Provider>
     );
 }

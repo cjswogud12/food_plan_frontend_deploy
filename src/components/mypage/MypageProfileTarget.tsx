@@ -158,5 +158,6 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                 </div>
             </div>
         </section>
-    );
+    )
 }
+

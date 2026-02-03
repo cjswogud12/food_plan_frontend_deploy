@@ -41,7 +41,7 @@ export default function CalendarFull({ selectedDate, onDateSelect, recordedDays 
     const formatHeaderDate = (date: Date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
 
     return (
-        <div className="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <div className="w-full bg-gradient-to-br from-sky-100 via-pink-100 to-yellow-100 p-4 rounded-2xl shadow-sm border border-white/50">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <button onClick={prevMonth} className="p-2 text-slate-500 hover:text-purple-600">&lt;</button>
@@ -87,7 +87,7 @@ export default function CalendarFull({ selectedDate, onDateSelect, recordedDays 
                                 className={`
                                     w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium cursor-pointer transition-all
                                     ${!isCurrentMonth ? "text-slate-300" : "text-slate-700 hover:bg-slate-100"}
-                                    ${isSelected ? "bg-purple-600 text-white shadow-md" : ""}
+                                    ${isSelected ? "bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white shadow-md" : ""}
                                     ${isToday && !isSelected ? "border border-purple-200 text-purple-600" : ""}
                                 `}
                             >

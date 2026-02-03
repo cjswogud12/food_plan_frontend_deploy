@@ -95,7 +95,7 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
           <button
             onClick={toggleMenu}
             className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm transition-all duration-200 z-10 
-                    bg-purple-600 text-white hover:bg-purple-700
+                    bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white hover:opacity-90
                     ${isOpen ? 'rotate-45' : ''}
                 `}
             aria-label={`${title} 메뉴`}

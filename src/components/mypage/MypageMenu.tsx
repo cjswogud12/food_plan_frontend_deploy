@@ -12,24 +12,28 @@ export default function MypageMenu({ onGoalChange }: MypageMenuProps) {
     const [showGoalModal, setShowGoalModal] = useState(false);
 
     const handleSelectGoal = async (selectedGoal: string) => {
+        // UI 즉시 업데이트 (Optimistic update)
+        onGoalChange?.(selectedGoal);
+        setShowGoalModal(false);
+
         try {
             const res = await updateUserGoal(selectedGoal);
-            if (res.ok) {
-                onGoalChange?.(selectedGoal);
+            if (!res.ok) {
+                console.error("목표 업데이트 서버 요청 실패");
+                // 필요 시 에러 처리 또는 롤백 로직 추가
             }
         } catch (error) {
             console.error("목표 업데이트 실패:", error);
         }
-        setShowGoalModal(false);
     };
 
     return (
         <>
-            <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50">
                 <div className="card-container w-full">
                     <div className="grid grid-cols-4 gap-4 text-center">
                         <button className="flex flex-col items-center gap-2 group">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full group-hover:opacity-90 transition-opacity">
                                 <User size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">내 정보</span>
@@ -38,19 +42,19 @@ export default function MypageMenu({ onGoalChange }: MypageMenuProps) {
                             onClick={() => setShowGoalModal(true)}
                             className="flex flex-col items-center gap-2 group"
                         >
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full group-hover:opacity-90 transition-opacity">
                                 <Target size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">목표 설정</span>
                         </button>
                         <button className="flex flex-col items-center gap-2 group">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full group-hover:opacity-90 transition-opacity">
                                 <Bell size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">알림 설정</span>
                         </button>
                         <button className="flex flex-col items-center gap-2 group">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full group-hover:bg-purple-100 transition-colors">
+                            <div className="p-3 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white rounded-full group-hover:opacity-90 transition-opacity">
                                 <Link size={24} />
                             </div>
                             <span className="text-xs font-medium text-slate-600">계정 연동</span>

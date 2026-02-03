@@ -101,92 +101,60 @@ export default function Mainpage() {
     // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
   };
 
-  const PlanSection = ({ title, type, items }: { title: string, type: 'breakfast' | 'lunch' | 'dinner', items: any[] }) => {
-    const todayChecked = checkedMeals[today]?.[type] || [];
-
-    const isItemChecked = (item: any) => {
-      const itemName = item.food_name || item.name;
-      return todayChecked.some((f: any) => (f.food_name || f.name) === itemName);
-    };
-
-    const handleCheckClick = (e: React.MouseEvent, item: any) => {
-      e.stopPropagation();
-      toggleMealCheck(today, type, item);
-    };
-
-    return (
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-bold text-slate-700">{title}</h3>
-          <button
-            onClick={() => handleAddMenu(title)}
-            className="bg-purple-50 text-purple-600 hover:bg-purple-100 p-1.5 rounded-full transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-
-        {items.length > 0 ? (
-          <ul className="space-y-2">
-            {items.map((item, idx) => (
-              <li
-                key={idx}
-                className={`flex justify-between items-center p-2.5 rounded-xl border transition-all ${isItemChecked(item)
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-slate-50 border-slate-100'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={(e) => handleCheckClick(e, item)}
-                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${isItemChecked(item)
-                        ? 'bg-green-500 text-white'
-                        : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
-                      }`}
-                  >
-                    {isItemChecked(item) ? <Check size={14} /> : <Square size={14} />}
-                  </button>
-                  <div>
-                    <span className={`block text-sm font-medium ${isItemChecked(item) ? 'text-green-700 line-through' : 'text-slate-700'
-                      }`}>
-                      {item.food_name || item.name}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {item.calories || item.food_calories} kcal
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight size={14} className="text-slate-300" />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div
-            onClick={() => handleAddMenu(title)}
-            className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-          >
-            <Utensils size={16} className="text-slate-300" />
-            <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
-          </div>
-        )}
+  const PlanSection = ({ title, type, items }: { title: string, type: string, items: any[] }) => (
+    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-bold text-slate-700">{title}</h3>
+        <button
+          onClick={() => handleAddMenu(title)}
+          className="bg-purple-50 text-purple-600 hover:bg-purple-100 p-1.5 rounded-full transition-colors"
+        >
+          <Plus size={16} />
+        </button>
       </div>
-    );
-  };
+
+      {items.length > 0 ? (
+        <ul className="space-y-2">
+          {items.map((item, idx) => (
+            <li
+              key={idx}
+              onClick={() => handleAddMenu(`${title} 상세`)}
+              className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 cursor-pointer active:scale-[0.98] transition-all"
+            >
+              <div>
+                <span className="block text-sm font-medium text-slate-700">{item.food_name || item.name}</span>
+                <span className="text-xs text-slate-400">{item.calories || item.food_calories} kcal</span>
+              </div>
+              <ChevronRight size={14} className="text-slate-300" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div
+          onClick={() => handleAddMenu(title)}
+          className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+        >
+          <Utensils size={16} className="text-slate-300" />
+          <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col overflow-y-auto pb-24">
+    <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
       {/* Header */}
       <header className="px-6 pt-8 pb-4">
         <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
         <h1 className="text-xl font-bold text-slate-800 tracking-tight leading-snug">
-          <span className="text-purple-600">{user?.username || '사용자'}</span> 님<br />안녕하세요.
+          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{user?.username || '사용자'}</span>님 안녕하세요.
         </h1>
       </header>
 
       <div className="px-5 space-y-5">
 
         {/* Assistant Message */}
-        <section className="bg-gradient-to-r from-purple-200 to-purple-200 rounded-xl p-1 text-black shadow-lg shadow-w-200 flex items-center gap-3">
+        <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-xl p-3 text-slate-800 shadow-sm border border-white/50 flex items-center gap-3">
           <div className="bg-white/20 p-2.5 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -198,7 +166,7 @@ export default function Mainpage() {
         </section>
 
         {/* Compact Nutrition Graph (One Graph) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <section className="bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50">
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right">
@@ -239,7 +207,7 @@ export default function Mainpage() {
         </section>
 
         {/* Meal Plan Planning */}
-        <section className="space-y-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <section className="space-y-3 bg-gradient-to-br from-sky-200 via-pink-200 to-yellow-200 rounded-2xl p-5 shadow-sm border border-white/50">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
           </div>

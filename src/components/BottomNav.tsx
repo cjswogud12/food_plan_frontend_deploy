@@ -20,10 +20,15 @@ export default function BottomNav() {
                     <Link
                         key={item.href}
                         href={item.href}
-                        className={`bottom-nav-item ${isActive ? "active" : ""}`}
+                        className={`transition-all duration-300 flex flex-col items-center justify-center w-full h-full pb-1 rounded-2xl ${isActive
+                            ? "bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white shadow-lg scale-105 -translate-y-2"
+                            : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                            }`}
                     >
-                        <span className="nav-icon"><item.icon /></span>
-                        <span className="nav-label">{item.label}</span>
+                        <div className="p-1 mb-0.5">
+                            <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                        </div>
+                        <span className={`text-[10px] font-medium ${isActive ? "font-bold" : ""}`}>{item.label}</span>
                     </Link>
                 );
             })}

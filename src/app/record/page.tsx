@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useViewport } from "@/context/ViewportContext";
 import FloatingCameraButton from "@/components/FloatingCameraButton";
 import CalendarFull from "@/components/MainCalendarFull";
+import { Plus, ChevronRight, Utensils, Trash2 } from "lucide-react"
 import { FoodAnalysisResult } from "@/types/definitions";
 import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord } from "@/api/index";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
@@ -214,10 +215,10 @@ export default function RecordPage() {
   }, [selectedDate]);
 
   return (
-    <div className="w-full h-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-blue-200 flex flex-col overflow-y-auto">
-      <div className="p-4 max-w-md mx-auto w-full pb-24">
+    <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
+      <div className="p-4 max-w-md mx-auto w-full">
         {/* Header */}
-        <header className="mb-6 pt-4 flex justify-between items-center">
+        <header className="mb-4 pt-4 flex justify-between items-center">
           <div>
             <span className="block text-sm text-slate-500 mb-1">
               {isMobile ? "모바일" : "PC"}
@@ -226,9 +227,10 @@ export default function RecordPage() {
           </div>
           <button
             onClick={handleDeleteDate}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+            title="기록 삭제"
           >
-            기록 삭제
+            <Trash2 size={20} />
           </button>
         </header>
 
@@ -237,24 +239,40 @@ export default function RecordPage() {
           <CalendarFull selectedDate={selectedDate} onDateSelect={setSelectedDate} />
         </section>
 
-        {/* Daily Summary (Single Line) */}
-        <section className="bg-purple-600 rounded-2xl p-4 text-white mb-6 shadow-lg shadow-purple-200">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex flex-col items-center px-2 border-r border-purple-400/50 flex-1">
-              <span className="text-purple-200 text-xs mb-0.5">총 칼로리</span>
-              <span className="font-bold">{totalCalories} kcal</span>
+        {/* Daily Summary (Connected Gradient) */}
+        <section className="mb-6 rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+          <div className="flex w-full bg-gradient-to-r from-sky-100 via-pink-100 to-yellow-100">
+            {/* Calories */}
+            <div className="flex-1 flex flex-col items-center justify-center py-4 border-r border-white/50">
+              <span className="text-xs font-bold text-slate-600 mb-1 whitespace-nowrap">칼로리</span>
+              <div className="flex items-end gap-0.5">
+                <span className="font-extrabold text-slate-800 text-lg leading-none">{totalCalories}</span>
+                <span className="text-[10px] text-slate-500 font-medium mb-0.5">kcal</span>
+              </div>
             </div>
-            <div className="flex flex-col items-center px-2 border-r border-purple-400/50 flex-1">
-              <span className="text-purple-200 text-xs mb-0.5">탄수화물</span>
-              <span className="font-bold">{totalCarbs}g</span>
+            {/* Carbs */}
+            <div className="flex-1 flex flex-col items-center justify-center py-4 border-r border-white/50">
+              <span className="text-xs font-bold text-slate-600 mb-1 whitespace-nowrap">탄수화물</span>
+              <div className="flex items-end gap-0.5">
+                <span className="font-extrabold text-slate-800 text-lg leading-none">{totalCarbs}</span>
+                <span className="text-[10px] text-slate-500 font-medium mb-0.5">g</span>
+              </div>
             </div>
-            <div className="flex flex-col items-center px-2 border-r border-purple-400/50 flex-1">
-              <span className="text-purple-200 text-xs mb-0.5">단백질</span>
-              <span className="font-bold">{totalProteins}g</span>
+            {/* Protein */}
+            <div className="flex-1 flex flex-col items-center justify-center py-4 border-r border-white/50">
+              <span className="text-xs font-bold text-slate-600 mb-1 whitespace-nowrap">단백질</span>
+              <div className="flex items-end gap-0.5">
+                <span className="font-extrabold text-slate-800 text-lg leading-none">{totalProteins}</span>
+                <span className="text-[10px] text-slate-500 font-medium mb-0.5">g</span>
+              </div>
             </div>
-            <div className="flex flex-col items-center px-2 flex-1">
-              <span className="text-purple-200 text-xs mb-0.5">지방</span>
-              <span className="font-bold">{totalFats}g</span>
+            {/* Fat */}
+            <div className="flex-1 flex flex-col items-center justify-center py-4">
+              <span className="text-xs font-bold text-slate-600 mb-1 whitespace-nowrap">지방</span>
+              <div className="flex items-end gap-0.5">
+                <span className="font-extrabold text-slate-800 text-lg leading-none">{totalFats}</span>
+                <span className="text-[10px] text-slate-500 font-medium mb-0.5">g</span>
+              </div>
             </div>
           </div>
         </section>
@@ -277,12 +295,6 @@ export default function RecordPage() {
             title="저녁"
             records={combinedMealData.dinner}
             onAddClick={() => handleAddMeal("dinner")}
-            onDeleteRecord={handleDeleteRecord}
-          />
-          <RecordMealGroup
-            title="간식"
-            records={combinedMealData.snack}
-            onAddClick={() => handleAddMeal("snack")}
             onDeleteRecord={handleDeleteRecord}
           />
         </section>

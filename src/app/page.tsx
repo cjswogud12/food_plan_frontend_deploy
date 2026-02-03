@@ -6,7 +6,7 @@ import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { Plus, ChevronRight, Utensils } from "lucide-react"
 import { User } from "@/types/definitions"
-import { getUser } from "@/api/index"
+import { getUser, getDietplan, getUserGoal, getTodayIntake } from "@/api/index"
 
 /*interface MealPlan {
   breakfast: any[];
@@ -22,6 +22,8 @@ export default function Mainpage() {
   // State
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dietPlan, setDietPlan] = useState<any>(null);
+  const [todayIntake, setTodayIntake] = useState<any>(null);
   /*const [mealPlan, setMealPlan] = useState<MealPlan>({
     breakfast: [], lunch: [], dinner: [], snack: []
   });*/
@@ -47,6 +49,36 @@ export default function Mainpage() {
         setIsLoading(false);
       });
   }, [router]);
+
+  useEffect(() => {
+    if (!user) return;  // user 정보가 있어야 함
+
+    getUserGoal()
+      .then(res => res.ok ? res.json() : null)
+      .then(goalData => {
+        if (!goalData) return;
+        return getDietplan(
+          user.user_number,      // user에서 가져옴
+          user.id,               // user에서 가져옴
+          goalData.goal_type,
+          goalData.target_calorie
+        );
+      })
+      .then(data => {
+        if (data) setDietPlan(data.days?.[0]);
+      })
+      .catch(err => console.error(err));
+  }, [user]);  // user가 바뀔 때 실행
+
+  // 오늘의 섭취 정보 가져오기
+  useEffect(() => {
+    getTodayIntake()
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setTodayIntake(data);
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   // 로딩 중이면 빈 화면
   if (isLoading) {
@@ -127,8 +159,8 @@ export default function Mainpage() {
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right">
-              <span className="text-lg font-bold text-slate-800">{/*nutrition.calories.current*/}</span>
-              <span className="text-xs text-slate-400"> {/*nutrition.calories.goal*/} kcal</span> {/* 그래프 오른쪽 상단 칼로리 표시 따로 할 필요 없으면 삭제할 것. */}
+              <span className="text-lg font-bold text-slate-800">{todayIntake?.total_calories_kcal || 0}</span>
+              <span className="text-xs text-slate-400"> kcal</span>
             </div>
           </div>
 
@@ -145,21 +177,20 @@ export default function Mainpage() {
           <div className="flex w-full justify-between items-center mt-3 px-1">
             {/* Explicit Calorie Legend Item */}
             <div className="flex items-center gap-1.5">
-              {/* Using a multi-color dot or neutral dot for Total */}
               <div className="w-2.5 h-2.5 rounded-full bg-slate-500"></div>
-              <span className="text-[10px] text-slate-500 font-medium">칼로리 {/*nutrition.calories.current*/}kcal</span>
+              <span className="text-[10px] text-slate-500 font-medium">칼로리 {todayIntake?.total_calories_kcal || 0}kcal</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-              <span className="text-[10px] text-slate-500">탄수화물 {/*nutrition.carbs*/}g</span>
+              <span className="text-[10px] text-slate-500">탄수화물 {todayIntake?.total_carbs_g || 0}g</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-              <span className="text-[10px] text-slate-500">단백질 {/*nutrition.protein*/}g</span>
+              <span className="text-[10px] text-slate-500">단백질 {todayIntake?.total_protein_g || 0}g</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-              <span className="text-[10px] text-slate-500">지방 {/*nutrition.fat*/}g</span>
+              <span className="text-[10px] text-slate-500">지방 {todayIntake?.total_fat_g || 0}g</span>
             </div>
           </div>
         </section>
@@ -170,9 +201,9 @@ export default function Mainpage() {
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
           </div>
           <div className="grid gap-3">
-            <PlanSection title="아침" type="breakfast" items={[]} />
-            <PlanSection title="점심" type="lunch" items={[]} />
-            <PlanSection title="저녁" type="dinner" items={[]} />
+            <PlanSection title="아침" type="breakfast" items={dietPlan?.breakfast ? [dietPlan.breakfast] : []} />
+            <PlanSection title="점심" type="lunch" items={dietPlan?.lunch ? [dietPlan.lunch] : []} />
+            <PlanSection title="저녁" type="dinner" items={dietPlan?.dinner ? [dietPlan.dinner] : []} />
           </div>
         </section>
 

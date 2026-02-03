@@ -172,3 +172,23 @@ export async function uploadFoodImage(formData: FormData) {
 export async function chat(message: string, context: any) {
     return postJson("/chat", { message, context });
 }
+//-----식단 계획---------
+export async function getDietplan(user_number: number, id: string, goal_type: string, target_calorie: number) {
+    const res = await fetch(`${BASE_URL}/diet-plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            user_number,
+            id,
+            goal_type,
+            target_calorie
+        })
+    })
+    if (!res.ok) throw new Error("식단 생성 실패")
+    return res.json()
+}
+
+// --- 오늘의 섭취 ---
+export async function getTodayIntake() {
+    return getJson("/intake/today");
+}

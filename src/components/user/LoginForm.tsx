@@ -23,7 +23,7 @@ export default function LoginForm() {
             const res = await login(form.username, form.password)
             if (res && (res.id || res.token)) {
                 localStorage.setItem("user_id", res.id || "dummy_id")
-                if (res.user_number) localStorage.setItem("user_number", res.user_number);
+                if (res.user_number) localStorage.setItem("user_number", res.user_number)
                 router.push("/")
             } else {
                 throw new Error("로그인 실패")
@@ -35,11 +35,9 @@ export default function LoginForm() {
             setIsLoading(false)
         }
     }
-
-    // 구글 소셜 로그인 - 백엔드 OAuth 엔드포인트로 리다이렉트
+    // ✅ 구글 소셜 로그인: fetch 금지, 브라우저 이동으로 처리 (302 redirect가 정상 동작함)
     const handleGoogleLogin = () => {
-        // 백엔드에서 구글 OAuth URL 설정 필요
-        window.location.href = "http://localhost:8000/api/auth/google";
+        window.location.assign("http://localhost:8000/api/auth/oauth/url?provider=google")
     }
     return (
         <main className="flex flex-col w-full h-full justify-center">
@@ -54,15 +52,13 @@ export default function LoginForm() {
                     <h1 className="text-3xl font-bold text-black tracking-tight">로그인</h1>
                 </div>
 
-
-
                 {/* Form Fields */}
                 <div className="w-full space-y-3">
                     <input
                         placeholder="아이디"
                         className="w-full px-4 py-3 bg-purple-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all text-slate-700 placeholder:text-slate-400"
                         onChange={(e) => setForm({ ...form, username: e.target.value })}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                     />
 
                     <div className="relative">
@@ -71,7 +67,7 @@ export default function LoginForm() {
                             type={showPassword ? "text" : "password"}
                             className="w-full px-4 py-3 bg-purple-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all text-slate-700 placeholder:text-slate-400 pr-12"
                             onChange={(e) => setForm({ ...form, password: e.target.value })}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                         />
                         <button
                             type="button"
@@ -93,8 +89,12 @@ export default function LoginForm() {
                 </button>
                 {/* Helper Links */}
                 <div className="w-full flex justify-between items-center mt-1 px-2 text-sm text-black font-medium">
-                    <button onClick={() => router.push('/find-id')} className="hover:text-purple-600 transition-colors">아이디/비밀번호 찾기</button>
-                    <button onClick={() => router.push('/register')} className="hover:text-purple-600 transition-colors">회원가입</button>
+                    <button onClick={() => router.push("/find-id")} className="hover:text-purple-600 transition-colors">
+                        아이디/비밀번호 찾기
+                    </button>
+                    <button onClick={() => router.push("/register")} className="hover:text-purple-600 transition-colors">
+                        회원가입
+                    </button>
                 </div>
 
                 {/* Social Login Text */}

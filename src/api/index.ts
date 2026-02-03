@@ -2,6 +2,17 @@ const BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`;
 
 // api 통신 경로 통합 관리
 
+import { supabase } from "@/lib/supabase"
+
+async function getAuthHeader(): Promise<HeadersInit> {
+    const { data } = await supabase.auth.getSession()
+    if (!data.session?.access_token) {
+        console.warn("No active Supabase session found.")
+        return {}
+    }
+    return { "Authorization": `Bearer ${data.session.access_token}` }
+}
+
 export async function postFormData(
     endpoint: string,
     formData: FormData,
@@ -11,11 +22,14 @@ export async function postFormData(
     const timeoutMs = options?.timeoutMs ?? 15000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
+        const authHeader = await getAuthHeader();
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: "POST",
+            headers: {
+                ...authHeader
+            },
             body: formData,
-            signal: controller.signal,
-            credentials: "include"
+            signal: controller.signal
         });
         return response;
     } finally {
@@ -24,18 +38,24 @@ export async function postFormData(
 }
 
 export async function postJson(endpoint: string, data: object) {
+    const authHeader = await getAuthHeader();
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include"
+        headers: {
+            "Content-Type": "application/json",
+            ...authHeader
+        },
+        body: JSON.stringify(data)
     });
     return response;
 }
 
 export async function getJson(endpoint: string) {
+    const authHeader = await getAuthHeader();
     const response = await fetch(`${BASE_URL}${endpoint}`, {
-        credentials: "include"
+        headers: {
+            ...authHeader
+        }
     });
     return response;
 }
@@ -54,12 +74,9 @@ export async function login(id: string, password: string) {
 }
 
 export async function logout() {
-    const res = await fetch(`${BASE_URL}/logout`, {
-        method: "POST",
-        credentials: "include"
-    })
-    if (!res.ok) throw new Error((await res.json()).detail || "로그아웃 실패")
-    return res.json()
+    // Supabase logout
+    await supabase.auth.signOut()
+    return { message: "Logged out" }
 }
 
 export async function register(id: string, password: string, username: string, age: number, gender: string) {
@@ -84,7 +101,7 @@ export async function uploadInbodyImage(
     formData: FormData,
     options?: { timeoutMs?: number }
 ) {
-    // 예: 백엔드가 /inbody/upload 라면 그에 맞춰 수정
+    // Clean JWT implementation
     return postFormData("/inbody-ocr", formData, options);
 }
 

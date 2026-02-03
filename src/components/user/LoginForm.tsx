@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { login } from "@/api/index"
+import { supabase } from "@/lib/supabase"
 import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginForm() {
@@ -36,8 +37,21 @@ export default function LoginForm() {
         }
     }
     // ✅ 구글 소셜 로그인: fetch 금지, 브라우저 이동으로 처리 (302 redirect가 정상 동작함)
-    const handleGoogleLogin = () => {
-        window.location.assign("http://localhost:8000/api/auth/oauth/url?provider=google")
+    const handleGoogleLogin = async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/login/callback`,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                },
+            },
+        })
+        if (error) {
+            console.error("Google Login Error:", error)
+            alert("로그인 요청 중 오류가 발생했습니다.")
+        }
     }
     return (
         <main className="flex flex-col w-full h-full justify-center">

@@ -101,6 +101,11 @@ export default function DietMapModal({ isOpen, onClose, data }: DietMapModalProp
                         center={{ lat: data.lat, lng: data.lng }}
                         style={{ width: "100%", height: "100%" }}
                         level={4}
+                        onCreate={(map) => {
+                            console.log("✅ Kakao Map Created:", map);
+                            // 지도 크기 재설정이 필요한 경우를 위해
+                            map.relayout();
+                        }}
                     >
                         {/* User Location Marker */}
                         <MapMarker

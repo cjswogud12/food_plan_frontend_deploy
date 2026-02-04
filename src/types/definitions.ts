@@ -170,7 +170,7 @@ export interface DietPlanItem {
 
 export interface DietPlanKakaoMap {
     food_name: string;
-    place: [{
+    place: {
         id: string,
         name: string,
         category_group_code: string,
@@ -182,8 +182,8 @@ export interface DietPlanKakaoMap {
         place_url: string,
         distance_m: number,
         x: number,
-        y: number,        //범위
-    }]
+        y: number,
+    }[]
     lat: number; //위도
     lng: number; //경도
     radius_m: number; //범위

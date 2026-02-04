@@ -60,9 +60,9 @@ export default function Mainpage() {
 
       } catch (err) {
         console.error("Failed to fetch main page data", err);
-        } finally {
-          setIsLoading(false);
-        }
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
@@ -119,12 +119,18 @@ export default function Mainpage() {
     }
 
     // Show loading or toast could be added here
+    console.log("📍 Obtaining user location...");
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
+          console.log(`📍 Location obtained: ${latitude}, ${longitude}`);
+
           // Fetch nearby places
+          console.log(`🍽️ Fetching places for: ${foodName}`);
           const data = await getNearbyPlaces(foodName, latitude, longitude);
+          console.log("📦 API Response:", data);
+
           // The backend returns a structure. Depending on current impl, adapt it.
           // Assuming backend returns { ...data } matching DietPlanKakaoMap
           // Or if it returns { places: [] }, we might need to construct the object.
@@ -132,19 +138,22 @@ export default function Mainpage() {
           // User showed "ResponseData" has "places": [...].
           // We need to form DietPlanKakaoMap structure: { food_name, place, lat, lng, radius_m }
 
+          const places = data.place || data.places || [];
+          console.log(`✅ Found ${places.length} places`);
+
           const mapPayload: DietPlanKakaoMap = {
             food_name: foodName,
             lat: latitude,
             lng: longitude,
             radius_m: 2000,
-            place: data.places || [] // Handle backend response key
+            place: places // Handle backend response key
           };
 
           setMapData(mapPayload);
           setIsMapOpen(true);
         } catch (error) {
-          console.error("Failed to fetch places:", error);
-          alert("주변 식당 정보를 불러오는데 실패했습니다.");
+          console.error("❌ Error in handleFoodClick:", error);
+          alert("장소 정보를 가져오는데 실패했습니다.");
         }
       },
       (error) => {

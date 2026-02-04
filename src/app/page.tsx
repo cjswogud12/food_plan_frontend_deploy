@@ -8,12 +8,12 @@ import { Plus, ChevronRight, Utensils, Check, Square } from "lucide-react"
 import { getUser, getDietplan, getUserGoal, getTodayIntake } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
 
-/*interface MealPlan {
-  breakfast: any[];
-  lunch: any[];
-  dinner: any[];
-  snack: any[];
-}*/
+interface GoalsState {
+  calories: number;
+  carbs: number;
+  protein: number;
+  fat: number;
+}
 
 export default function Mainpage() {
   const { isMobile } = useViewport();
@@ -28,11 +28,14 @@ export default function Mainpage() {
 
   // Local State 로컬 상태관리
   const [isLoading, setIsLoading] = useState(true);
-  /*const [mealPlan, setMealPlan] = useState<MealPlan>({
-    breakfast: [], lunch: [], dinner: [], snack: []
-  });*/
+  const [goals, setGoals] = useState<GoalsState>({
+    calories: 2000,
+    carbs: 300,
+    protein: 100,
+    fat: 60,
+  });
 
-  // 로그인 체크 및 유저 정보 가져오기
+  // 로그인 체크 및 유저 정보/식단 가져오기
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) {
@@ -40,56 +43,70 @@ export default function Mainpage() {
       return;
     }
 
-    console.log("Fetching user info for ID:", userId); // 디버깅 로그
-    getUser(userId)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        console.log("User API Response:", data); // 디버깅 로그
-        if (data) setUser(data);
-        setIsLoading(false);
-      })
-      .catch(err => {
-        console.error("User fetch error", err);
-        setIsLoading(false);
-      });
-  }, [router]);
+    const fetchData = async () => {
+      try {
+        // 1. 유저 정보
+        const userRes = await getUser(userId);
+        const userData = userRes.ok ? await userRes.json() : null;
+        if (userData) setUser(userData);
 
+        // 2. 목표 정보
+        const goalRes = await getUserGoal();
+        const goalData = goalRes.ok ? await goalRes.json() : null;
+
+        if (goalData) {
+          setGoals({
+            calories: goalData.target_calorie || 2000,
+            carbs: goalData.target_carb || 300,
+            protein: goalData.target_protein || 100,
+            fat: goalData.target_fat || 60,
+          });
+        }
+
+      } catch (err) {
+        console.error("Failed to fetch main page data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [router, setUser]);
+
+  // 식단 계획 및 오늘의 섭취 정보 가져오기 (User Store 의존)
   useEffect(() => {
-    if (!user) return;  // user 정보가 있어야 함
+    if (!user) return;
 
-    // 캐시된 데이터가 있고 1시간 이내면 API 호출 건너뛰기
     const ONE_HOUR = 60 * 60 * 1000;
-    if (dietPlan && lastFetched && (Date.now() - lastFetched < ONE_HOUR)) {
-      console.log("Using cached diet plan");
-      return;
+
+    // 식단 계획
+    if (!(dietPlan && lastFetched && (Date.now() - lastFetched < ONE_HOUR))) {
+      getUserGoal()
+        .then(res => res.ok ? res.json() : null)
+        .then(goalData => {
+          if (!goalData) return;
+          return getDietplan(
+            user.user_number,
+            user.id,
+            goalData.goal_type,
+            goalData.target_calorie
+          );
+        })
+        .then(data => {
+          if (data) setDietPlan(data.days?.[0]);
+        })
+        .catch(err => console.error(err));
     }
 
-    getUserGoal()
-      .then(res => res.ok ? res.json() : null)
-      .then(goalData => {
-        if (!goalData) return;
-        return getDietplan(
-          user.user_number,      // user에서 가져옴
-          user.id,               // user에서 가져옴
-          goalData.goal_type,
-          goalData.target_calorie
-        );
-      })
-      .then(data => {
-        if (data) setDietPlan(data.days?.[0]);
-      })
-      .catch(err => console.error(err));
-  }, [user]);  // user가 바뀔 때 실행
-
-  // 오늘의 섭취 정보 가져오기
-  useEffect(() => {
+    // 오늘의 섭취 정보
     getTodayIntake()
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) setTodayIntake(data);
       })
       .catch(err => console.error(err));
-  }, []);
+
+  }, [user, dietPlan, lastFetched, setDietPlan, setTodayIntake]);
 
   // 로딩 중이면 빈 화면
   if (isLoading) {
@@ -100,6 +117,27 @@ export default function Mainpage() {
   const handleAddMenu = (type: string) => {
     // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
   };
+
+  // 비율 계산 (Goals 대비 Current) - 그래프용
+  const getPercent = (current: number, goal: number) => {
+    if (goal <= 0) return 0;
+    return Math.min((current / goal) * 100, 100);
+  };
+
+  const kcalPerCarb = 4;
+  const kcalPerProtein = 4;
+  const kcalPerFat = 9;
+
+  // 전체 목표 칼로리 대비 섭취한 영양소의 칼로리 비중 (Graph Width)
+  // todayIntake 데이터 사용
+  const currentCal = todayIntake?.total_calories_kcal || 0;
+  const currentCarbs = todayIntake?.total_carbs_g || 0;
+  const currentProtein = todayIntake?.total_protein_g || 0;
+  const currentFat = todayIntake?.total_fat_g || 0;
+
+  const widthCarbs = Math.min(((currentCarbs * kcalPerCarb) / goals.calories) * 100, 100);
+  const widthProtein = Math.min(((currentProtein * kcalPerProtein) / goals.calories) * 100, 100);
+  const widthFat = Math.min(((currentFat * kcalPerFat) / goals.calories) * 100, 100);
 
   const PlanSection = ({ title, type, items }: { title: string, type: 'breakfast' | 'lunch' | 'dinner', items: any[] }) => {
     const todayChecked = checkedMeals[today]?.[type] || [];
@@ -201,9 +239,9 @@ export default function Mainpage() {
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
-            <div className="text-right">
-              <span className="text-lg font-bold text-slate-800">{todayIntake?.total_calories_kcal || 0}</span>
-              <span className="text-xs text-slate-400"> kcal</span>
+            <div className="text-right flex items-end justify-end gap-1">
+              <span className="text-lg font-extrabold text-slate-800 leading-none">{currentCal}</span>
+              <span className="text-[10px] text-slate-400 font-medium mb-0.5">/ {goals.calories} kcal</span>
             </div>
           </div>
 
@@ -211,29 +249,37 @@ export default function Mainpage() {
           {/* Total width represents Goal. Filled width represents Calories (C+P+F) */}
           <div className="h-6 w-full bg-indigo-50 rounded-full overflow-hidden flex relative border border-indigo-100/50 shadow-inner">
             {/* The segments add up to total calories consumed */}
-            <div className="h-full bg-indigo-400" style={{ width: `0%` }} />
-            <div className="h-full bg-purple-400" style={{ width: `0%` }} />
-            <div className="h-full bg-pink-400" style={{ width: `0%` }} />
+            <div className="h-full bg-indigo-400 transition-all duration-1000" style={{ width: `${widthCarbs}%` }} />
+            <div className="h-full bg-purple-400 transition-all duration-1000" style={{ width: `${widthProtein}%` }} />
+            <div className="h-full bg-pink-400 transition-all duration-1000" style={{ width: `${widthFat}%` }} />
           </div>
 
           {/* Legend */}
           <div className="flex w-full justify-between items-center mt-3 px-1">
-            {/* Explicit Calorie Legend Item */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-500"></div>
-              <span className="text-[10px] text-slate-500 font-medium">칼로리 {todayIntake?.total_calories_kcal || 0}kcal</span>
-            </div>
+            {/* Explicit Calorie Legend Item Removed */}
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
-              <span className="text-[10px] text-slate-500">탄수화물 {todayIntake?.total_carbs_g || 0}g</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xs font-bold text-slate-600">탄수화물</span>
+                <span className="text-base font-extrabold text-slate-800">{currentCarbs}</span>
+                <span className="text-[10px] text-slate-500">g</span>
+              </div>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
-              <span className="text-[10px] text-slate-500">단백질 {todayIntake?.total_protein_g || 0}g</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xs font-bold text-slate-600">단백질</span>
+                <span className="text-base font-extrabold text-slate-800">{currentProtein}</span>
+                <span className="text-[10px] text-slate-500">g</span>
+              </div>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
-              <span className="text-[10px] text-slate-500">지방 {todayIntake?.total_fat_g || 0}g</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xs font-bold text-slate-600">지방</span>
+                <span className="text-base font-extrabold text-slate-800">{currentFat}</span>
+                <span className="text-[10px] text-slate-500">g</span>
+              </div>
             </div>
           </div>
         </section>

@@ -189,6 +189,7 @@ export async function uploadFoodImage(formData: FormData) {
 export async function chat(message: string, context: any) {
     return postJson("/chat", { message, context });
 }
+
 //-----식단 계획---------
 export async function getDietplan(user_number: number, id: string, goal_type: string, target_calorie: number) {
     const res = await fetch(`${BASE_URL}/diet-plan`, {
@@ -208,4 +209,8 @@ export async function getDietplan(user_number: number, id: string, goal_type: st
 // --- 오늘의 섭취 ---
 export async function getTodayIntake() {
     return getJson("/intake/today");
+}
+
+export async function getCalendarRecord(userNumber: number, year: number, month: number) {
+    return getJson(`/calendar?user_number=${userNumber}&year=${year}&month=${month}`);
 }

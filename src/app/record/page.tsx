@@ -6,7 +6,7 @@ import FloatingCameraButton from "@/components/FloatingCameraButton";
 import CalendarFull from "@/components/MainCalendarFull";
 import { Plus, ChevronRight, Utensils, Trash2 } from "lucide-react"
 import { FoodAnalysisResult } from "@/types/definitions";
-import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord } from "@/api/index";
+import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord, getCalendarRecord } from "@/api/index";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
 import { useDietStore } from "@/store";
 
@@ -61,12 +61,42 @@ export default function RecordPage() {
 
   // State
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [recordedDays, setRecordedDays] = useState<string[]>([]); // 캘린더에 표시할 기록된 날짜들
   const [mealData, setMealData] = useState<DailyMealData>({
     breakfast: [],
     lunch: [],
     dinner: [],
     snack: [],
   });
+  // 캘린더에서 식단 기록이 있는 날짜에 색상 추가
+  // 월별 기록 데이터 가져오기 (캘린더용)
+  const fetchMonthlyRecords = async (date: Date) => {
+    try {
+      const userNumberStr = localStorage.getItem("user_number");
+      if (!userNumberStr) return;
+
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+
+      const response = await getCalendarRecord(Number(userNumberStr), year, month);
+      if (response.ok) {
+        const data = await response.json();
+        // data structure: { year: number, month: number, dates: string[] }
+        if (data && Array.isArray(data.dates)) {
+          setRecordedDays(data.dates);
+        } else {
+          setRecordedDays([]);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch monthly records", e);
+    }
+  };
+
+  // 초기 로드 시 현재 월의 기록 가져오기
+  useEffect(() => {
+    fetchMonthlyRecords(selectedDate);
+  }, []);
 
   // 각 시간 별 음식 저장
   const fileInputRefs = {
@@ -236,7 +266,12 @@ export default function RecordPage() {
 
         {/* Full Calendar */}
         <section className="mb-6">
-          <CalendarFull selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+          <CalendarFull
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            recordedDays={recordedDays}
+            onMonthChange={fetchMonthlyRecords}
+          />
         </section>
 
         {/* Daily Summary (Connected Gradient) */}

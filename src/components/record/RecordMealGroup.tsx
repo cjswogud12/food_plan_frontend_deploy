@@ -135,7 +135,7 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
                 {/* Text */}
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold text-slate-800 truncate">
-                    {r.food_name ?? r.predicted_food_name ?? "음식"}
+                    {r.food_name ?? r.predicted_food_name ?? r.name ?? "음식"}
                   </div>
 
                   <div className="text-xs text-slate-500">
@@ -143,7 +143,9 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
                       ? `${r.food_calories} kcal`
                       : typeof r.estimated_calories_kcal === "number"
                         ? `${r.estimated_calories_kcal} kcal`
-                        : ""}
+                        : typeof r.calories_kcal === "number"
+                          ? `${r.calories_kcal} kcal`
+                          : ""}
                   </div>
                 </div>
               </div>
@@ -194,7 +196,7 @@ export default function RecordMealGroup({ title, records, onAddClick, onDeleteRe
 
                     {/* Name */}
                     <div className="text-sm font-medium text-slate-700 truncate flex-1">
-                      {r.food_name ?? r.predicted_food_name ?? "음식"}
+                      {r.food_name ?? r.predicted_food_name ?? r.name ?? "음식"}
                     </div>
                   </div>
                 )

@@ -23,9 +23,10 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
     const getGoalFromStage = (stage1: string | number | undefined | null): string => {
         if (!stage1) return "-";
         const s = String(stage1).trim().toUpperCase();
-        if (s === "비만" || s === "1" || s === "DIET" || s === "다이어트") return "다이어트";
-        if (s === "표준" || s === "2" || s === "MAINTAIN" || s === "유지") return "유지";
-        if (s === "마름" || s === "3" || s === "BULKUP" || s === "BULK" || s === "증량" || s === "근육증가") return "증량";
+
+        if (["비만", "1", "DIET", "다이어트", "감량"].includes(s)) return "다이어트";
+        if (["표준", "2", "MAINTAIN", "유지"].includes(s)) return "유지";
+        if (["마름", "3", "BULKUP", "BULK", "증량", "근육증가", "벌크", "벌크업"].includes(s)) return "증량";
         return String(stage1);
     };
 

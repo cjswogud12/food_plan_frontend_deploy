@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { login } from "@/api/index"
 import { supabase } from "@/lib/supabase"
 import { Eye, EyeOff } from "lucide-react"
+import Logo from "@/components/Logo"
 
 export default function LoginForm() {
     const router = useRouter()
@@ -58,9 +59,7 @@ export default function LoginForm() {
             <div className="flex flex-col items-center w-full max-w-[360px] mx-auto py-8">
                 {/* Logo Area */}
                 <div className="mb-8 flex flex-col items-center">
-                    <div className="w-50 h-50 bg-purple-100 rounded-full flex items-center justify-center mb-4 border-4 border-dotted border-purple-400">
-                        <span className="text-black font-bold text-3xl">로고 부분</span>
-                    </div>
+                    <span className="text-black font-bold text-3xl"><Logo width={200} height={200} /></span>
                 </div>
                 <div className="mb-4 flex flex-col items-center">
                     <h1 className="text-3xl font-bold text-black tracking-tight">로그인</h1>

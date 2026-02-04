@@ -27,6 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-100 flex justify-center items-center min-h-screen">
+        <script
+          type="text/javascript"
+          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&libraries=services,clusterer`}
+        ></script>
         <ViewportProvider>
           <div className="app-container">
             <main>

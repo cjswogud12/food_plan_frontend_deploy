@@ -167,3 +167,24 @@ export interface DietPlanItem {
     image_url?: string;
     // 필요한 경우 다른 필드 추가 (예: carbohydrates, protein, fat 등)
 }
+
+export interface DietPlanKakaoMap {
+    food_name: string;
+    place: [{
+        id: string,
+        name: string,
+        category_group_code: string,
+        category_group_name: string,
+        category_name: string,
+        address_name: string,
+        road_address_name: string,
+        phone: string,
+        place_url: string,
+        distance_m: number,
+        x: number,
+        y: number,        //범위
+    }]
+    lat: number; //위도
+    lng: number; //경도
+    radius_m: number; //범위
+}

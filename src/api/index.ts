@@ -208,14 +208,10 @@ export async function chat(message: string, context: any) {
 //-----식단 계획---------
 export async function getDietplan(user_number: number, id: string, goal_type: string, target_calorie: number) {
     const response = await postJson("/diet-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            user_number,
-            id,
-            goal_type,
-            target_calorie
-        })
+        user_number,
+        id,
+        goal_type,
+        target_calorie
     });
 
     if (!response.ok) throw new Error("식단 생성 실패");
@@ -225,4 +221,24 @@ export async function getDietplan(user_number: number, id: string, goal_type: st
 // --- 오늘의 섭취 ---
 export async function getTodayIntake() {
     return getJson("/intake/today");
+}
+
+// --- 지도: 주변 식당 검색 ---
+export async function getNearbyPlaces(foodName: string, lat: number, lng: number, radius: number = 2000) {
+    const payload = {
+        food_name: foodName,
+        lat,
+        lng,
+        radius_m: radius
+    };
+    console.log("SENDING /diet-plan/places:", payload);
+
+    const response = await postJson("/diet-plan/places", payload);
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`장소 검색 실패: ${response.status} ${errorText}`);
+    }
+    return response.json();
 }

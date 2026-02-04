@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
-import { Plus, ChevronRight, Utensils, Check, Square } from "lucide-react"
-import { getUser, getDietplan, getUserGoal, getTodayIntake } from "@/api/index"
+import DietMapModal from "@/components/DietMapModal" // Import New Modal
+import { Plus, ChevronRight, Utensils, Check, Square, MapPin } from "lucide-react"
+import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index" // Import API
 import { useUserStore, useDietStore } from "@/store"
+import { DietPlanKakaoMap } from "@/types/definitions" // Import Type
 
 /*interface MealPlan {
   breakfast: any[];
@@ -28,6 +30,11 @@ export default function Mainpage() {
 
   // Local State 로컬 상태관리
   const [isLoading, setIsLoading] = useState(true);
+
+  // Map State
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [mapData, setMapData] = useState<DietPlanKakaoMap | null>(null);
+
   /*const [mealPlan, setMealPlan] = useState<MealPlan>({
     breakfast: [], lunch: [], dinner: [], snack: []
   });*/
@@ -91,15 +98,57 @@ export default function Mainpage() {
       .catch(err => console.error(err));
   }, []);
 
-  // 로딩 중이면 빈 화면
-  if (isLoading) {
-    return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
-  }
-
   // Handlers
   const handleAddMenu = (type: string) => {
     // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
   };
+
+  const handleFoodClick = async (foodName: string) => {
+    if (!navigator.geolocation) {
+      alert("위치 정보를 사용할 수 없습니다.");
+      return;
+    }
+
+    // Show loading or toast could be added here
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          // Fetch nearby places
+          const data = await getNearbyPlaces(foodName, latitude, longitude);
+          // The backend returns a structure. Depending on current impl, adapt it.
+          // Assuming backend returns { ...data } matching DietPlanKakaoMap
+          // Or if it returns { places: [] }, we might need to construct the object.
+          // Let's assume response IS the DietPlanKakaoMap object structure or close to it.
+          // User showed "ResponseData" has "places": [...].
+          // We need to form DietPlanKakaoMap structure: { food_name, place, lat, lng, radius_m }
+
+          const mapPayload: DietPlanKakaoMap = {
+            food_name: foodName,
+            lat: latitude,
+            lng: longitude,
+            radius_m: 2000,
+            place: data.places || [] // Handle backend response key
+          };
+
+          setMapData(mapPayload);
+          setIsMapOpen(true);
+        } catch (error) {
+          console.error("Failed to fetch places:", error);
+          alert("주변 식당 정보를 불러오는데 실패했습니다.");
+        }
+      },
+      (error) => {
+        console.error("Location error:", error);
+        alert("위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.");
+      }
+    );
+  };
+
+  // 로딩 중이면 빈 화면
+  if (isLoading) {
+    return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
+  }
 
   const PlanSection = ({ title, type, items }: { title: string, type: 'breakfast' | 'lunch' | 'dinner', items: any[] }) => {
     const todayChecked = checkedMeals[today]?.[type] || [];
@@ -131,7 +180,9 @@ export default function Mainpage() {
             {items.map((item, idx) => (
               <li
                 key={idx}
-                className={`flex justify-between items-center p-2.5 rounded-xl border transition-all ${isItemChecked(item)
+                // Click handler for opening map
+                onClick={() => handleFoodClick(item.food_name || item.name)}
+                className={`flex justify-between items-center p-2.5 rounded-xl border transition-all cursor-pointer hover:shadow-md ${isItemChecked(item)
                   ? 'bg-green-50 border-green-200'
                   : 'bg-slate-50 border-slate-100'
                   }`}
@@ -165,8 +216,11 @@ export default function Mainpage() {
                       }`}>
                       {item.food_name || item.name}
                     </span>
-                    <span className="text-xs text-slate-400">
-                      {item.calories || item.food_calories} kcal
+                    <span className="flex items-center gap-1 text-xs text-slate-400">
+                      <span>{item.calories || item.food_calories} kcal</span>
+                      <span className="text-indigo-400 flex items-center gap-0.5 ml-1 bg-indigo-50 px-1 rounded">
+                        <MapPin size={10} /> 지도보기
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -271,6 +325,13 @@ export default function Mainpage() {
         </section>
 
         <FloatingCameraButton />
+
+        {/* Map Modal */}
+        <DietMapModal
+          isOpen={isMapOpen}
+          onClose={() => setIsMapOpen(false)}
+          data={mapData}
+        />
       </div>
     </div>
   );

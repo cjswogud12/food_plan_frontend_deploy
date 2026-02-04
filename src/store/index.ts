@@ -10,13 +10,21 @@ interface UserState {
     resetUser: () => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
-    user: null,
-    userGoal: null,
-    setUser: (user) => set({ user }),
-    setUserGoal: (userGoal) => set({ userGoal }),
-    resetUser: () => set({ user: null, userGoal: null }),
-}))
+export const useUserStore = create<UserState>()(
+    persist(
+        (set) => ({
+            user: null,
+            userGoal: null,
+            setUser: (user) => set({ user }),
+            setUserGoal: (userGoal) => set({ userGoal }),
+            resetUser: () => set({ user: null, userGoal: null }),
+        }),
+        {
+            name: 'user-storage',
+            partialize: (state) => ({ user: state.user, userGoal: state.userGoal }),
+        }
+    )
+)
 
 // 식단 관련 전역 상태 (localStorage에 저장)
 import { persist } from 'zustand/middleware'
@@ -75,7 +83,15 @@ export const useDietStore = create<DietState>()(
                             ...dayMeals,
                             [mealType]: newMealList
                         }
-                    }
+                    },
+                    // Update TodayIntake Optimistically
+                    todayIntake: get().todayIntake ? {
+                        ...get().todayIntake,
+                        total_calories_kcal: (get().todayIntake.total_calories_kcal || 0) + (isChecked ? -1 : 1) * (food.calories || food.food_calories || 0),
+                        total_carbs_g: (get().todayIntake.total_carbs_g || 0) + (isChecked ? -1 : 1) * (food.carbs || food.food_carbs || 0),
+                        total_protein_g: (get().todayIntake.total_protein_g || 0) + (isChecked ? -1 : 1) * (food.protein || food.food_proteins || 0),
+                        total_fat_g: (get().todayIntake.total_fat_g || 0) + (isChecked ? -1 : 1) * (food.fat || food.food_fats || 0),
+                    } : null
                 });
             },
             clearCheckedMeals: (date) => {
@@ -89,6 +105,7 @@ export const useDietStore = create<DietState>()(
             name: 'diet-storage',
             partialize: (state) => ({
                 dietPlan: state.dietPlan,
+                todayIntake: state.todayIntake, // 오늘의 섭취 정보도 저장
                 lastFetched: state.lastFetched,
                 checkedMeals: state.checkedMeals  // 체크 상태도 저장
             }),

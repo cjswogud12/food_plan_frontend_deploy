@@ -29,7 +29,26 @@ export default function Mainpage() {
   const today = new Date().toISOString().split('T')[0];
 
   // Local State 로컬 상태관리
-  const [isLoading, setIsLoading] = useState(true);
+  // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
+  // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
+  const [isLoading, setIsLoading] = useState(!user);
+  // dietPlan이 없으면 로딩 상태로 시작 (Hydration Flicker 방지)
+  const [isPlanLoading, setIsPlanLoading] = useState(!dietPlan);
+
+  // Skeleton UI Component
+  const PlanSkeleton = () => (
+    <div className="bg-white border-2 border-slate-100 p-4 rounded-2xl shadow-sm animate-pulse">
+      <div className="flex justify-between items-center mb-3">
+        <div className="h-4 bg-slate-200 rounded w-12"></div>
+        <div className="w-6 h-6 bg-slate-200 rounded-full"></div>
+      </div>
+      <div className="space-y-2">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-14 bg-slate-100 rounded-xl"></div>
+        ))}
+      </div>
+    </div>
+  );
 
   // Map State
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -75,7 +94,11 @@ export default function Mainpage() {
     const ONE_HOUR = 60 * 60 * 1000;
 
     // 식단 계획
-    if (!(dietPlan && lastFetched && (Date.now() - lastFetched < ONE_HOUR))) {
+    // user가 있고, (데이터가 없거나 || 마지막 갱신으로부터 1시간 지났으면)
+    if (user && (!dietPlan || !lastFetched || (Date.now() - lastFetched > ONE_HOUR))) {
+      // 데이터가 아예 없을 때만 로딩 표시 (Stale-While-Revalidate)
+      if (!dietPlan) setIsPlanLoading(true);
+
       getUserGoal()
         .then(res => res.ok ? res.json() : null)
         .then(goalData => {
@@ -88,19 +111,38 @@ export default function Mainpage() {
           );
         })
         .then(data => {
-          if (data) setDietPlan(data.days?.[0]);
+          if (data) {
+            setDietPlan(data.days?.[0]);
+            // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
+            if (data.today_intake) {
+              setTodayIntake(data.today_intake);
+            }
+          }
+        })
+        .catch(err => console.error(err))
+        .finally(() => setIsPlanLoading(false)); // 로딩 끝
+    }
+
+    // 오늘의 섭취 정보 (이미 데이터 있으면 스킵 가능하지만, 최신화 위해 호출)
+    // ... logic ...
+    if (user && !todayIntake) {
+      getTodayIntake()
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) setTodayIntake(data);
         })
         .catch(err => console.error(err));
     }
+  }, [user, lastFetched]);
 
-    // 오늘의 섭취 정보
-    getTodayIntake()
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) setTodayIntake(data);
-      })
-      .catch(err => console.error(err));
-  }, []);
+  // Store Hydration Sync: 상태가 복구되면 로딩 해제
+  useEffect(() => {
+    if (user) setIsLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (dietPlan) setIsPlanLoading(false);
+  }, [dietPlan]);
 
   // 로딩 중이면 빈 화면
   if (isLoading) {
@@ -279,7 +321,19 @@ export default function Mainpage() {
             </svg>
           </div>
           <div>
-            <p className="text-black-100 text-base font-bold">식단을 잘 지키고 있어요 👍</p>
+            <p className="text-black-100 text-base font-bold">
+              {(() => {
+                const todayChecks = checkedMeals[today] || { breakfast: [], lunch: [], dinner: [] };
+                const hasBreakfast = todayChecks.breakfast?.length > 0;
+                const hasLunch = todayChecks.lunch?.length > 0;
+                const hasDinner = todayChecks.dinner?.length > 0;
+
+                if (hasDinner) return "완벽해요! 오늘 하루도 고생하셨어요 👏";
+                if (hasLunch) return "잘하고 있어요! 저녁까지 힘내봐요 💪";
+                if (hasBreakfast) return "아침식사를 하셨군요! 활기찬 하루 되세요 ☀️";
+                return "식단을 잘 지키고 있어요 👍";
+              })()}
+            </p>
           </div>
         </section>
 
@@ -348,9 +402,19 @@ export default function Mainpage() {
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
           </div>
           <div className="grid gap-3">
-            <PlanSection title="아침" type="breakfast" items={dietPlan?.breakfast ? [dietPlan.breakfast] : []} />
-            <PlanSection title="점심" type="lunch" items={dietPlan?.lunch ? [dietPlan.lunch] : []} />
-            <PlanSection title="저녁" type="dinner" items={dietPlan?.dinner ? [dietPlan.dinner] : []} />
+            {isPlanLoading && !dietPlan ? (
+              <>
+                <PlanSkeleton />
+                <PlanSkeleton />
+                <PlanSkeleton />
+              </>
+            ) : (
+              <>
+                <PlanSection title="아침" type="breakfast" items={dietPlan?.breakfast ? [dietPlan.breakfast] : []} />
+                <PlanSection title="점심" type="lunch" items={dietPlan?.lunch ? [dietPlan.lunch] : []} />
+                <PlanSection title="저녁" type="dinner" items={dietPlan?.dinner ? [dietPlan.dinner] : []} />
+              </>
+            )}
           </div>
         </section>
 

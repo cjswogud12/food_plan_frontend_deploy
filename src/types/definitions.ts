@@ -188,3 +188,18 @@ export interface DietPlanKakaoMap {
     lng: number; //경도
     radius_m: number; //범위
 }
+
+export interface TodayIntake {
+    goal_type: string;
+    target_calorie: number;
+    total_calories_kcal: number;
+    total_carbs_g: number;
+    total_protein_g: number;
+    total_fat_g: number;
+    plan_date: string;
+}
+
+export interface DietPlanResponse {
+    days: any[]; // 구체적인 타입 정의 필요시 추가
+    today_intake: TodayIntake;
+}

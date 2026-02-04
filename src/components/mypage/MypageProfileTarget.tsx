@@ -25,7 +25,7 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
         const s = String(stage1).trim().toUpperCase();
         if (s === "비만" || s === "1" || s === "DIET" || s === "다이어트") return "다이어트";
         if (s === "표준" || s === "2" || s === "MAINTAIN" || s === "유지") return "유지";
-        if (s === "마름" || s === "3" || s === "BULKUP" || s === "증량" || s === "근육증가") return "증량";
+        if (s === "마름" || s === "3" || s === "BULKUP" || s === "BULK" || s === "증량" || s === "근육증가") return "증량";
         return String(stage1);
     };
 

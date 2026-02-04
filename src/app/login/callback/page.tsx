@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation"
 import { Suspense, useEffect, useState, useRef } from "react"
 import { supabase } from "@/lib/supabase" // Adjust path if needed
+import { getInbody } from "@/api/index"
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
 
@@ -106,7 +107,34 @@ function CallbackContent() {
 
                     setStatus('welcome')
                     setMessage(`${userName}님 환영합니다!`)
-                    setTimeout(() => router.push("/"), 1000)
+
+                    // Inbody Data Check
+                    try {
+                        console.log("Checking Inbody data for user:", userId);
+                        const inbodyRes = await getInbody(userId);
+                        if (inbodyRes.ok) {
+                            const inbodyData = await inbodyRes.json();
+                            // 데이터가 배열이고 비어있지 않거나, 객체이고 키가 있으면 존재로 판단
+                            const hasData = Array.isArray(inbodyData) ? inbodyData.length > 0 : (inbodyData && Object.keys(inbodyData).length > 0);
+
+                            if (hasData) {
+                                console.log("Inbody data found, redirecting to Home.");
+                                setTimeout(() => router.push("/"), 1000);
+                            } else {
+                                console.log("No Inbody data, redirecting to Onboarding.");
+                                setTimeout(() => router.push("/onboarding/inbody"), 1000);
+                            }
+                        } else {
+                            // 404 or other error -> assume no data
+                            console.warn("Inbody check failed (likely no data), redirecting to Onboarding.");
+                            setTimeout(() => router.push("/onboarding/inbody"), 1000);
+                        }
+                    } catch (e) {
+                        console.error("Error checking Inbody data:", e);
+                        // 에러 발생 시 안전하게 메인으로 보낼지, 온보딩으로 보낼지 고민 -> 온보딩이 안전
+                        setTimeout(() => router.push("/onboarding/inbody"), 1000);
+                    }
+
                 } else {
                     // Not Registered
                     setStatus('registering')
@@ -147,8 +175,9 @@ function CallbackContent() {
                     if (registerData.user_number) localStorage.setItem("user_number", String(registerData.user_number))
 
                     setStatus('welcome')
-                    setMessage('회원가입이 완료되었습니다!')
-                    setTimeout(() => router.push("/"), 2000)
+                    setMessage('회원가입이 완료되었습니다! 인바디 등록으로 이동합니다.')
+                    // 신규 가입자는 무조건 인바디 등록으로
+                    setTimeout(() => router.push("/onboarding/inbody"), 2000)
                 }
 
             } catch (error: any) {

@@ -235,7 +235,7 @@ export default function Mainpage() {
                       {item.food_name || item.name}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>{item.calories || item.food_calories} kcal</span>
+                      <span>{item.calories || item.food_calories || item.calories_kcal} kcal</span>
                       <span className="text-indigo-400 flex items-center gap-0.5 ml-1 bg-indigo-50 px-1 rounded">
                         <MapPin size={10} /> 지도보기
                       </span>

@@ -234,22 +234,22 @@ export default function RecordPage() {
 
   // ✅ 백엔드 필드명(food_*) 기준으로 합산 (estimated_* 쓰면 계속 0 나올 수 있음)
   const totalCalories = allRecords.reduce(
-    (sum: number, r: any) => sum + (r.estimated_calorie_kcal ?? r.food_calories ?? r.calories ?? 0),
+    (sum: number, r: any) => sum + (r.estimated_calorie_kcal ?? r.food_calories ?? r.calories ?? r.calories_kcal ?? 0),
     0
   );
 
   const totalCarbs = allRecords.reduce(
-    (sum: number, r: any) => sum + (r.estimated_carb_g ?? r.food_carb ?? r.carbohydrate ?? 0),
+    (sum: number, r: any) => sum + (r.estimated_carb_g ?? r.food_carb ?? r.carbohydrate ?? r.carbs_g ?? 0),
     0
   );
 
   const totalProteins = allRecords.reduce(
-    (sum: number, r: any) => sum + (r.estimated_protein_g ?? r.food_protein ?? r.protein ?? 0),
+    (sum: number, r: any) => sum + (r.estimated_protein_g ?? r.food_protein ?? r.protein ?? r.protein_g ?? 0),
     0
   );
 
   const totalFats = allRecords.reduce(
-    (sum: number, r: any) => sum + (r.estimated_fat_g ?? r.food_fat ?? r.food_fats ?? r.fat ?? 0),
+    (sum: number, r: any) => sum + (r.estimated_fat_g ?? r.food_fat ?? r.food_fats ?? r.fat ?? r.fat_g ?? 0),
     0
   );
   // API Fetch for Selected Date

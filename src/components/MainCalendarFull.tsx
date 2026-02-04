@@ -6,17 +6,23 @@ interface CalendarFullProps {
     selectedDate: Date;
     onDateSelect: (date: Date) => void;
     recordedDays?: string[]; // "YYYY-MM-DD" format
+    onMonthChange?: (date: Date) => void;
 }
 
-export default function CalendarFull({ selectedDate, onDateSelect, recordedDays = [] }: CalendarFullProps) {
+export default function CalendarFull({ selectedDate, onDateSelect, recordedDays = [], onMonthChange }: CalendarFullProps) {
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date(selectedDate));
 
     // 월 계산
     const year = currentMonthDate.getFullYear();
     const month = currentMonthDate.getMonth();
 
-    const prevMonth = () => setCurrentMonthDate(new Date(year, month - 1, 1));
-    const nextMonth = () => setCurrentMonthDate(new Date(year, month + 1, 1));
+    const updateMonth = (newDate: Date) => {
+        setCurrentMonthDate(newDate);
+        onMonthChange?.(newDate);
+    };
+
+    const prevMonth = () => updateMonth(new Date(year, month - 1, 1));
+    const nextMonth = () => updateMonth(new Date(year, month + 1, 1));
 
     // 해당 월의 첫 날과 마지막 날 계산
     const firstDayOfMonth = new Date(year, month, 1);

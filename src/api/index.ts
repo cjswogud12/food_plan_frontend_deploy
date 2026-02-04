@@ -205,6 +205,7 @@ export async function uploadFoodImage(formData: FormData) {
 export async function chat(message: string, context: any) {
     return postJson("/chat", { message, context });
 }
+
 //-----식단 계획---------
 export async function getDietplan(user_number: number, id: string, goal_type: string, target_calorie: number) {
     const response = await postJson("/diet-plan", {
@@ -222,6 +223,7 @@ export async function getDietplan(user_number: number, id: string, goal_type: st
 export async function getTodayIntake() {
     return getJson("/intake/today");
 }
+
 
 // --- 지도: 주변 식당 검색 ---
 export async function getNearbyPlaces(foodName: string, lat: number, lng: number, radius: number = 2000) {
@@ -241,4 +243,8 @@ export async function getNearbyPlaces(foodName: string, lat: number, lng: number
         throw new Error(`장소 검색 실패: ${response.status} ${errorText}`);
     }
     return response.json();
+}
+
+export async function getCalendarRecord(userNumber: number, year: number, month: number) {
+    return getJson(`/calendar?user_number=${userNumber}&year=${year}&month=${month}`);
 }

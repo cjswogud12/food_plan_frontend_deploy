@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { User, Target, Bell, Link } from "lucide-react";
 import { updateUserGoal } from "@/api/index";
+import { useUserStore, useDietStore } from "@/store";
 
 interface MypageMenuProps {
     onGoalChange?: (goal: string) => void;
@@ -10,22 +11,33 @@ interface MypageMenuProps {
 
 export default function MypageMenu({ onGoalChange }: MypageMenuProps) {
     const [showGoalModal, setShowGoalModal] = useState(false);
+    const { user, userGoal } = useUserStore();
+    const { resetDiet } = useDietStore();
 
     const handleSelectGoal = async (selectedGoal: string) => {
-        // UI 즉시 업데이트 (Optimistic update)
         onGoalChange?.(selectedGoal);
         setShowGoalModal(false);
 
         try {
-            const res = await updateUserGoal(selectedGoal);
-            if (!res.ok) {
+            const userNumber = user?.user_number;
+            const targetCalorie = userGoal?.target_calorie || 0;
+
+            if (!userNumber) {
+                console.error("user_number가 없습니다.");
+                return;
+            }
+            const res = await updateUserGoal(userNumber, selectedGoal, targetCalorie);
+
+            if (res.ok) {
+                resetDiet();
+            } else {
                 console.error("목표 업데이트 서버 요청 실패");
-                // 필요 시 에러 처리 또는 롤백 로직 추가
             }
         } catch (error) {
             console.error("목표 업데이트 실패:", error);
         }
     };
+
 
     return (
         <>

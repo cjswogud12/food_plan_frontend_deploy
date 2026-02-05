@@ -29,18 +29,66 @@ export interface UserProfile {
 
 export interface UserGoal {
     goal_id: number;
-    id: string;
-    user_number: number;
     goal_type: string;
     target_calorie: number;
     target_protein: number;
     target_carb: number;
     target_fat: number;
-    target_macros: string; //c,p,f(탄단지) 또는 비율 문자열
-    target_pace: string; // 감량/증량 목표
+    target_macros: string;
+    target_pace: string;
     start_date: string;
     end_date: string;
     created_at: string;
+    plan: {
+        goal_type: string;
+        target_calorie: number;
+        body_type_stage1: string;
+        body_type_stage2: string;
+        note: [ string ], 
+        days: [{
+            day_label: string;
+            date: string;
+            breakfast: {
+            name: string;
+            description: string;
+            calories_kcal: number;
+            carbs_g: number;
+            protein_g: number;
+            fat_g: number;
+            image_url: string;
+            },
+        lunch: {
+            name: string;
+            description: string;
+            calories_kcal: number;
+            carbs_g: number;
+            protein_g: number;
+            fat_g: number;
+            image_url: string;
+        },
+        dinner: {
+            name: string;
+            description: string;
+            calories_kcal: number;
+            carbs_g: number;
+            protein_g: number;
+            fat_g: number;
+            image_url: string;
+        },
+        total_calories_kcal: number;
+        total_carbs_g: number;
+        total_protein_g: number;
+        total_fat_g: number;
+    }]},
+    today_intake: {
+        goal_type: string;
+        target_calorie: number;
+        total_calories_kcal: number;
+        total_carbs_g: number;
+        total_protein_g: number;
+        total_fat_g: number;
+        plan_date: string;
+    }
 }
 // ==========================================
 // 기록, 음식

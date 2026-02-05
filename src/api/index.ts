@@ -176,8 +176,8 @@ export async function getUserGoal() {
     return getJson("/user/goal");
 }
 
-export async function updateUserGoal(goalType: string) {
-    return postJson("/user/goal", { goal_type: goalType });
+export async function updateUserGoal(userNumber: number, goalType: string, targetCalorie: number) {
+    return postJson("/user/goal", { user_number: userNumber, goal_type: goalType, target_calorie: targetCalorie });
 }
 
 // --- 체형 분류 ---

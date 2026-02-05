@@ -22,8 +22,8 @@ export default function Mainpage() {
   const router = useRouter();
 
   // Zustand Store 전역 상태관리
-  const { user, setUser } = useUserStore();
-  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck } = useDietStore();
+  const { user, setUser, setUserGoal } = useUserStore();
+  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck, resetDiet } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
@@ -75,7 +75,14 @@ export default function Mainpage() {
 
         // 2. 목표 정보
         const goalRes = await getUserGoal();
-        const goalData = goalRes.ok ? await goalRes.json() : null;
+        if (goalRes.ok) {
+          const goalData = await goalRes.json();
+          setUserGoal(goalData);
+        } else if (goalRes.status === 404) {
+          // 목표 없음 - UI 초기화
+          setUserGoal(null);
+          resetDiet();
+        }
 
       } catch (err) {
         console.error("Failed to fetch main page data", err);

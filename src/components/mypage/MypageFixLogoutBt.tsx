@@ -2,9 +2,15 @@
 "use client"
 import { useRouter } from "next/navigation"
 import { logout } from "@/api/index"
+import { useUserStore, useDietStore, useInbodyStore } from "@/store"
 
 export default function MypageFixLogoutbt() {
     const router = useRouter()
+
+    // Store reset 함수들
+    const resetUser = useUserStore((state) => state.resetUser);
+    const resetDiet = useDietStore((state) => state.resetDiet);
+    const resetInbody = useInbodyStore((state) => state.resetInbody);
 
     const handleLogout = async () => {
         try {
@@ -12,6 +18,12 @@ export default function MypageFixLogoutbt() {
             // 로그아웃 성공 후 처리
             localStorage.clear();
             sessionStorage.clear();
+
+            // Zustand store 초기화
+            resetUser();
+            resetDiet();
+            resetInbody();
+
             alert("로그아웃 되었습니다.");
             router.push("/login");
         } catch (error) {

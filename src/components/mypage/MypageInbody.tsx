@@ -5,7 +5,7 @@ import { InbodyRecord } from '@/types/definitions'
 import { getInbody, uploadInbodyImage, deleteInbody } from "@/api/index"
 import { Plus, Upload, Activity, Trash2 } from "lucide-react"
 import MypageDetailModal from "./MypageDetailModal"
-import { useUserStore, useDietStore} from "@/store"
+import { useUserStore, useDietStore } from "@/store"
 
 interface MypageBodyCompositionProps {
     inbodyDataProp?: Partial<InbodyRecord> | null;
@@ -19,7 +19,7 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     //zustand 상태관리 store
-    const { user } = useUserStore();
+    const { user, setUserGoal } = useUserStore();
     const { resetDiet } = useDietStore();
 
     // Upload State
@@ -105,6 +105,7 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
             if (res.ok) {
                 setInbodyData(null);  // 로컬 상태 초기화
                 resetDiet();          // 식단 + 체크된 음식 초기화
+                setUserGoal(null);    // 목표 초기화
                 setIsMenuOpen(false);
                 alert("삭제되었습니다.");
                 if (onInbodyUpdate) onInbodyUpdate();

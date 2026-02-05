@@ -248,3 +248,12 @@ export async function getNearbyPlaces(foodName: string, lat: number, lng: number
 export async function getCalendarRecord(userNumber: number, year: number, month: number) {
     return getJson(`/calendar?user_number=${userNumber}&year=${year}&month=${month}`);
 }
+
+// 인바디 삭제
+export async function deleteInbody() {
+    const authHeader = await getAuthHeader();
+    return fetch(`${BASE_URL}/inbody-latest`, {
+        method: "DELETE",
+        headers: { ...authHeader }
+    });
+}

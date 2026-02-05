@@ -2,9 +2,10 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { InbodyRecord } from '@/types/definitions'
-import { getInbody, uploadInbodyImage } from "@/api/index"
-import { Plus, Upload, Activity } from "lucide-react"
+import { getInbody, uploadInbodyImage, deleteInbody } from "@/api/index"
+import { Plus, Upload, Activity, Trash2 } from "lucide-react"
 import MypageDetailModal from "./MypageDetailModal"
+import { useUserStore, useDietStore} from "@/store"
 
 interface MypageBodyCompositionProps {
     inbodyDataProp?: Partial<InbodyRecord> | null;
@@ -16,6 +17,10 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
     const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    //zustand 상태관리 store
+    const { user } = useUserStore();
+    const { resetDiet } = useDietStore();
 
     // Upload State
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +97,25 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
         }
     };
 
+    // 삭제 핸들러 추가
+    const handleDelete = async () => {
+        if (!confirm("인바디 정보를 삭제하시겠습니까?\n식단 계획과 체크한 음식 정보도 함께 삭제됩니다.")) return;
+        try {
+            const res = await deleteInbody();
+            if (res.ok) {
+                setInbodyData(null);  // 로컬 상태 초기화
+                resetDiet();          // 식단 + 체크된 음식 초기화
+                setIsMenuOpen(false);
+                alert("삭제되었습니다.");
+                if (onInbodyUpdate) onInbodyUpdate();
+            } else {
+                alert("삭제에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("삭제 오류:", error);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
 
     return (
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50 relative">
@@ -124,6 +148,15 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
                             title="업로드"
                         >
                             <Upload size={16} />
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                            onClick={handleDelete}
+                            className="w-9 h-9 rounded-full bg-red-100 text-red-500 shadow-sm flex items-center justify-center hover:bg-red-200 transition-colors"
+                            title="삭제"
+                        >
+                            <Trash2 size={16} />
                         </button>
                     </div>
 

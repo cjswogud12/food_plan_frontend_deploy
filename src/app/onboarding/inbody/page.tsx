@@ -26,24 +26,23 @@ export default function InbodyOnboardingPage() {
         }
     };
 
-    const handleUpload = async () => {
+        const handleUpload = async () => {
         if (!selectedImage) return;
 
         setIsUploading(true);
         try {
             const formData = new FormData();
-            formData.append("file", selectedImage);
+            formData.append("image", selectedImage);
 
-            // user_id check (optional, API might infer from token)
-            // if (user?.id) formData.append("user_id", user.id); 
+            // user_number를 추가하여 백엔드가 사용자를 식별할 수 있게 함
+            if (user?.user_number) {
+                formData.append("user_number", String(user.user_number));
+            }
 
             const res = await uploadInbodyImage(formData);
 
             if (res.ok) {
                 setUploadStatus('success');
-                // Wait a moment for backend processing if needed, or simply confirm and move on
-                // Ideally, we might want to fetch and display the parsed data here, 
-                // but requirements say "move to main" after completion.
                 setTimeout(() => {
                     router.push("/");
                 }, 1500);

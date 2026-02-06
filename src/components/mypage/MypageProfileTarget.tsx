@@ -152,7 +152,7 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                         <div className="relative z-10 flex flex-col items-center">
                             <span className="text-[10px] text-slate-500 font-extrabold tracking-[0.2em] mb-0.5">나의 목표</span>
                             <span className="text-xl font-black text-indigo-900 drop-shadow-sm">
-                                {displayGoal}
+                                {userGoal ? displayGoal : "-"}
                             </span>
                         </div>
                     </div>

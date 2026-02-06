@@ -1,16 +1,23 @@
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`;
 
 // api 통신 경로 통합 관리
-
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase";
 
 async function getAuthHeader(): Promise<HeadersInit> {
-    const { data } = await supabase.auth.getSession()
+    let { data } = await supabase.auth.getSession();
+
     if (!data.session?.access_token) {
-        console.warn("No active Supabase session found.")
-        return {}
+        // 세션이 없으면 refresh 시도
+        const refreshed = await supabase.auth.refreshSession();
+        data = refreshed.data;
     }
-    return { "Authorization": `Bearer ${data.session.access_token}` }
+
+    const token = data.session?.access_token;
+    if (!token) {
+        throw new Error("No active Supabase session");
+    }
+
+    return { Authorization: `Bearer ${token}` };
 }
 
 export async function postFormData(
@@ -26,10 +33,10 @@ export async function postFormData(
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: "POST",
             headers: {
-                ...authHeader
+                ...authHeader,
             },
             body: formData,
-            signal: controller.signal
+            signal: controller.signal,
         });
         return response;
     } finally {
@@ -40,12 +47,12 @@ export async function postFormData(
 export async function postJson(endpoint: string, data: object) {
     const authHeader = await getAuthHeader();
     const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
             "Content-Type": "application/json",
-            ...authHeader
+            ...authHeader,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
     });
     return response;
 }
@@ -54,8 +61,8 @@ export async function getJson(endpoint: string) {
     const authHeader = await getAuthHeader();
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         headers: {
-            ...authHeader
-        }
+            ...authHeader,
+        },
     });
     return response;
 }
@@ -67,19 +74,25 @@ export async function login(id: string, password: string) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, password }),
-        credentials: "include"
-    })
-    if (!res.ok) throw new Error((await res.json()).detail || "로그인 실패")
-    return res.json()
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || "로그인 실패");
+    return res.json();
 }
 
 export async function logout() {
     // Supabase logout
-    await supabase.auth.signOut()
-    return { message: "Logged out" }
+    await supabase.auth.signOut();
+    return { message: "Logged out" };
 }
 
-export async function register(id: string, password: string, username: string, age: number, gender: string) {
+export async function register(
+    id: string,
+    password: string,
+    username: string,
+    age: number,
+    gender: string
+) {
     const res = await fetch(`${BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,11 +101,11 @@ export async function register(id: string, password: string, username: string, a
             password,
             username,
             age,
-            gender
+            gender,
         }),
-    })
-    if (!res.ok) throw new Error((await res.json()).detail || "회원가입 실패")
-    return res.json()
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || "회원가입 실패");
+    return res.json();
 }
 
 // --- Inbody ---
@@ -101,7 +114,6 @@ export async function uploadInbodyImage(
     formData: FormData,
     options?: { timeoutMs?: number }
 ) {
-    // Clean JWT implementation
     return postFormData("/inbody-ocr", formData, options);
 }
 
@@ -138,7 +150,6 @@ export async function deleteDayRecords(date: string, userNumber?: number) {
         headers: {
             ...authHeader,
         },
-        // credentials: "include", // 쿠키 기반이 아니면 필요 없음 (원하면 유지해도 됨)
     });
 
     if (!response.ok) {
@@ -146,7 +157,6 @@ export async function deleteDayRecords(date: string, userNumber?: number) {
         throw new Error(`Failed to delete records (${response.status}): ${t}`);
     }
 
-    // 백엔드가 204 No Content 반환하면 json() 하면 에러남
     if (response.status === 204) return null;
     return response.json();
 }
@@ -159,7 +169,6 @@ export async function deleteRecord(recordId: number) {
         headers: {
             ...authHeader,
         },
-        // credentials: "include",
     });
 
     return response;
@@ -176,22 +185,40 @@ export async function getUserGoal() {
     return getJson("/user/goal");
 }
 
-export async function updateUserGoal(userNumber: number, goalType: string, targetCalorie: number) {
-    return postJson("/user/goal", { user_number: userNumber, goal_type: goalType, target_calorie: targetCalorie });
+export async function updateUserGoal(
+    userNumber: number,
+    goalType: string,
+    targetCalorie: number
+) {
+    return postJson("/user/goal", {
+        user_number: userNumber,
+        goal_type: goalType,
+        target_calorie: targetCalorie,
+    });
 }
 
-// --- 체형 분류 ---
-// user_number를 보내면 stage1, stage2, metrics, reason 등을 반환
+export async function deleteUserGoal(userNumber: number) {
+    const authHeader = await getAuthHeader();
+    return fetch(`${BASE_URL}/user/goal`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            ...authHeader,
+        },
+        body: JSON.stringify({ user_number: userNumber }),
+    });
+}
+
 // --- 체형 분류 ---
 export async function getBodyClassification(userNumber: number, bodyData?: any) {
     const payload = {
         user_number: userNumber,
-        ...(bodyData || {})
+        ...(bodyData || {}),
     };
     return postJson(`/classify/bodytype?user_number=${userNumber}`, payload);
 }
-// --- 인바디 기록 조회---
-// user_number와 limit(개수)를 보내면 인바디 기록 배열을 반환
+
+// --- 인바디 기록 조회 ---
 export async function getInbodyHistory(userNumber: number, limit: number = 10) {
     return getJson(`/inbody-history=${userNumber}&limit=${limit}`);
 }
@@ -207,12 +234,17 @@ export async function chat(message: string, context: any) {
 }
 
 //-----식단 계획---------
-export async function getDietplan(user_number: number, id: string, goal_type: string, target_calorie: number) {
+export async function getDietplan(
+    user_number: number,
+    id: string,
+    goal_type: string,
+    target_calorie: number
+) {
     const response = await postJson("/diet-plan", {
         user_number,
         id,
         goal_type,
-        target_calorie
+        target_calorie,
     });
 
     if (!response.ok) throw new Error("식단 생성 실패");
@@ -224,14 +256,18 @@ export async function getTodayIntake() {
     return getJson("/intake/today");
 }
 
-
 // --- 지도: 주변 식당 검색 ---
-export async function getNearbyPlaces(foodName: string, lat: number, lng: number, radius: number = 2000) {
+export async function getNearbyPlaces(
+    foodName: string,
+    lat: number,
+    lng: number,
+    radius: number = 2000
+) {
     const payload = {
         food_name: foodName,
         lat,
         lng,
-        radius_m: radius
+        radius_m: radius,
     };
     console.log("SENDING /diet-plan/places:", payload);
 
@@ -254,6 +290,6 @@ export async function deleteInbody() {
     const authHeader = await getAuthHeader();
     return fetch(`${BASE_URL}/inbody-latest`, {
         method: "DELETE",
-        headers: { ...authHeader }
+        headers: { ...authHeader },
     });
 }

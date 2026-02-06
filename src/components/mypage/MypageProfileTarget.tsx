@@ -8,7 +8,7 @@ import { useUserStore } from "@/store";
 
 interface MypageProfileTargetProps {
     foodrecords?: Record[];
-    goal?: string;
+    goal?: string | null;
 }
 
 export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }: MypageProfileTargetProps) {
@@ -19,6 +19,12 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
     const [goal, setGoal] = useState<string>(propGoal || "-");
     const [suggestedGoal, setSuggestedGoal] = useState<string>("-");
 
+    // propGoal이 변경되면 로컬 state도 업데이트
+    useEffect(() => {
+        if (propGoal !== undefined) {
+            setGoal(propGoal || "-");
+        }
+    }, [propGoal]);
 
     const getGoalFromStage = (stage1: string | number | undefined | null): string => {
         if (!stage1) return "-";
@@ -65,6 +71,15 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                     const goalData = await goalRes.json();
                     if (Array.isArray(goalData) && goalData.length > 0) setUserGoal(goalData[0]);
                     else if (goalData && !Array.isArray(goalData)) setUserGoal(goalData);
+                    else setUserGoal(null); // 데이터가 비어있으면 null
+                } else if (goalRes.status === 404) {
+                    // ✅ 404일 때 명시적으로 null 설정
+                    console.log("🎯 [PROFILE] Goal not found (404), clearing userGoal");
+                    setUserGoal(null);
+                } else {
+                    // 다른 에러의 경우도 null로 설정
+                    console.warn("🎯 [PROFILE] Goal fetch failed:", goalRes.status);
+                    setUserGoal(null);
                 }
 
                 // 체형 분류 가져와서 목표 설정 (fallback용)

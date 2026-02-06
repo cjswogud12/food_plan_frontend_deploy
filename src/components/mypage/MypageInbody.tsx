@@ -2,7 +2,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { InbodyRecord } from '@/types/definitions'
-import { getInbody, uploadInbodyImage, deleteInbody } from "@/api/index"
+import { getInbody, uploadInbodyImage, deleteInbody, deleteUserGoal } from "@/api/index"
 import { Plus, Upload, Activity, Trash2 } from "lucide-react"
 import MypageDetailModal from "./MypageDetailModal"
 import { useUserStore, useDietStore } from "@/store"
@@ -71,6 +71,11 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
 
             if (response.ok) {
                 alert("인바디 데이터가 업로드되었습니다!");
+
+                // ✅ 식단 데이터 초기화 (메인 페이지에서 새로 fetch하도록)
+                console.log("📤 [UPLOAD] Resetting diet to trigger refresh");
+                resetDiet();
+
                 // Refresh Data
                 const userId = localStorage.getItem("user_id");
                 const dataRes = await getInbody(userId);
@@ -99,21 +104,81 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
 
     // 삭제 핸들러 추가
     const handleDelete = async () => {
-        if (!confirm("인바디 정보를 삭제하시겠습니까?\n식단 계획과 체크한 음식 정보도 함께 삭제됩니다.")) return;
+        if (!confirm("인바디 정보를 삭제하시겠습니까?\n식단 계획과 목표 설정도 함께 초기화됩니다.")) return;
+
         try {
+            console.log("🗑️ [DELETE] Starting deletion process...");
+
+            // 1. 인바디 삭제
+            console.log("🗑️ [DELETE] Step 1: Deleting inbody...");
             const res = await deleteInbody();
-            if (res.ok) {
-                setInbodyData(null);  // 로컬 상태 초기화
-                resetDiet();          // 식단 + 체크된 음식 초기화
-                setUserGoal(null);    // 목표 초기화
-                setIsMenuOpen(false);
-                alert("삭제되었습니다.");
-                if (onInbodyUpdate) onInbodyUpdate();
-            } else {
+            console.log("🗑️ [DELETE] Inbody delete response:", res.status, res.ok);
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error("🗑️ [DELETE] Inbody delete failed:", errorText);
                 alert("삭제에 실패했습니다.");
+                return;
             }
+
+            // 2. 목표 삭제 (백엔드에서 목표도 삭제)
+            console.log("🗑️ [DELETE] Step 2: Deleting user goal...");
+            try {
+                const userNumber = user?.user_number;
+                console.log("🗑️ [DELETE] User number:", userNumber);
+
+                if (userNumber) {
+                    const goalRes = await deleteUserGoal(userNumber);
+                    console.log("🗑️ [DELETE] Goal delete response:", goalRes.status, goalRes.ok);
+
+                    if (!goalRes.ok) {
+                        const errorText = await goalRes.text();
+                        console.warn("🗑️ [DELETE] Goal delete failed (might be expected):", errorText);
+                    }
+                } else {
+                    console.warn("🗑️ [DELETE] No user_number found, skipping goal deletion");
+                }
+            } catch (e) {
+                console.log("🗑️ [DELETE] Goal deletion error (might be expected):", e);
+            }
+
+            // 3. 모든 상태 초기화
+            console.log("🗑️ [DELETE] Step 3: Clearing all states...");
+            setInbodyData(null);      // 로컬 상태 초기화
+            resetDiet();              // 식단 + 체크된 음식 초기화
+            setUserGoal(null);        // 목표 초기화
+            setIsMenuOpen(false);
+
+            // 4. localStorage에서 goal만 제거 (user 정보는 유지)
+            console.log("🗑️ [DELETE] Step 4: Clearing goal from localStorage...");
+
+            // diet-storage는 완전히 제거
+            localStorage.removeItem('diet-storage');
+
+            // user-storage에서 userGoal만 제거 (user 정보는 유지)
+            try {
+                const userStorage = localStorage.getItem('user-storage');
+                if (userStorage) {
+                    const parsed = JSON.parse(userStorage);
+                    if (parsed.state) {
+                        parsed.state.userGoal = null; // userGoal만 null로 설정
+                        localStorage.setItem('user-storage', JSON.stringify(parsed));
+                        console.log("🗑️ [DELETE] Updated user-storage, kept user but removed userGoal");
+                    }
+                }
+            } catch (e) {
+                console.error("🗑️ [DELETE] Failed to update user-storage:", e);
+            }
+
+            console.log("🗑️ [DELETE] All steps completed successfully!");
+            alert("삭제되었습니다. 페이지를 새로고침합니다.");
+
+            // 5. 페이지 새로고침하여 완전히 초기화
+            console.log("🗑️ [DELETE] Step 5: Reloading page...");
+            window.location.reload();
+
         } catch (error) {
-            console.error("삭제 오류:", error);
+            console.error("🗑️ [DELETE] Deletion error:", error);
             alert("삭제 중 오류가 발생했습니다.");
         }
     };

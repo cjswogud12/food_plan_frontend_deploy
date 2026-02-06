@@ -12,6 +12,7 @@ import MypageMenu from "@/components/mypage/MypageMenu"
 import MypageProfileTarget from "@/components/mypage/MypageProfileTarget"
 import { getInbody, getUserGoal, getMypage } from "@/api/index"
 import MypageFixLogoutBt from "@/components/mypage/MypageFixLogoutBt"
+import { useUserStore } from "@/store"
 
 
 export default function Mypage() {
@@ -20,65 +21,56 @@ export default function Mypage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [inbodyrecords, setInbodyRecords] = useState<Partial<InbodyRecord>[]>([]);
-    const [goal, setGoal] = useState<string>("-");
+    const [goal, setGoal] = useState<string | null>("-");
     const [refreshKey, setRefreshKey] = useState(0);
+
+    // Zustand store
+    const { setUserGoal } = useUserStore();
 
     // API에서 goal 가져오기
     useEffect(() => {
+        console.log("🎯 [MYPAGE] Fetching user goal... (refreshKey:", refreshKey, ")");
         getUserGoal()
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    setGoal(data[0].goal_type);
-                } else if (data?.goal_type) {
-                    setGoal(data.goal_type);
-                }
-            })
-            .catch(err => console.error("Goal fetch error:", err));
-    }, []);
-
-    const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
-
-    // ... (rest of the state and useEffects)
-
-    useEffect(() => {
-        // 식단 기록 및 마이페이지 데이터 가져오기
-        const userId = localStorage.getItem("user_id");
-        getMypage(userId)
-            .then((res) => {
+            .then(async (res) => {
                 if (!res.ok) {
-                    throw new Error("서버 응답 오류")
+                    if (res.status === 404) {
+                        console.log("🎯 [MYPAGE] Goal not found (404), clearing goal state");
+                        return null;
+                    }
+                    throw new Error(`Goal fetch failed: ${res.status}`);
                 }
                 return res.json();
             })
             .then((data) => {
-                // 백엔드 응답 구조: { user, body, goal, diet_plan, records }
-                if (data.records) {
-                    setFoodRecords(data.records);
-                } else if (Array.isArray(data)) {
-                    // 혹시 이전 구조일 경우 대비
-                    setFoodRecords(data);
+                if (!data) {
+                    console.log("🎯 [MYPAGE] No goal data, setting goal to null");
+                    setGoal(null);
+                    setUserGoal(null); // ✅ Zustand store도 초기화!
+                    return;
                 }
-
-                if (data.body) {
-                    setInbodyData({
-                        height: data.body.height,
-                        weight: data.body.weight,
-                        skeletal_muscle_mass: data.body.skeletal_muscle_mass,
-                        body_fat_pct: data.body.body_fat_percent // API 응답 필드명 확인 (body_fat_percent -> body_fat_pct 매핑)
-                    });
+                if (Array.isArray(data) && data.length > 0) {
+                    console.log("🎯 [MYPAGE] Goal found (array):", data[0].goal_type);
+                    setGoal(data[0].goal_type ?? null);
+                    setUserGoal(data[0]); // ✅ Zustand store 업데이트
+                } else if (data?.goal_type) {
+                    console.log("🎯 [MYPAGE] Goal found (object):", data.goal_type);
+                    setGoal(data.goal_type);
+                    setUserGoal(data); // ✅ Zustand store 업데이트
+                } else {
+                    console.log("🎯 [MYPAGE] Goal data exists but no goal_type, setting to null");
+                    setGoal(null);
+                    setUserGoal(null); // ✅ Zustand store도 초기화!
                 }
-                setLoading(false);
             })
             .catch((err) => {
-                console.error("API 호출 실패:", err);
-                setError("데이터를 불러오는 데 실패했습니다.");
-                setLoading(false);
+                console.error("🎯 [MYPAGE] Goal fetch error:", err);
+                setGoal(null);
+                setUserGoal(null); // ✅ Zustand store도 초기화!
             });
+    }, [refreshKey, setUserGoal]); // refreshKey 추가!
 
-        // getInbody() 호출은 중복되므로 제거하거나, refresh 용도로 남겨둘 수 있음.
-        // 여기서는 getMypage에서 다 가져오므로 제거.
-    }, []);
+    const [inbodyData, setInbodyData] = useState<Partial<InbodyRecord> | null>(null);
+
 
     // ...
 

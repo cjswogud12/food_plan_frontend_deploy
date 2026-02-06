@@ -118,14 +118,20 @@ export default function Mainpage() {
           );
         })
         .then(data => {
-          if (data) {
-            setDietPlan(data.days?.[0]);
+          console.log("API Response Data:", data);
+          if (data.plan?.days?.length > 0) {
+            setDietPlan(data.plan.days[0]);
+          } else if (data.plan?.days?.length > 0) {
+            setDietPlan(data.days[0]);
+          } else{
+            console.log("응답에서 days 가 읎다아ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ!!!!")
+          }
             // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
             if (data.today_intake) {
               setTodayIntake(data.today_intake);
             }
           }
-        })
+        )
         .catch(err => console.error(err))
         .finally(() => setIsPlanLoading(false)); // 로딩 끝
     }
@@ -148,7 +154,11 @@ export default function Mainpage() {
   }, [user]);
 
   useEffect(() => {
-    if (dietPlan) setIsPlanLoading(false);
+    if (dietPlan) {
+      console.log("현재 다이어트플랜 상태:", dietPlan);
+      console.log("다이어트 계획 아침:", dietPlan.breakfast);
+      setIsPlanLoading(false);
+    }
   }, [dietPlan]);
 
   // 로딩 중이면 빈 화면
@@ -308,6 +318,11 @@ export default function Mainpage() {
     );
   };
 
+  const getMealItems = (mealData: any) => {
+    if(!mealData) return [];
+    return Array.isArray(mealData) ? mealData : [mealData];
+  };
+
   return (
     <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
       {/* Header */}
@@ -417,9 +432,9 @@ export default function Mainpage() {
               </>
             ) : (
               <>
-                <PlanSection title="아침" type="breakfast" items={dietPlan?.breakfast ? [dietPlan.breakfast] : []} />
-                <PlanSection title="점심" type="lunch" items={dietPlan?.lunch ? [dietPlan.lunch] : []} />
-                <PlanSection title="저녁" type="dinner" items={dietPlan?.dinner ? [dietPlan.dinner] : []} />
+                <PlanSection title="아침" type="breakfast" items={getMealItems(dietPlan?.breakfast)} />
+                <PlanSection title="점심" type="lunch" items={getMealItems(dietPlan?.lunch)} />
+                <PlanSection title="저녁" type="dinner" items={getMealItems(dietPlan?.dinner)} />
               </>
             )}
           </div>

@@ -22,8 +22,8 @@ export default function Mainpage() {
   const router = useRouter();
 
   // Zustand Store 전역 상태관리
-  const { user, setUser } = useUserStore();
-  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck } = useDietStore();
+  const { user, setUser, setUserGoal } = useUserStore();
+  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck, resetDiet } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
@@ -75,7 +75,14 @@ export default function Mainpage() {
 
         // 2. 목표 정보
         const goalRes = await getUserGoal();
-        const goalData = goalRes.ok ? await goalRes.json() : null;
+        if (goalRes.ok) {
+          const goalData = await goalRes.json();
+          setUserGoal(goalData);
+        } else if (goalRes.status === 404) {
+          // 목표 없음 - UI 초기화
+          setUserGoal(null);
+          resetDiet();
+        }
 
       } catch (err) {
         console.error("Failed to fetch main page data", err);
@@ -113,7 +120,7 @@ export default function Mainpage() {
           );
         })
         .then(data => {
-          console.log("API Response Data:", data); // Check full data structure
+          console.log("API Response Data:", data);
 
           // Data structure fix: plan is nested in 'plan' property
           if (data.plan?.days?.length > 0) {
@@ -123,11 +130,11 @@ export default function Mainpage() {
           } else {
             console.warn("No diet plan days found in response");
           }
+
           // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
           if (data.today_intake) {
             setTodayIntake(data.today_intake);
           }
-          // }  <-- Removed incorrect brace
         })
         .catch(err => console.error(err))
         .finally(() => setIsPlanLoading(false)); // 로딩 끝
@@ -315,7 +322,6 @@ export default function Mainpage() {
     );
   };
 
-  // Helper to ensure we have an array
   const getMealItems = (mealData: any) => {
     if (!mealData) return [];
     return Array.isArray(mealData) ? mealData : [mealData];

@@ -95,7 +95,9 @@ export default function Mainpage() {
 
     // 식단 계획
     // user가 있고, (데이터가 없거나 || 마지막 갱신으로부터 1시간 지났으면)
-    if (user && (!dietPlan || !lastFetched || (Date.now() - lastFetched > ONE_HOUR))) {
+    // Infinite loop fix: ensure we don't fetch if we simply just set it. 
+    // The previous logic relied on dietPlan being falsey to fetch.
+    if (user && (!dietPlan || (lastFetched && Date.now() - lastFetched > ONE_HOUR))) {
       // 데이터가 아예 없을 때만 로딩 표시 (Stale-While-Revalidate)
       if (!dietPlan) setIsPlanLoading(true);
 
@@ -111,13 +113,21 @@ export default function Mainpage() {
           );
         })
         .then(data => {
-          if (data) {
-            setDietPlan(data.days?.[0]);
-            // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
-            if (data.today_intake) {
-              setTodayIntake(data.today_intake);
-            }
+          console.log("API Response Data:", data); // Check full data structure
+
+          // Data structure fix: plan is nested in 'plan' property
+          if (data.plan?.days?.length > 0) {
+            setDietPlan(data.plan.days[0]);
+          } else if (data.days?.length > 0) {
+            setDietPlan(data.days[0]);
+          } else {
+            console.warn("No diet plan days found in response");
           }
+          // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
+          if (data.today_intake) {
+            setTodayIntake(data.today_intake);
+          }
+          // }  <-- Removed incorrect brace
         })
         .catch(err => console.error(err))
         .finally(() => setIsPlanLoading(false)); // 로딩 끝
@@ -141,7 +151,11 @@ export default function Mainpage() {
   }, [user]);
 
   useEffect(() => {
-    if (dietPlan) setIsPlanLoading(false);
+    if (dietPlan) {
+      console.log("Current dietPlan state:", dietPlan);
+      console.log("dietPlan.breakfast:", dietPlan.breakfast);
+      setIsPlanLoading(false);
+    }
   }, [dietPlan]);
 
   // 로딩 중이면 빈 화면
@@ -301,6 +315,12 @@ export default function Mainpage() {
     );
   };
 
+  // Helper to ensure we have an array
+  const getMealItems = (mealData: any) => {
+    if (!mealData) return [];
+    return Array.isArray(mealData) ? mealData : [mealData];
+  };
+
   return (
     <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
       {/* Header */}
@@ -410,9 +430,9 @@ export default function Mainpage() {
               </>
             ) : (
               <>
-                <PlanSection title="아침" type="breakfast" items={dietPlan?.breakfast ? [dietPlan.breakfast] : []} />
-                <PlanSection title="점심" type="lunch" items={dietPlan?.lunch ? [dietPlan.lunch] : []} />
-                <PlanSection title="저녁" type="dinner" items={dietPlan?.dinner ? [dietPlan.dinner] : []} />
+                <PlanSection title="아침" type="breakfast" items={getMealItems(dietPlan?.breakfast)} />
+                <PlanSection title="점심" type="lunch" items={getMealItems(dietPlan?.lunch)} />
+                <PlanSection title="저녁" type="dinner" items={getMealItems(dietPlan?.dinner)} />
               </>
             )}
           </div>

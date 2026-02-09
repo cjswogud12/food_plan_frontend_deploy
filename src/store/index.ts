@@ -1,12 +1,13 @@
 import { create } from 'zustand'
-import { User, InbodyRecord } from '@/types/definitions'
+import { persist } from 'zustand/middleware'
+import { User, InbodyRecord, UserGoal, TodayIntake, DietPlanResponse, Food } from '@/types/definitions'
 
 // 사용자 관련 전역 상태
 interface UserState {
     user: User | null;
-    userGoal: any | null;
+    userGoal: UserGoal | null;
     setUser: (user: User | null) => void;
-    setUserGoal: (goal: any) => void;
+    setUserGoal: (goal: UserGoal | null) => void;
     resetUser: () => void;
 }
 
@@ -27,9 +28,9 @@ export const useUserStore = create<UserState>()(
 )
 
 // 식단 관련 전역 상태 (localStorage에 저장)
-import { persist } from 'zustand/middleware'
 
 // 체크된 음식 타입: { "2026-02-03": { breakfast: [...], lunch: [...], dinner: [] } }
+// 음식 데이터는 Food, DietPlanItem, 백엔드 응답 등 다양한 형태로 올 수 있음
 interface CheckedMeals {
     [date: string]: {
         breakfast: any[];
@@ -39,13 +40,13 @@ interface CheckedMeals {
 }
 
 interface DietState {
-    dietPlan: any | null;
-    todayIntake: any | null;
+    dietPlan: any | null; // DietPlanResponse.days[0] 객체를 저장 (전체 Response가 아님)
+    todayIntake: TodayIntake | null;
     todayRecord: any | null;
     lastFetched: number | null;
     checkedMeals: CheckedMeals;  // 체크된 음식들
     setDietPlan: (plan: any) => void;
-    setTodayIntake: (intake: any) => void;
+    setTodayIntake: (intake: TodayIntake) => void;
     setTodayRecord: (record: any) => void;
     toggleMealCheck: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', food: any) => void;
     clearCheckedMeals: (date: string) => void;
@@ -86,11 +87,11 @@ export const useDietStore = create<DietState>()(
                     },
                     // Update TodayIntake Optimistically
                     todayIntake: get().todayIntake ? {
-                        ...get().todayIntake,
-                        total_calories_kcal: (get().todayIntake.total_calories_kcal || 0) + (isChecked ? -1 : 1) * (food.calories || food.food_calories || 0),
-                        total_carbs_g: (get().todayIntake.total_carbs_g || 0) + (isChecked ? -1 : 1) * (food.carbs || food.food_carbs || 0),
-                        total_protein_g: (get().todayIntake.total_protein_g || 0) + (isChecked ? -1 : 1) * (food.protein || food.food_proteins || 0),
-                        total_fat_g: (get().todayIntake.total_fat_g || 0) + (isChecked ? -1 : 1) * (food.fat || food.food_fats || 0),
+                        ...get().todayIntake!,
+                        total_calories_kcal: (get().todayIntake!.total_calories_kcal || 0) + (isChecked ? -1 : 1) * (food.calories || food.food_calories || 0),
+                        total_carbs_g: (get().todayIntake!.total_carbs_g || 0) + (isChecked ? -1 : 1) * (food.carbs || food.food_carbs || 0),
+                        total_protein_g: (get().todayIntake!.total_protein_g || 0) + (isChecked ? -1 : 1) * (food.protein || food.food_proteins || 0),
+                        total_fat_g: (get().todayIntake!.total_fat_g || 0) + (isChecked ? -1 : 1) * (food.fat || food.food_fats || 0),
                     } : null
                 });
             },

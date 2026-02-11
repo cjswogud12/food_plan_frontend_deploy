@@ -129,8 +129,8 @@ export default function Mypage() {
             <header>
                 <span>{isMobile ? '모바일' : 'PC'}</span>
             </header>
-            <div className="p-4 flex flex-col gap-4 pb-24 bg-white">
-                <h1 className="text-lg font-bold text-slate-800">마이페이지</h1>
+            <div className="p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 pb-24 bg-white">
+                <h1 className="text-base sm:text-lg font-bold text-slate-800">마이페이지</h1>
                 {/* 1. 유저 프로필 섹션 (mypage_profile_target.tsx) */}
                 <MypageProfileTarget key={refreshKey} foodrecords={foodrecords} goal={goal} />
 

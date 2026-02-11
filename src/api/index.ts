@@ -257,3 +257,22 @@ export async function deleteInbody() {
         headers: { ...authHeader }
     });
 }
+
+// --- Diet Plan Context (상황별 식단 재조정) ---
+
+export async function adjustDietPlanContext(context: string, targetCalorie: number) {
+    return postJson('/diet-plan/context', {
+        context,
+        target_calorie: targetCalorie
+    });
+}
+
+// --- 주변 식당 검색 (Agent Node A) ---
+export async function fetchNearbyRestaurants(lat: number, lng: number, label: string = "home") {
+    return postJson("/node/run", {
+        label,
+        lat,
+        lng,
+        radius_m: 500,
+    });
+}

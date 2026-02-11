@@ -44,42 +44,43 @@ export interface UserGoal {
         target_calorie: number;
         body_type_stage1: string;
         body_type_stage2: string;
-        note: [ string ], 
+        note: [string],
         days: [{
             day_label: string;
             date: string;
             breakfast: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
             },
-        lunch: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
-        },
-        dinner: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
-        },
-        total_calories_kcal: number;
-        total_carbs_g: number;
-        total_protein_g: number;
-        total_fat_g: number;
-    }]},
+            lunch: {
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
+            },
+            dinner: {
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
+            },
+            total_calories_kcal: number;
+            total_carbs_g: number;
+            total_protein_g: number;
+            total_fat_g: number;
+        }]
+    },
     today_intake: {
         goal_type: string;
         target_calorie: number;
@@ -250,4 +251,55 @@ export interface TodayIntake {
 export interface DietPlanResponse {
     days: any[]; // 구체적인 타입 정의 필요시 추가
     today_intake: TodayIntake;
+}
+
+// ==========================================
+// Diet Plan Context (상황별 식단 재조정)
+// ==========================================
+export interface DietContextRequest {
+    context: string;
+    target_calorie: number;
+}
+
+export interface DietContextMealItem {
+    name: string;
+    description: string;
+    calories_kcal: number;
+    carbs_g: number;
+    protein_g: number;
+    fat_g: number;
+    image_url: string;
+}
+
+export interface DietContextDayPlan {
+    day_label: string;
+    date: string;
+    breakfast: DietContextMealItem;
+    lunch: DietContextMealItem;
+    dinner: DietContextMealItem;
+    total_calories_kcal: number;
+    total_carbs_g: number;
+    total_protein_g: number;
+    total_fat_g: number;
+}
+
+export interface DietContextResponse {
+    plan: {
+        goal_type: string;
+        target_calorie: number;
+        body_type_stage1: string;
+        body_type_stage2: string;
+        notes: string[];
+        days: DietContextDayPlan[];
+    };
+    today_intake: TodayIntake;
+}
+
+export interface Restaurant {
+    식당명: string;
+    카테고리: string;
+    주소: string;
+    "거리(m)": string | number;
+    전화번호?: string;
+    place_url?: string;
 }

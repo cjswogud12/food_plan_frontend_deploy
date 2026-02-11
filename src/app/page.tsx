@@ -9,6 +9,8 @@ import { Plus, ChevronRight, Utensils, Check, Square, MapPin } from "lucide-reac
 import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index" // Import API
 import { useUserStore, useDietStore } from "@/store"
 import { DietPlanKakaoMap } from "@/types/definitions" // Import Type
+import { MealChatSheet } from "@/components/main/MainMealChatSheet"
+
 
 interface GoalsState {
   calories: number;
@@ -29,7 +31,6 @@ export default function Mainpage() {
   const today = new Date().toISOString().split('T')[0];
 
   // Local State 로컬 상태관리
-  // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
   // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
   const [isLoading, setIsLoading] = useState(!user);
   // dietPlan이 없으면 로딩 상태로 시작 (Hydration Flicker 방지)
@@ -123,14 +124,14 @@ export default function Mainpage() {
             setDietPlan(data.plan.days[0]);
           } else if (data.plan?.days?.length > 0) {
             setDietPlan(data.days[0]);
-          } else{
+          } else {
             console.log("응답에서 days 가 읎다아ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ!!!!")
           }
-            // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
-            if (data.today_intake) {
-              setTodayIntake(data.today_intake);
-            }
+          // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
+          if (data.today_intake) {
+            setTodayIntake(data.today_intake);
           }
+        }
         )
         .catch(err => console.error(err))
         .finally(() => setIsPlanLoading(false)); // 로딩 끝
@@ -161,14 +162,22 @@ export default function Mainpage() {
     }
   }, [dietPlan]);
 
+  // Chat Sheet State
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [chatMealType, setChatMealType] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast')
+  const [chatMealTitle, setChatMealTitle] = useState('')
+
   // 로딩 중이면 빈 화면
   if (isLoading) {
     return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
   }
 
+
   // Handlers
-  const handleAddMenu = (type: string) => {
-    // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
+  const handleAddMenu = (type: string, mealType: 'breakfast' | 'lunch' | 'dinner') => {
+    setChatMealTitle(type)
+    setChatMealType(mealType)
+    setIsChatOpen(true)
   };
 
   const handleFoodClick = async (foodName: string) => {
@@ -245,7 +254,7 @@ export default function Mainpage() {
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-slate-700">{title}</h3>
           <button
-            onClick={() => handleAddMenu(title)}
+            onClick={() => handleAddMenu(title, type)}
             className="bg-indigo-100 text-indigo-500 p-1.5 rounded-full hover:bg-indigo-200 transition-colors"
           >
             <Plus size={16} />
@@ -307,7 +316,7 @@ export default function Mainpage() {
           </ul>
         ) : (
           <div
-            onClick={() => handleAddMenu(title)}
+            onClick={() => handleAddMenu(title, type)}
             className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
           >
             <Utensils size={16} className="text-slate-300" />
@@ -319,21 +328,21 @@ export default function Mainpage() {
   };
 
   const getMealItems = (mealData: any) => {
-    if(!mealData) return [];
+    if (!mealData) return [];
     return Array.isArray(mealData) ? mealData : [mealData];
   };
 
   return (
     <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
       {/* Header */}
-      <header className="px-6 pt-8 pb-4">
-        <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
+      <header className="px-4 sm:px-6 pt-6 sm:pt-8 pb-3 sm:pb-4">
+        <span className="block text-xs sm:text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
         <h1 className="text-xl font-bold text-slate-800 tracking-tight leading-snug">
           <span className="text-indigo-900">{user?.username || '사용자'}</span>님 안녕하세요.
         </h1>
       </header>
 
-      <div className="px-5 space-y-5">
+      <div className="px-4 sm:px-5 space-y-4 sm:space-y-5 pb-20">
 
         {/* Assistant Message */}
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-xl p-3 text-slate-800 shadow-sm border border-indigo-100/50 flex items-center gap-3">
@@ -418,6 +427,7 @@ export default function Mainpage() {
           </div>
         </section>
 
+
         {/* Meal Plan Planning */}
         <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
           <div className="flex items-center justify-between px-1">
@@ -447,6 +457,18 @@ export default function Mainpage() {
           isOpen={isMapOpen}
           onClose={() => setIsMapOpen(false)}
           data={mapData}
+        />
+
+        {/* Meal Chat Sheet */}
+        <MealChatSheet
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          mealType={chatMealType}
+          mealTitle={chatMealTitle}
+          onDietUpdate={(newItems) => {
+            // TODO: 식단 업데이트 로직
+            console.log("New items:", newItems)
+          }}
         />
       </div>
     </div>

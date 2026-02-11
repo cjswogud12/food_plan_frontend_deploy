@@ -9,6 +9,7 @@ import { FoodAnalysisResult } from "@/types/definitions";
 import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord, getCalendarRecord } from "@/api/index";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
 import { useDietStore } from "@/store";
+import { WaterTracker } from "@/components/record/RecordWaterTracker"
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
 interface DailyMealData {
@@ -260,14 +261,14 @@ export default function RecordPage() {
 
   return (
     <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
-      <div className="p-4 max-w-md mx-auto w-full">
+      <div className="p-3 sm:p-4 w-full sm:max-w-md mx-auto">
         {/* Header */}
-        <header className="mb-4 pt-4 flex justify-between items-center">
+        <header className="mb-3 sm:mb-4 pt-3 sm:pt-4 flex justify-between items-center">
           <div>
-            <span className="block text-sm text-slate-500 mb-1">
+            <span className="block text-xs sm:text-sm text-slate-500 mb-1">
               {isMobile ? "모바일" : "PC"}
             </span>
-            <h1 className="text-2xl font-bold text-slate-800">기록</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">기록</h1>
           </div>
           <button
             onClick={handleDeleteDate}
@@ -325,6 +326,9 @@ export default function RecordPage() {
             </div>
           </div>
         </section>
+
+        {/* Water Tracker */}
+        <WaterTracker />
 
         {/* Meal Lists - Vertical Stack */}
         <section className="flex flex-col gap-4 pb-8">

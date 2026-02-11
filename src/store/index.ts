@@ -45,11 +45,15 @@ interface DietState {
     todayRecord: any | null;
     lastFetched: number | null;
     checkedMeals: CheckedMeals;  // 체크된 음식들
+    waterIntake: number; // 수분 섭취량 (ml)
+    waterGoal: number;   // 수분 목표량 (ml)
     setDietPlan: (plan: any) => void;
     setTodayIntake: (intake: TodayIntake) => void;
     setTodayRecord: (record: any) => void;
     toggleMealCheck: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', food: any) => void;
     clearCheckedMeals: (date: string) => void;
+    setWaterIntake: (amount: number) => void;
+    setWaterGoal: (amount: number) => void;
     resetDiet: () => void;
 }
 
@@ -61,6 +65,8 @@ export const useDietStore = create<DietState>()(
             todayRecord: null,
             lastFetched: null,
             checkedMeals: {},
+            waterIntake: 0,
+            waterGoal: 2000, // 기본 목표 2L
             setDietPlan: (dietPlan) => set({ dietPlan, lastFetched: Date.now() }),
             setTodayIntake: (todayIntake) => set({ todayIntake }),
             setTodayRecord: (todayRecord) => set({ todayRecord }),
@@ -100,7 +106,9 @@ export const useDietStore = create<DietState>()(
                 const { [date]: _, ...rest } = current;
                 set({ checkedMeals: rest });
             },
-            resetDiet: () => set({ dietPlan: null, todayIntake: null, todayRecord: null, lastFetched: null, checkedMeals: {} }),
+            setWaterIntake: (amount) => set({ waterIntake: amount }),
+            setWaterGoal: (amount) => set({ waterGoal: amount }),
+            resetDiet: () => set({ dietPlan: null, todayIntake: null, todayRecord: null, lastFetched: null, checkedMeals: {}, waterIntake: 0, waterGoal: 2000 }),
         }),
         {
             name: 'diet-storage',
@@ -108,7 +116,9 @@ export const useDietStore = create<DietState>()(
                 dietPlan: state.dietPlan,
                 todayIntake: state.todayIntake, // 오늘의 섭취 정보도 저장
                 lastFetched: state.lastFetched,
-                checkedMeals: state.checkedMeals  // 체크 상태도 저장
+                checkedMeals: state.checkedMeals,  // 체크 상태도 저장
+                waterIntake: state.waterIntake,
+                waterGoal: state.waterGoal
             }),
         }
     )

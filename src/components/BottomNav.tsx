@@ -1,12 +1,13 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { House, List, User } from "lucide-react"
+import { House, List, User, MapPin } from "lucide-react"
 
 export default function BottomNav() {
     const pathname = usePathname();
     const navItems = [
         { href: "/", label: "홈", icon: House },
+        { href: "/nearby", label: "주변식당", icon: MapPin },
         { href: "/record", label: "기록", icon: List },
         { href: "/mypage", label: "마이페이지", icon: User }
     ];

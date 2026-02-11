@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { MapPin, Search, Loader2, Navigation } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 import { fetchNearbyRestaurants } from "@/api/index"
 import RestaurantList from "@/components/nearby/RestaurantList"
 
@@ -18,13 +19,19 @@ export default function NearbyPage() {
     const [searched, setSearched] = useState(false)
     const [searchError, setSearchError] = useState<string | null>(null)
 
-    // GPS 위치 자동 획득
+    // GPS 위치 자동 획득 & 로그인 체크
     useEffect(() => {
-        const userId = localStorage.getItem("user_id")
-        if (!userId) {
-            router.push("/login")
-            return
+        // 1. Supabase 세션 확인
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                router.push("/login")
+                return
+            }
         }
+        checkSession()
+
+        // 2. GPS 위치 확인
 
         if (!navigator.geolocation) {
             setGpsError("이 브라우저에서는 위치 서비스를 사용할 수 없습니다.")

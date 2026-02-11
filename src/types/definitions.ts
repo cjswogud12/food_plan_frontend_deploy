@@ -296,10 +296,11 @@ export interface DietContextResponse {
 }
 
 export interface Restaurant {
-    식당명: string;
-    카테고리: string;
-    주소: string;
-    "거리(m)": string | number;
-    전화번호?: string;
-    place_url?: string;
+    user_number: number;
+    label: string;
+    location_profile_id: number;
+    restaurant_id: number[];
+    menu_item_ids: number[];
+    nutrition_ids: number[];
+    error: [ string ];
 }

@@ -69,9 +69,12 @@ export default function NearbyPage() {
                 throw new Error(`서버 오류: ${res.status} ${errText}`)
             }
             const data = await res.json()
-            // 백엔드 응답 구조에 맞게 파싱
-            const list = data.restaurants || data.result || data || []
-            setRestaurants(Array.isArray(list) ? list : [])
+            // 백엔드 NodeRunResponse: { restaurant_ids, menu_item_ids, nutrition_ids, ... }
+            if (data.restaurant_ids && data.restaurant_ids.length > 0) {
+                setRestaurants([data])
+            } else {
+                setRestaurants([])
+            }
         } catch (err: any) {
             console.error("식당 검색 실패:", err)
             setSearchError(err.message || "식당 검색에 실패했습니다.")

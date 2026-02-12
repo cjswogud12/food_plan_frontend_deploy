@@ -63,7 +63,7 @@ export default function NearbyPage() {
         setSearched(true)
 
         try {
-            const res = await fetchNearbyRestaurants(lat, lng, "home")
+            const res = await fetchNearbyRestaurants("현재 위치", lat, lng, 500)
             if (!res.ok) {
                 const errText = await res.text()
                 throw new Error(`서버 오류: ${res.status} ${errText}`)

@@ -56,7 +56,7 @@ export default function RestaurantList({ restaurants }: RestaurantListProps) {
                                                 <span className="font-medium text-slate-700">{menu.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-500">{menu.price}</span>
+                                                <span className="text-slate-500">{menu.price}원</span>
                                                 <span className="text-indigo-600 font-semibold">
                                                     {menu.nutrition?.calories_kcal}kcal
                                                 </span>

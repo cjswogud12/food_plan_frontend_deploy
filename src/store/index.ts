@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, InbodyRecord, UserGoal, TodayIntake, DietPlanResponse, Food } from '@/types/definitions'
+import { Restaurant } from '@/types/definitions'
 
 // 사용자 관련 전역 상태
 interface UserState {
@@ -10,6 +11,30 @@ interface UserState {
     setUserGoal: (goal: UserGoal | null) => void;
     resetUser: () => void;
 }
+
+// 주변 식당 관련 전역 상태
+interface NearbyState{
+    restaurants: Restaurant[];
+    searched: boolean;
+    setRestaurants: (restaurants: Restaurant[]) => void;
+    setSearched: (searched: boolean) => void;
+    resetNearby: () => void;
+}
+
+export const useNearbyStore = create<NearbyState>()(
+    persist(
+        (set) => ({
+            restaurants: [],
+            searched: false,
+            setRestaurants: (restaurants) => set({ restaurants }),
+            setSearched: (searched) => set({ searched}),
+            resetNearby: () => set({ restaurants: [], searched: false }),
+        }),
+        {
+            name: 'nearby-storage',
+        }
+    )
+)
 
 export const useUserStore = create<UserState>()(
     persist(

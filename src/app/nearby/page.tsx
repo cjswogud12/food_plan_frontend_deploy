@@ -6,6 +6,7 @@ import { MapPin, Search, Loader2, Navigation } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { fetchNearbyRestaurants } from "@/api/index"
 import RestaurantList from "@/components/nearby/RestaurantList"
+import { useNearbyStore } from '@/store/index'
 
 export default function NearbyPage() {
     const router = useRouter()
@@ -14,9 +15,8 @@ export default function NearbyPage() {
     const [gpsLoading, setGpsLoading] = useState(true)
     const [gpsError, setGpsError] = useState<string | null>(null)
 
-    const [restaurants, setRestaurants] = useState<any[]>([])
+    const { restaurants, searched, setRestaurants, setSearched } = useNearbyStore()
     const [isSearching, setIsSearching] = useState(false)
-    const [searched, setSearched] = useState(false)
     const [searchError, setSearchError] = useState<string | null>(null)
 
     // GPS 위치 자동 획득 & 로그인 체크
@@ -158,7 +158,7 @@ export default function NearbyPage() {
                                 검색 결과
                             </h2>
                             <span className="text-xs text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full">
-                                {restaurants.length}개
+                                5곳!
                             </span>
                         </div>
                         <RestaurantList restaurants={restaurants} />

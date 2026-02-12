@@ -268,11 +268,11 @@ export async function adjustDietPlanContext(context: string, targetCalorie: numb
 }
 
 // --- 주변 식당 검색 (Agent Node A) ---
-export async function fetchNearbyRestaurants(lat: number, lng: number, label: string = "home") {
+export async function fetchNearbyRestaurants(address_text: string, lat: number, lng: number, radius_m: number) {
     return postJson("/node/run", {
-        label,
+        address_text,
         lat,
         lng,
-        radius_m: 500,
+        radius_m
     });
 }

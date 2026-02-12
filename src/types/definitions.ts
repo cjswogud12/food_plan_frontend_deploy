@@ -296,11 +296,35 @@ export interface DietContextResponse {
 }
 
 export interface Restaurant {
-    user_number: number;
     label: string;
     location_profile_id: number;
-    restaurant_id: number[];
+    restaurant_ids: number[];
     menu_item_ids: number[];
     nutrition_ids: number[];
+    restaurants: [{
+        restaurants_id: number;
+        name: string;
+        category: string;
+        address_text: string;
+        place_url: string;
+        distance_m: number;
+        menus: [{
+            name: string;
+            price: string;
+            source_url: string;
+            nutrition: {
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                sodium_mg: number;
+                sugar_g: number;
+                fiber_g: number;
+                source_type: string;
+                source_ref: string;
+                confidence: number;
+            }
+        }]
+    }]
     error: [ string ];
 }

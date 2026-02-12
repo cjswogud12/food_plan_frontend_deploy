@@ -253,12 +253,6 @@ export default function Mainpage() {
       <div className="bg-white border-2 border-indigo-50 p-4 rounded-2xl shadow-sm">
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-slate-700">{title}</h3>
-          <button
-            onClick={() => handleAddMenu(title, type)}
-            className="bg-indigo-100 text-indigo-500 p-1.5 rounded-full hover:bg-indigo-200 transition-colors"
-          >
-            <Plus size={16} />
-          </button>
         </div>
 
         {items.length > 0 ? (
@@ -432,6 +426,12 @@ export default function Mainpage() {
         <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
+            <button
+              onClick={() => handleAddMenu('식단', 'breakfast')}
+              className="bg-indigo-100 text-indigo-500 p-1.5 rounded-full hover:bg-indigo-200 transition-colors"
+            >
+              <Plus size={16} />
+            </button>
           </div>
           <div className="grid gap-3">
             {isPlanLoading && !dietPlan ? (

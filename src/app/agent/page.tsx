@@ -4,11 +4,13 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
-import DietMapModal from "@/components/DietMapModal" // Import New Modal
-import { Plus, ChevronRight, Utensils, Check, Square, MapPin } from "lucide-react"
-import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index" // Import API
+import DietMapModal from "@/components/DietMapModal"
+import { ChevronRight, Utensils, Square, MapPin } from "lucide-react"
+import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
-import { DietPlanKakaoMap } from "@/types/definitions" // Import Type
+import { DietPlanKakaoMap } from "@/types/definitions"
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 interface GoalsState {
   calories: number;
@@ -23,7 +25,7 @@ export default function Mainpage() {
 
   // Zustand Store 전역 상태관리
   const { user, setUser, setUserGoal } = useUserStore();
-  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck, resetDiet } = useDietStore();
+  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
@@ -54,9 +56,35 @@ export default function Mainpage() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [mapData, setMapData] = useState<DietPlanKakaoMap | null>(null);
 
-  /*const [mealPlan, setMealPlan] = useState<MealPlan>({
-    breakfast: [], lunch: [], dinner: [], snack: []
-  });*/
+  // Carousel API State
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+
+  // 식단 카드 데이터
+  const mealCards = [
+    { key: "breakfast" as const, title: "아침 식단", icon: "☀️" },
+    { key: "lunch" as const, title: "점심 식단", icon: "🌤️" },
+    { key: "dinner" as const, title: "저녁 식단", icon: "🌙" },
+  ];
+
+  // Carousel API와 Zustand 슬라이드 상태 동기화
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    const onSelect = () => {
+      setCurrentMealSlide(carouselApi.selectedScrollSnap());
+    };
+
+    carouselApi.on("select", onSelect);
+
+    // 저장된 슬라이드로 초기 위치 설정
+    if (currentMealSlide > 0) {
+      carouselApi.scrollTo(currentMealSlide);
+    }
+
+    return () => {
+      carouselApi.off("select", onSelect);
+    };
+  }, [carouselApi, setCurrentMealSlide]);
 
   // 로그인 체크 및 유저 정보 가져오기
   useEffect(() => {
@@ -123,14 +151,14 @@ export default function Mainpage() {
             setDietPlan(data.plan.days[0]);
           } else if (data.plan?.days?.length > 0) {
             setDietPlan(data.days[0]);
-          } else{
+          } else {
             console.log("응답에서 days 가 읎다아ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ!!!!")
           }
-            // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
-            if (data.today_intake) {
-              setTodayIntake(data.today_intake);
-            }
+          // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
+          if (data.today_intake) {
+            setTodayIntake(data.today_intake);
           }
+        }
         )
         .catch(err => console.error(err))
         .finally(() => setIsPlanLoading(false)); // 로딩 끝
@@ -227,104 +255,29 @@ export default function Mainpage() {
     return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
   }
 
-  const PlanSection = ({ title, type, items }: { title: string, type: 'breakfast' | 'lunch' | 'dinner', items: any[] }) => {
-    const todayChecked = checkedMeals[today]?.[type] || [];
-
-    const isItemChecked = (item: any) => {
-      const itemName = item.food_name || item.name;
-      return todayChecked.some((f: any) => (f.food_name || f.name) === itemName);
-    };
-
-    const handleCheckClick = (e: React.MouseEvent, item: any) => {
-      e.stopPropagation();
-      toggleMealCheck(today, type, item);
-    };
-
-    return (
-      <div className="bg-white border-2 border-indigo-50 p-4 rounded-2xl shadow-sm">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-bold text-slate-700">{title}</h3>
-          <button
-            onClick={() => handleAddMenu(title)}
-            className="bg-indigo-100 text-indigo-500 p-1.5 rounded-full hover:bg-indigo-200 transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-
-        {items.length > 0 ? (
-          <ul className="space-y-2">
-            {items.map((item, idx) => (
-              <li
-                key={idx}
-                // Click handler for opening map
-                onClick={() => handleFoodClick(item.food_name || item.name)}
-                className={`flex justify-between items-center p-2.5 rounded-xl border transition-all cursor-pointer hover:shadow-md ${isItemChecked(item)
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-slate-50 border-slate-100'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={(e) => handleCheckClick(e, item)}
-                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors shrink-0 ${isItemChecked(item)
-                      ? 'bg-green-500 text-white'
-                      : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
-                      }`}
-                  >
-                    {isItemChecked(item) ? <Check size={14} /> : <Square size={14} />}
-                  </button>
-
-                  {/* Food Image */}
-                  {item.image_url ? (
-                    <img
-                      src={item.image_url}
-                      alt={item.food_name || item.name}
-                      className="w-10 h-10 rounded-lg object-cover bg-slate-200 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                      <Utensils size={16} className="text-slate-300" />
-                    </div>
-                  )}
-
-                  <div>
-                    <span className={`block text-sm font-medium ${isItemChecked(item) ? 'text-green-700 line-through' : 'text-slate-700'
-                      }`}>
-                      {item.food_name || item.name}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>{item.calories || item.food_calories || item.calories_kcal} kcal</span>
-                      <span className="text-indigo-400 flex items-center gap-0.5 ml-1 bg-indigo-50 px-1 rounded">
-                        <MapPin size={10} /> 지도보기
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight size={14} className="text-slate-300" />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div
-            onClick={() => handleAddMenu(title)}
-            className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-          >
-            <Utensils size={16} className="text-slate-300" />
-            <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
-          </div>
-        )}
+  // 빈 깡통 음식 아이템 컴포넌트
+  const PlaceholderFoodItem = () => (
+    <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+      {/* 체크박스 */}
+      <button className="w-8 h-8 rounded-lg bg-slate-200 text-slate-400 flex items-center justify-center shrink-0 hover:bg-slate-300 transition-colors">
+        <Square size={18} />
+      </button>
+      {/* 음식 이미지 자리 */}
+      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+        <Utensils size={22} className="text-slate-300" />
       </div>
-    );
-  };
-
-  const getMealItems = (mealData: any) => {
-    if(!mealData) return [];
-    return Array.isArray(mealData) ? mealData : [mealData];
-  };
+      {/* 텍스트 자리 */}
+      <div className="flex-1 space-y-2">
+        <div className="h-4 bg-slate-200 rounded w-28" />
+        <div className="h-3.5 bg-slate-100 rounded w-20" />
+      </div>
+      {/* 화살표 */}
+      <ChevronRight size={18} className="text-slate-300" />
+    </div>
+  );
 
   return (
-    <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
+    <div className="w-full h-full bg-white flex flex-col overflow-hidden">
       {/* Header */}
       <header className="px-6 pt-8 pb-4">
         <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
@@ -333,7 +286,7 @@ export default function Mainpage() {
         </h1>
       </header>
 
-      <div className="px-5 space-y-5">
+      <div className="px-5 space-y-5 flex-1 flex flex-col">
 
         {/* Assistant Message */}
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-xl p-3 text-slate-800 shadow-sm border border-indigo-100/50 flex items-center gap-3">
@@ -418,25 +371,55 @@ export default function Mainpage() {
           </div>
         </section>
 
-        {/* Meal Plan Planning */}
-        <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
+        {/* Meal Plan Planning — Carousel */}
+        <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-3 shadow-sm border border-indigo-100/50 flex flex-col">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
           </div>
-          <div className="grid gap-3">
-            {isPlanLoading && !dietPlan ? (
-              <>
-                <PlanSkeleton />
-                <PlanSkeleton />
-                <PlanSkeleton />
-              </>
-            ) : (
-              <>
-                <PlanSection title="아침" type="breakfast" items={getMealItems(dietPlan?.breakfast)} />
-                <PlanSection title="점심" type="lunch" items={getMealItems(dietPlan?.lunch)} />
-                <PlanSection title="저녁" type="dinner" items={getMealItems(dietPlan?.dinner)} />
-              </>
-            )}
+
+          {/* 슬라이드 인디케이터 */}
+          <div className="flex justify-center gap-2 pb-1">
+            {mealCards.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => carouselApi?.scrollTo(i)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${i === currentMealSlide
+                  ? 'bg-indigo-500 scale-125'
+                  : 'bg-slate-300 hover:bg-slate-400'
+                  }`}
+              />
+            ))}
+          </div>
+
+          {/* 카드 Carousel */}
+          <div className="flex-1">
+            <Carousel
+              setApi={setCarouselApi}
+              opts={{ align: "center", loop: false }}
+              className="w-full h-full"
+            >
+              <CarouselContent className="-ml-2 h-full">
+                {mealCards.map((meal) => (
+                  <CarouselItem key={meal.key} className="pl-2 h-full">
+                    <Card className="border-2 border-indigo-50 shadow-sm h-full py-4 gap-3">
+                      <CardHeader className="pb-0 pt-0 px-4">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <span className="text-lg">{meal.icon}</span>
+                          <span className="text-slate-700">{meal.title}</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 px-4">
+                        <PlaceholderFoodItem />
+                        <PlaceholderFoodItem />
+                        <PlaceholderFoodItem />
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-1 size-7 border-indigo-200 text-indigo-500 hover:bg-indigo-50" />
+              <CarouselNext className="right-1 size-7 border-indigo-200 text-indigo-500 hover:bg-indigo-50" />
+            </Carousel>
           </div>
         </section>
 

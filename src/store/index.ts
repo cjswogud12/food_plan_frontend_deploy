@@ -45,11 +45,13 @@ interface DietState {
     todayRecord: any | null;
     lastFetched: number | null;
     checkedMeals: CheckedMeals;  // 체크된 음식들
+    currentMealSlide: number;  // 현재 식단 카드 슬라이드 인덱스
     setDietPlan: (plan: any) => void;
     setTodayIntake: (intake: TodayIntake) => void;
     setTodayRecord: (record: any) => void;
     toggleMealCheck: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', food: any) => void;
     clearCheckedMeals: (date: string) => void;
+    setCurrentMealSlide: (index: number) => void;
     resetDiet: () => void;
 }
 
@@ -61,6 +63,7 @@ export const useDietStore = create<DietState>()(
             todayRecord: null,
             lastFetched: null,
             checkedMeals: {},
+            currentMealSlide: 0,
             setDietPlan: (dietPlan) => set({ dietPlan, lastFetched: Date.now() }),
             setTodayIntake: (todayIntake) => set({ todayIntake }),
             setTodayRecord: (todayRecord) => set({ todayRecord }),
@@ -100,7 +103,8 @@ export const useDietStore = create<DietState>()(
                 const { [date]: _, ...rest } = current;
                 set({ checkedMeals: rest });
             },
-            resetDiet: () => set({ dietPlan: null, todayIntake: null, todayRecord: null, lastFetched: null, checkedMeals: {} }),
+            setCurrentMealSlide: (index) => set({ currentMealSlide: index }),
+            resetDiet: () => set({ dietPlan: null, todayIntake: null, todayRecord: null, lastFetched: null, checkedMeals: {}, currentMealSlide: 0 }),
         }),
         {
             name: 'diet-storage',

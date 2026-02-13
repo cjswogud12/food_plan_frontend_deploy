@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User as UserIcon } from "lucide-react";
+import { User as UserIcon, Home, Building2, Save } from "lucide-react";
 import { Record, User } from "@/types/definitions";
 import { getUser, getUserGoal, getInbody, getBodyClassification } from "@/api/index";
 import { useUserStore } from "@/store";
@@ -18,6 +18,45 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
     // Local State
     const [goal, setGoal] = useState<string>(propGoal || "-");
     const [suggestedGoal, setSuggestedGoal] = useState<string>("-");
+
+    // Address State
+    const [homeAddress, setHomeAddress] = useState("");
+    const [workAddress, setWorkAddress] = useState("");
+    const [isAddressChanged, setIsAddressChanged] = useState(false);
+
+    // Initial Address Load
+    useEffect(() => {
+        const savedLocations = localStorage.getItem("user_locations");
+        if (savedLocations) {
+            try {
+                const parsed = JSON.parse(savedLocations);
+                const home = parsed.find((l: any) => l.label === "home");
+                const work = parsed.find((l: any) => l.label === "work" || l.label === "company"); // Support 'company' for backward compatibility if needed, but primary is 'work'
+                if (home) setHomeAddress(home.address_text || "");
+                if (work) setWorkAddress(work.address_text || "");
+            } catch (e) {
+                console.error("Failed to parse user_locations", e);
+            }
+        }
+    }, []);
+
+    const handleSaveAddress = () => {
+        const locations = [
+            {
+                label: "home",
+                address_text: homeAddress.trim(),
+                radius_m: 500, // Default radius
+            },
+            {
+                label: "work",
+                address_text: workAddress.trim(),
+                radius_m: 500, // Default radius
+            },
+        ];
+        localStorage.setItem("user_locations", JSON.stringify(locations));
+        setIsAddressChanged(false);
+        alert("주소가 저장되었습니다.");
+    };
 
 
     const getGoalFromStage = (stage1: string | number | undefined | null): string => {
@@ -133,7 +172,8 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
 
     return (
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
-            <div className="card-container w-full">
+            <div className="card-container w-full space-y-6">
+                {/* Top: User & Goal */}
                 <div className="flex items-center justify-between">
                     {/* Left: User Info */}
                     <div className="flex items-center gap-4">
@@ -156,6 +196,61 @@ export default function MypageProfileTarget({ foodrecords = [], goal: propGoal }
                             </span>
                         </div>
                     </div>
+                </div>
+
+                {/* Divider */}
+                <div className="h-px bg-slate-100 w-full" />
+
+                {/* Bottom: Address Inputs */}
+                <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-slate-400">내 장소 설정</h3>
+
+                    <div className="space-y-3">
+                        {/* Home Address */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                                <Home size={16} className="text-indigo-500" />
+                            </div>
+                            <input
+                                type="text"
+                                value={homeAddress}
+                                onChange={(e) => {
+                                    setHomeAddress(e.target.value);
+                                    setIsAddressChanged(true);
+                                }}
+                                placeholder="집 주소 입력"
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-300 transition-all"
+                            />
+                        </div>
+
+                        {/* Company Address */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
+                                <Building2 size={16} className="text-purple-500" />
+                            </div>
+                            <input
+                                type="text"
+                                value={workAddress}
+                                onChange={(e) => {
+                                    setWorkAddress(e.target.value);
+                                    setIsAddressChanged(true);
+                                }}
+                                placeholder="회사 주소 입력"
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-purple-300 transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Save Button (Visible only when changed) */}
+                    {isAddressChanged && (
+                        <button
+                            onClick={handleSaveAddress}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 active:scale-[0.98] transition-all shadow-md shadow-slate-200"
+                        >
+                            <Save size={16} />
+                            <span>변경사항 저장</span>
+                        </button>
+                    )}
                 </div>
             </div>
         </section>

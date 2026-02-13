@@ -257,3 +257,22 @@ export async function deleteInbody() {
         headers: { ...authHeader }
     });
 }
+
+// --- 메뉴 선택 (식단 교체) ---
+export async function selectMenuItem(menu_item_id: number, meal_type: string, reason_text: string = "사용자 선택") {
+    return postJson("/node/select", {
+        menu_item_id,
+        meal_type,
+        reason_text,
+    });
+}
+
+// --- 주변 식당 검색 (entrypoint Agent Node A) ---
+export async function fetchNearbyRestaurants(address_text: string, lat: number, lng: number, radius_m: number) {
+    return postJson("/node/run", {
+        address_text,
+        lat,
+        lng,
+        radius_m
+    });
+}

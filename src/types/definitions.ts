@@ -1,5 +1,7 @@
 // 요소 통합 정리
 
+import { LargeNumberLike } from "crypto";
+
 export interface User {
     user_number: number;
     id: string; //로그인 아이디
@@ -250,4 +252,55 @@ export interface TodayIntake {
 export interface DietPlanResponse {
     days: any[]; // 구체적인 타입 정의 필요시 추가
     today_intake: TodayIntake;
+}
+
+export interface Restauran {
+    goal_type: string;
+    tdee_kcal: number;
+    daily_target_kcal: number;
+    meal_target_kcal: {
+        additionalProp1: number;
+        additionalProp2: number;
+        additionalProp3: number;
+        collector_triggerd: boolean;
+        breakfast: [{
+            restaurant_id: number;
+            restaurant_name: string;
+            menu_id: number;
+            menu_name: String;
+            price: number;
+            distance_m: number;
+            calories_kcal:number;
+            carbs_g:number;
+            protein_g:number;
+            fat_g:number;
+            confidence: number;
+        }]
+        lunch: [{
+            restaurant_id: number;
+            restaurant_name: string;
+            menu_id: number;
+            menu_name: String;
+            price: number;
+            distance_m: number;
+            calories_kcal:number;
+            carbs_g:number;
+            protein_g:number;
+            fat_g:number;
+            confidence: number;
+        }]
+        dinner: [{
+            restaurant_id: number;
+            restaurant_name: string;
+            menu_id: number;
+            menu_name: String;
+            price: number;
+            distance_m: number;
+            calories_kcal:number;
+            carbs_g:number;
+            protein_g:number;
+            fat_g:number;
+            confidence: number;
+        }]
+    }
 }

@@ -8,7 +8,7 @@ import DietMapModal from "@/components/DietMapModal"
 import { ChevronRight, Utensils, Square, MapPin } from "lucide-react"
 import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
-import { DietPlanKakaoMap } from "@/types/definitions"
+import { DietPlanKakaoMap, Restaurant } from "@/types/definitions"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 

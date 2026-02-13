@@ -26,7 +26,7 @@ export default function InbodyOnboardingPage() {
         }
     };
 
-        const handleUpload = async () => {
+    const handleUpload = async () => {
         if (!selectedImage) return;
 
         setIsUploading(true);
@@ -44,7 +44,7 @@ export default function InbodyOnboardingPage() {
             if (res.ok) {
                 setUploadStatus('success');
                 setTimeout(() => {
-                    router.push("/");
+                    router.push("/onboarding/survey");
                 }, 1500);
             } else {
                 throw new Error("Upload failed");
@@ -60,7 +60,7 @@ export default function InbodyOnboardingPage() {
 
     const handleSkip = () => {
         if (confirm("인바디 정보를 등록하지 않으면 정확한 분석이 어려울 수 있습니다. 건너뛰시겠습니까?")) {
-            router.push("/");
+            router.push("/onboarding/survey");
         }
     };
 

@@ -30,6 +30,9 @@ export default function AddressPage() {
                 },
             ];
 
+            // localStorage에 주소 데이터 저장 (agent 페이지에서 사용)
+            localStorage.setItem("user_locations", JSON.stringify(locations));
+
             // TODO: 백엔드 엔드포인트 연결
             // await postJson("/user/locations", { locations });
             console.log("전송할 주소 데이터:", locations);

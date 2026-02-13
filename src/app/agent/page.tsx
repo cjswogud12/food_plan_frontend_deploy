@@ -6,18 +6,14 @@ import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import DietMapModal from "@/components/DietMapModal"
 import { ChevronRight, Utensils, Square, MapPin } from "lucide-react"
-import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index"
+import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces, fetchMenuSave } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
-import { DietPlanKakaoMap, Restaurant } from "@/types/definitions"
+import { DietPlanKakaoMap, Restaurant, RestaurantMenuItem } from "@/types/definitions"
+import AgentFoodItem from "@/components/agent/Mainagent"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
-interface GoalsState {
-  calories: number;
-  carbs: number;
-  protein: number;
-  fat: number;
-}
+
 
 export default function Mainpage() {
   const { isMobile } = useViewport();
@@ -31,7 +27,6 @@ export default function Mainpage() {
   const today = new Date().toISOString().split('T')[0];
 
   // Local State 로컬 상태관리
-  // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
   // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
   const [isLoading, setIsLoading] = useState(!user);
   // dietPlan이 없으면 로딩 상태로 시작 (Hydration Flicker 방지)
@@ -55,6 +50,11 @@ export default function Mainpage() {
   // Map State
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [mapData, setMapData] = useState<DietPlanKakaoMap | null>(null);
+
+  // Restaurant 추천 데이터 상태
+  const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
+  const [isRestaurantLoading, setIsRestaurantLoading] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
 
   // Carousel API State
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
@@ -176,6 +176,49 @@ export default function Mainpage() {
     }
   }, [user, lastFetched]);
 
+  // 식당 메뉴 추천 데이터 가져오기
+  useEffect(() => {
+    if (!user) return;
+
+    // 온보딩에서 저장한 주소 데이터 읽기
+    const savedLocations = localStorage.getItem("user_locations");
+    if (!savedLocations) {
+      console.log("저장된 주소 정보가 없습니다. 온보딩을 완료해주세요.");
+      return;
+    }
+
+    const locations = JSON.parse(savedLocations);
+    const homeLocation = locations.find((loc: any) => loc.label === "home");
+    if (!homeLocation) {
+      console.log("집 주소 정보가 없습니다.");
+      return;
+    }
+
+    const fetchRestaurantData = async () => {
+      setIsRestaurantLoading(true);
+      try {
+        const res = await fetchMenuSave(
+          homeLocation.label,
+          homeLocation.address_text,
+          0,  // lat: 백엔드에서 geocoding 처리
+          0,  // lng: 백엔드에서 geocoding 처리
+          homeLocation.radius_m || 500
+        );
+        if (res.ok) {
+          const data = await res.json();
+          console.log("식당 추천 데이터:", data);
+          setRestaurantData(data);
+        }
+      } catch (err) {
+        console.error("식당 추천 데이터 가져오기 실패:", err);
+      } finally {
+        setIsRestaurantLoading(false);
+      }
+    };
+
+    fetchRestaurantData();
+  }, [user]);
+
   // Store Hydration Sync: 상태가 복구되면 로딩 해제
   useEffect(() => {
     if (user) setIsLoading(false);
@@ -250,31 +293,38 @@ export default function Mainpage() {
     );
   };
 
-  // 로딩 중이면 빈 화면
-  if (isLoading) {
-    return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
-  }
 
-  // 빈 깡통 음식 아이템 컴포넌트
+
+  // 빈 깡통 음식 아이템 컴포넌트 (로딩/폴백용)
   const PlaceholderFoodItem = () => (
-    <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-      {/* 체크박스 */}
-      <button className="w-8 h-8 rounded-lg bg-slate-200 text-slate-400 flex items-center justify-center shrink-0 hover:bg-slate-300 transition-colors">
-        <Square size={18} />
-      </button>
-      {/* 음식 이미지 자리 */}
-      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-        <Utensils size={22} className="text-slate-300" />
-      </div>
-      {/* 텍스트 자리 */}
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 animate-pulse">
+      <div className="w-8 h-8 rounded-lg bg-slate-200 shrink-0" />
+      <div className="w-12 h-12 rounded-xl bg-slate-100 shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-4 bg-slate-200 rounded w-28" />
-        <div className="h-3.5 bg-slate-100 rounded w-20" />
+        <div className="h-3 bg-slate-100 rounded w-20" />
       </div>
-      {/* 화살표 */}
-      <ChevronRight size={18} className="text-slate-300" />
     </div>
   );
+
+  // 체크 토글 핸들러
+  const handleCheckItem = (menuId: number) => {
+    setCheckedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(menuId)) {
+        next.delete(menuId);
+      } else {
+        next.add(menuId);
+      }
+      return next;
+    });
+  };
+
+  // 식사 타입별 메뉴 아이템 가져오기
+  const getMealItems = (mealKey: "breakfast" | "lunch" | "dinner"): RestaurantMenuItem[] => {
+    if (!restaurantData) return [];
+    return restaurantData[mealKey] || [];
+  };
 
   return (
     <div className="w-full h-full bg-white flex flex-col overflow-hidden">
@@ -409,9 +459,27 @@ export default function Mainpage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-2 px-4">
-                        <PlaceholderFoodItem />
-                        <PlaceholderFoodItem />
-                        <PlaceholderFoodItem />
+                        {isRestaurantLoading ? (
+                          <>
+                            <PlaceholderFoodItem />
+                            <PlaceholderFoodItem />
+                            <PlaceholderFoodItem />
+                          </>
+                        ) : getMealItems(meal.key).length > 0 ? (
+                          getMealItems(meal.key).map((item) => (
+                            <AgentFoodItem
+                              key={item.menu_id}
+                              item={item}
+                              isChecked={checkedItems.has(item.menu_id)}
+                              onCheck={() => handleCheckItem(item.menu_id)}
+                              onClick={() => handleFoodClick(item.menu_name)}
+                            />
+                          ))
+                        ) : (
+                          <div className="text-center py-6 text-slate-400 text-sm">
+                            추천 메뉴가 없습니다
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </CarouselItem>

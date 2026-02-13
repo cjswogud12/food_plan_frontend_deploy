@@ -268,8 +268,9 @@ export async function selectMenuItem(menu_item_id: number, meal_type: string, re
 }
 
 // --- 주변 식당 검색 (entrypoint Agent Node A) ---
-export async function fetchNearbyRestaurants(address_text: string, lat: number, lng: number, radius_m: number) {
-    return postJson("/node/run", {
+export async function fetchMenuSave(label: string, address_text: string, lat: number, lng: number, radius_m: number) {
+    return postJson("/recommand/menu-save", {
+        label,
         address_text,
         lat,
         lng,

@@ -46,42 +46,43 @@ export interface UserGoal {
         target_calorie: number;
         body_type_stage1: string;
         body_type_stage2: string;
-        note: [ string ], 
+        note: [string],
         days: [{
             day_label: string;
             date: string;
             breakfast: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
             },
-        lunch: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
-        },
-        dinner: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
-        },
-        total_calories_kcal: number;
-        total_carbs_g: number;
-        total_protein_g: number;
-        total_fat_g: number;
-    }]},
+            lunch: {
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
+            },
+            dinner: {
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
+            },
+            total_calories_kcal: number;
+            total_carbs_g: number;
+            total_protein_g: number;
+            total_fat_g: number;
+        }]
+    },
     today_intake: {
         goal_type: string;
         target_calorie: number;
@@ -254,53 +255,33 @@ export interface DietPlanResponse {
     today_intake: TodayIntake;
 }
 
-export interface Restauran {
+export interface Restaurant {
     goal_type: string;
     tdee_kcal: number;
     daily_target_kcal: number;
     meal_target_kcal: {
-        additionalProp1: number;
-        additionalProp2: number;
-        additionalProp3: number;
-        collector_triggerd: boolean;
-        breakfast: [{
-            restaurant_id: number;
-            restaurant_name: string;
-            menu_id: number;
-            menu_name: String;
-            price: number;
-            distance_m: number;
-            calories_kcal:number;
-            carbs_g:number;
-            protein_g:number;
-            fat_g:number;
-            confidence: number;
-        }]
-        lunch: [{
-            restaurant_id: number;
-            restaurant_name: string;
-            menu_id: number;
-            menu_name: String;
-            price: number;
-            distance_m: number;
-            calories_kcal:number;
-            carbs_g:number;
-            protein_g:number;
-            fat_g:number;
-            confidence: number;
-        }]
-        dinner: [{
-            restaurant_id: number;
-            restaurant_name: string;
-            menu_id: number;
-            menu_name: String;
-            price: number;
-            distance_m: number;
-            calories_kcal:number;
-            carbs_g:number;
-            protein_g:number;
-            fat_g:number;
-            confidence: number;
-        }]
-    }
+        breakfast: number;
+        lunch: number;
+        dinner: number;
+    };
+    used_radius_m: number;
+    collector_triggered: boolean;
+
+    breakfast: RestaurantMenuItem[];
+    lunch: RestaurantMenuItem[];
+    dinner: RestaurantMenuItem[];
+}
+
+export interface RestaurantMenuItem {
+    restaurant_id: number;
+    restaurant_name: string;
+    menu_id: number;
+    menu_name: string;
+    price: number;
+    distance_m: number;
+    calories_kcal: number;
+    carbs_g: number;
+    protein_g: number;
+    fat_g: number;
+    confidence: number;
 }

@@ -48,7 +48,7 @@ export default function SurveyPage() {
             // await postJson("/api/user/activity-level", { activity_factor: selectedFactor });
             console.log("선택된 활동 계수:", selectedFactor);
 
-            router.push("/");
+            router.push("/onboarding/address");
         } catch (error) {
             console.error("설문 제출 실패:", error);
             alert("제출에 실패했습니다. 다시 시도해주세요.");

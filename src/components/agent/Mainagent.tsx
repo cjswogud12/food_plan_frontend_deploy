@@ -7,7 +7,7 @@ interface AgentFoodItemProps {
     item: RestaurantMenuItem;
     isChecked: boolean;
     onCheck: () => void;
-    onClick: () => void;
+    onClick?: () => void;
 }
 
 export default function AgentFoodItem({ item, isChecked, onCheck, onClick }: AgentFoodItemProps) {
@@ -23,8 +23,8 @@ export default function AgentFoodItem({ item, isChecked, onCheck, onClick }: Age
                     onCheck();
                 }}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isChecked
-                        ? "bg-indigo-500 text-white"
-                        : "bg-slate-200 text-slate-400 hover:bg-slate-300"
+                    ? "bg-indigo-500 text-white"
+                    : "bg-slate-200 text-slate-400 hover:bg-slate-300"
                     }`}
             >
                 {isChecked ? <CheckSquare size={18} /> : <Square size={18} />}

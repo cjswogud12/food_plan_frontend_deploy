@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import DietMapModal from "@/components/DietMapModal"
-import { ChevronRight, Utensils, Square, MapPin } from "lucide-react"
+import { ChevronRight, Utensils, Square, MapPin, Home, Building2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces, fetchMenuSave } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
 import { DietPlanKakaoMap, Restaurant, RestaurantMenuItem } from "@/types/definitions"
@@ -55,6 +56,9 @@ export default function Mainpage() {
   const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
   const [isRestaurantLoading, setIsRestaurantLoading] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+
+  // 집/회사 모드 전환 상태
+  const [locationMode, setLocationMode] = useState<"home" | "company">("home");
 
   // Carousel API State
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
@@ -176,7 +180,7 @@ export default function Mainpage() {
     }
   }, [user, lastFetched]);
 
-  // 식당 메뉴 추천 데이터 가져오기
+  // 식당 메뉴 추천 데이터 가져오기 (집/회사 모드에 따라 전환)
   useEffect(() => {
     if (!user) return;
 
@@ -188,9 +192,10 @@ export default function Mainpage() {
     }
 
     const locations = JSON.parse(savedLocations);
-    const homeLocation = locations.find((loc: any) => loc.label === "home");
-    if (!homeLocation) {
-      console.log("집 주소 정보가 없습니다.");
+    const targetLocation = locations.find((loc: any) => loc.label === locationMode);
+    if (!targetLocation) {
+      console.log(`${locationMode === "home" ? "집" : "회사"} 주소 정보가 없습니다.`);
+      setRestaurantData(null);
       return;
     }
 
@@ -198,15 +203,15 @@ export default function Mainpage() {
       setIsRestaurantLoading(true);
       try {
         const res = await fetchMenuSave(
-          homeLocation.label,
-          homeLocation.address_text,
+          targetLocation.label,
+          targetLocation.address_text,
           0,  // lat: 백엔드에서 geocoding 처리
           0,  // lng: 백엔드에서 geocoding 처리
-          homeLocation.radius_m || 500
+          targetLocation.radius_m || 500
         );
         if (res.ok) {
           const data = await res.json();
-          console.log("식당 추천 데이터:", data);
+          console.log(`[${locationMode}] 식당 추천 데이터:`, data);
           setRestaurantData(data);
         }
       } catch (err) {
@@ -217,7 +222,7 @@ export default function Mainpage() {
     };
 
     fetchRestaurantData();
-  }, [user]);
+  }, [user, locationMode]);
 
   // Store Hydration Sync: 상태가 복구되면 로딩 해제
   useEffect(() => {
@@ -425,6 +430,33 @@ export default function Mainpage() {
         <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-3 shadow-sm border border-indigo-100/50 flex flex-col">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
+            {/* 집/회사 모드 전환 토글 */}
+            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+              <Button
+                variant={locationMode === "home" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setLocationMode("home")}
+                className={`h-7 px-2.5 text-xs font-semibold rounded-md gap-1 transition-all ${locationMode === "home"
+                    ? "bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-transparent"
+                  }`}
+              >
+                <Home size={13} />
+                집
+              </Button>
+              <Button
+                variant={locationMode === "company" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setLocationMode("company")}
+                className={`h-7 px-2.5 text-xs font-semibold rounded-md gap-1 transition-all ${locationMode === "company"
+                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-transparent"
+                  }`}
+              >
+                <Building2 size={13} />
+                회사
+              </Button>
+            </div>
           </div>
 
           {/* 슬라이드 인디케이터 */}

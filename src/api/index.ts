@@ -276,3 +276,28 @@ export async function fetchNearbyRestaurants(address_text: string, lat: number, 
         radius_m
     });
 }
+
+// --- 주소 설정 (Address) ---
+export interface UserAddressData {
+    user_number: number;
+    home_address: string | null;
+    company_address: string | null;
+}
+
+export async function getUserAddress(userNumber: number) {
+    return getJson(`/user/address?user_number=${userNumber}`);
+}
+
+export async function updateUserAddress(data: UserAddressData) {
+    return postJson("/user/address", data);
+}
+
+// --- 활동 수준 (Activity Level) ---
+export async function updateUserActivity(userNumber: number, activityLevel: string) {
+    // Request: { "user_number": 0, "activity_level": "string" }
+    // Response: { "user_number": int, "activity_level": "string", "factor": float }
+    return postJson("/user/activity-level", {
+        user_number: userNumber,
+        activity_level: activityLevel
+    });
+}

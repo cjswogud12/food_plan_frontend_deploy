@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
@@ -9,8 +9,6 @@ import { ChevronRight, Utensils, Square, MapPin } from "lucide-react"
 import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
 import { DietPlanKakaoMap, Restaurant } from "@/types/definitions"
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 interface GoalsState {
   calories: number;
@@ -56,9 +54,6 @@ export default function Mainpage() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [mapData, setMapData] = useState<DietPlanKakaoMap | null>(null);
 
-  // Carousel API State
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-
   // 식단 카드 데이터
   const mealCards = [
     { key: "breakfast" as const, title: "아침 식단", icon: "☀️" },
@@ -66,25 +61,38 @@ export default function Mainpage() {
     { key: "dinner" as const, title: "저녁 식단", icon: "🌙" },
   ];
 
-  // Carousel API와 Zustand 슬라이드 상태 동기화
-  useEffect(() => {
-    if (!carouselApi) return;
+  // 3D Carousel 상태
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const touchStartX = useRef(0);
+  const touchDelta = useRef(0);
+  const isDragging = useRef(false);
 
-    const onSelect = () => {
-      setCurrentMealSlide(carouselApi.selectedScrollSnap());
-    };
+  const handleTouchStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    isDragging.current = true;
+    touchStartX.current = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    touchDelta.current = 0;
+  }, []);
 
-    carouselApi.on("select", onSelect);
+  const handleTouchMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const currentX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    touchDelta.current = currentX - touchStartX.current;
+  }, []);
 
-    // 저장된 슬라이드로 초기 위치 설정
-    if (currentMealSlide > 0) {
-      carouselApi.scrollTo(currentMealSlide);
+  const handleTouchEnd = useCallback(() => {
+    isDragging.current = false;
+    const threshold = 50;
+    if (touchDelta.current < -threshold) {
+      const nextSlide = (currentMealSlide + 1) % mealCards.length;
+      setRotationAngle(prev => prev - 120);
+      setCurrentMealSlide(nextSlide);
+    } else if (touchDelta.current > threshold) {
+      const prevSlide = (currentMealSlide - 1 + mealCards.length) % mealCards.length;
+      setRotationAngle(prev => prev + 120);
+      setCurrentMealSlide(prevSlide);
     }
-
-    return () => {
-      carouselApi.off("select", onSelect);
-    };
-  }, [carouselApi, setCurrentMealSlide]);
+    touchDelta.current = 0;
+  }, [currentMealSlide, setCurrentMealSlide, mealCards.length]);
 
   // 로그인 체크 및 유저 정보 가져오기
   useEffect(() => {
@@ -146,13 +154,14 @@ export default function Mainpage() {
           );
         })
         .then(data => {
+          if (!data) return; // 데이터가 없으면 중단
           console.log("API Response Data:", data);
           if (data.plan?.days?.length > 0) {
             setDietPlan(data.plan.days[0]);
-          } else if (data.plan?.days?.length > 0) {
+          } else if (data.days?.length > 0) { // data.days 체크 (구조 다를 수 있음)
             setDietPlan(data.days[0]);
           } else {
-            console.log("응답에서 days 가 읎다아ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ!!!!")
+            console.log("응답에서 days 가 없습니다.")
           }
           // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
           if (data.today_intake) {
@@ -371,55 +380,85 @@ export default function Mainpage() {
           </div>
         </section>
 
-        {/* Meal Plan Planning — Carousel */}
-        <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-3 shadow-sm border border-indigo-100/50 flex flex-col">
+        {/* Meal Plan Planning — 3D Rotary Carousel */}
+        <section className="flex-1 space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-3 pt-5 pb-4 shadow-sm border border-indigo-100/50 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
+            {/* 슬라이드 인디케이터 */}
+            <div className="flex gap-2">
+              {mealCards.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const diff = i - currentMealSlide;
+                    setRotationAngle(prev => prev - diff * 120);
+                    setCurrentMealSlide(i);
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${i === currentMealSlide
+                    ? 'bg-indigo-500 scale-150 shadow-lg shadow-indigo-300'
+                    : 'bg-slate-300 hover:bg-slate-400'
+                    }`}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* 슬라이드 인디케이터 */}
-          <div className="flex justify-center gap-2 pb-1">
-            {mealCards.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => carouselApi?.scrollTo(i)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${i === currentMealSlide
-                  ? 'bg-indigo-500 scale-125'
-                  : 'bg-slate-300 hover:bg-slate-400'
-                  }`}
-              />
-            ))}
-          </div>
-
-          {/* 카드 Carousel */}
-          <div className="flex-1">
-            <Carousel
-              setApi={setCarouselApi}
-              opts={{ align: "center", loop: false }}
-              className="w-full h-full"
+          {/* 3D Rotary Carousel */}
+          <div
+            className="relative flex-1 select-none mt-5"
+            style={{ perspective: '600px' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleTouchStart}
+            onMouseMove={handleTouchMove}
+            onMouseUp={handleTouchEnd}
+            onMouseLeave={handleTouchEnd}
+          >
+            <div
+              className="w-full h-full relative"
+              style={{
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transform: `rotateY(${rotationAngle}deg)`,
+              }}
             >
-              <CarouselContent className="-ml-2 h-full">
-                {mealCards.map((meal) => (
-                  <CarouselItem key={meal.key} className="pl-2 h-full">
-                    <Card className="border-2 border-indigo-50 shadow-sm h-full py-4 gap-3">
-                      <CardHeader className="pb-0 pt-0 px-4">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                          <span className="text-lg">{meal.icon}</span>
-                          <span className="text-slate-700">{meal.title}</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2 px-4">
+              {mealCards.map((meal, i) => {
+                const angle = i * 120;
+                const isActive = i === currentMealSlide;
+                return (
+                  <div
+                    key={meal.key}
+                    className="absolute top-0 left-0 right-0 bottom-0 w-full px-1 flex flex-col"
+                    style={{
+                      transform: `rotateY(${angle}deg) translateZ(50px)`,
+                      backfaceVisibility: 'hidden',
+                    }}
+                  >
+                    <div className={`
+                      h-full rounded-2xl p-3 flex flex-col gap-2 transition-all duration-500
+                      ${isActive
+                        ? 'bg-white/90 border-2 border-indigo-100 shadow-xl shadow-indigo-100/50'
+                        : 'bg-white/60 border border-slate-200/50 shadow-md opacity-70'
+                      }
+                    `}>
+                      {/* Card Header */}
+                      <div className="flex items-center gap-2 px-1 shrink-0">
+                        <span className="text-xl">{meal.icon}</span>
+                        <span className="font-bold text-base text-slate-800">{meal.title}</span>
+                      </div>
+
+                      {/* Card Content */}
+                      <div className="space-y-2 flex-1 px-2">
                         <PlaceholderFoodItem />
                         <PlaceholderFoodItem />
                         <PlaceholderFoodItem />
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-1 size-7 border-indigo-200 text-indigo-500 hover:bg-indigo-50" />
-              <CarouselNext className="right-1 size-7 border-indigo-200 text-indigo-500 hover:bg-indigo-50" />
-            </Carousel>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 

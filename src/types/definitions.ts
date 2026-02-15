@@ -46,42 +46,43 @@ export interface UserGoal {
         target_calorie: number;
         body_type_stage1: string;
         body_type_stage2: string;
-        note: [ string ], 
+        note: [string],
         days: [{
             day_label: string;
             date: string;
             breakfast: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
             },
-        lunch: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
-        },
-        dinner: {
-            name: string;
-            description: string;
-            calories_kcal: number;
-            carbs_g: number;
-            protein_g: number;
-            fat_g: number;
-            image_url: string;
-        },
-        total_calories_kcal: number;
-        total_carbs_g: number;
-        total_protein_g: number;
-        total_fat_g: number;
-    }]},
+            lunch: {
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
+            },
+            dinner: {
+                name: string;
+                description: string;
+                calories_kcal: number;
+                carbs_g: number;
+                protein_g: number;
+                fat_g: number;
+                image_url: string;
+            },
+            total_calories_kcal: number;
+            total_carbs_g: number;
+            total_protein_g: number;
+            total_fat_g: number;
+        }]
+    },
     today_intake: {
         goal_type: string;
         target_calorie: number;
@@ -90,7 +91,23 @@ export interface UserGoal {
         total_protein_g: number;
         total_fat_g: number;
         plan_date: string;
+        confidence: number;
     }
+}
+
+// ==========================================
+// 주소 및 활동 수준
+// ==========================================
+export interface UserAddress {
+    user_number: number;
+    home_address: string | null;
+    company_address: string | null;
+}
+
+export interface UserActivityLevel {
+    user_number: number;
+    activity_level: string;
+    factor?: number; // 응답 값에 포함될 수 있음
 }
 // ==========================================
 // 기록, 음식
@@ -254,7 +271,7 @@ export interface DietPlanResponse {
     today_intake: TodayIntake;
 }
 
-export interface Restauran {
+export interface Restaurant {
     goal_type: string;
     tdee_kcal: number;
     daily_target_kcal: number;
@@ -270,10 +287,10 @@ export interface Restauran {
             menu_name: String;
             price: number;
             distance_m: number;
-            calories_kcal:number;
-            carbs_g:number;
-            protein_g:number;
-            fat_g:number;
+            calories_kcal: number;
+            carbs_g: number;
+            protein_g: number;
+            fat_g: number;
             confidence: number;
         }]
         lunch: [{
@@ -283,10 +300,10 @@ export interface Restauran {
             menu_name: String;
             price: number;
             distance_m: number;
-            calories_kcal:number;
-            carbs_g:number;
-            protein_g:number;
-            fat_g:number;
+            calories_kcal: number;
+            carbs_g: number;
+            protein_g: number;
+            fat_g: number;
             confidence: number;
         }]
         dinner: [{
@@ -296,10 +313,10 @@ export interface Restauran {
             menu_name: String;
             price: number;
             distance_m: number;
-            calories_kcal:number;
-            carbs_g:number;
-            protein_g:number;
-            fat_g:number;
+            calories_kcal: number;
+            carbs_g: number;
+            protein_g: number;
+            fat_g: number;
             confidence: number;
         }]
     }

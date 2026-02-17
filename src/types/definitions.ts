@@ -91,7 +91,23 @@ export interface UserGoal {
         total_protein_g: number;
         total_fat_g: number;
         plan_date: string;
+        confidence: number;
     }
+}
+
+// ==========================================
+// 주소 및 활동 수준
+// ==========================================
+export interface UserAddress {
+    user_number: number;
+    home_address: string | null;
+    company_address: string | null;
+}
+
+export interface UserActivityLevel {
+    user_number: number;
+    activity_level: string;
+    factor?: number; // 응답 값에 포함될 수 있음
 }
 // ==========================================
 // 기록, 음식

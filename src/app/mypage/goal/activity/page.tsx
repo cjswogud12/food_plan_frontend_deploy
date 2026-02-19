@@ -8,26 +8,31 @@ import { updateUserGoal, updateUserActivity, getMypage } from "@/api/index";
 
 const ACTIVITY_LEVELS = [
     {
+        key: "sedentary",
         label: "거의 운동 안 함",
         factor: 1.2,
         description: "주로 앉아서 생활하며 운동을 거의 하지 않음",
     },
     {
+        key: "light",
         label: "가벼운 활동",
         factor: 1.375,
         description: "주 1~3회 가벼운 운동",
     },
     {
+        key: "moderate",
         label: "보통 활동",
         factor: 1.55,
         description: "주 3~5회 적당한 강도의 운동",
     },
     {
+        key: "active",
         label: "매우 활동적",
         factor: 1.725,
         description: "주 6~7회 강도 높은 운동",
     },
     {
+        key: "very_active",
         label: "선수급 활동",
         factor: 1.9,
         description: "하루에 2회 이상 고강도 훈련, 육체노동직",
@@ -96,16 +101,37 @@ function GoalActivityContent() {
             // 실제 업데이트는 API가 처리
 
             if (userNumber) {
-                // API 변경: updateUserGoal -> updateUserActivity
-                const res = await updateUserActivity(userNumber, selectedLevel.label);
 
-                if (res.ok) {
+                // 1. BMR 확보 (기존 데이터 or 추정)
+                let bmr = bodyData?.bmr;
+                if (!bmr && bodyData?.weight && bodyData?.height) {
+                    // 나이/성별 정보가 없으면 기본값(30세/남성)으로 추정하여 계산
+                    const age = 30;
+                    const gender = 'M';
+                    bmr = estimateBMR(bodyData.weight, bodyData.height, age, gender);
+                }
+
+                // 2. 목표 칼로리 계산
+                let targetCalorie = 2000; // 기본값
+                if (bmr) {
+                    targetCalorie = calculateTargetCalorie(bmr, selectedLevel.factor, goalType);
+                }
+
+                // 3. API 호출 (활동수준 & 목표 동시 업데이트)
+                // updateUserGoal: 목표(다이어트/유지/증량) 및 목표 칼로리 저장
+                // updateUserActivity: 활동 수준(sedentary 등) 저장
+                const [resActivity, resGoal] = await Promise.all([
+                    updateUserActivity(userNumber, selectedLevel.key),
+                    updateUserGoal(userNumber, goalType, targetCalorie)
+                ]);
+
+                if (resActivity.ok && resGoal.ok) {
                     resetDiet(); // 식단 리셋
-                    alert(`활동 수준이 변경되었습니다.`);
+                    alert(`활동 수준과 목표가 저장되었습니다.`);
                     router.push("/"); // 메인으로 이동
                 } else {
-                    console.error("활동 수준 업데이트 실패");
-                    alert("활동 수준 변경에 실패했습니다.");
+                    console.error("업데이트 실패", { activity: resActivity.status, goal: resGoal.status });
+                    alert("정보 저장에 실패했습니다. 다시 시도해주세요.");
                 }
             } else {
                 console.error("user_number가 없습니다.");

@@ -79,7 +79,7 @@ export default function MypageDetailModal({ isOpen, onClose, inbodyData }: Mypag
                             <div className="flex justify-between items-center p-3 border rounded-xl">
                                 <span className="text-slate-600">기초대사량 (BMR)</span>
                                 <span className="font-bold text-slate-800">
-                                    {formatValue(inbodyData?.bmr, "kcal")}
+                                    {formatValue(inbodyData?.bmr || (inbodyData as any)?.values?.bmr, "kcal")}
                                 </span>
                             </div>
                         </div>

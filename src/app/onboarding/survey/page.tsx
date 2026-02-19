@@ -7,26 +7,31 @@ import { updateUserActivity } from "@/api/index";
 
 const ACTIVITY_LEVELS = [
     {
+        key: "sedentary",
         label: "거의 운동 안 함",
         factor: 1.2,
         description: "주로 앉아서 생활하며 운동을 거의 하지 않음",
     },
     {
+        key: "lightly_active",
         label: "가벼운 활동",
         factor: 1.375,
         description: "주 1~3회 가벼운 운동",
     },
     {
+        key: "moderate",
         label: "보통 활동",
         factor: 1.55,
         description: "주 3~5회 적당한 강도의 운동",
     },
     {
+        key: "active",
         label: "매우 활동적",
         factor: 1.725,
         description: "주 6~7회 강도 높은 운동",
     },
     {
+        key: "very_active",
         label: "선수급 활동",
         factor: 1.9,
         description: "하루에 2회 이상 고강도 훈련, 육체노동직",

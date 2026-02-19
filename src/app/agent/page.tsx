@@ -6,7 +6,7 @@ import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { Home, Building2, ChevronRight, Utensils, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getUser, getUserGoal, getTodayIntake, fetchMenuSave } from "@/api/index"
+import { getUser, getUserGoal, getTodayIntake, fetchMenuSave, getUserAddress } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
 import { DietPlanKakaoMap, Restaurant, RestaurantMenuItem } from "@/types/definitions"
 import AgentFoodItem from "@/components/agent/Mainagent"
@@ -133,30 +133,58 @@ export default function Mainpage() {
   useEffect(() => {
     if (!user) return;
 
-    // 온보딩에서 저장한 주소 데이터 읽기
-    const savedLocations = localStorage.getItem("user_locations");
-    if (!savedLocations) {
-      console.log("저장된 주소 정보가 없습니다. 온보딩을 완료해주세요.");
-      return;
-    }
+    const fetchAndSetRestaurantData = async () => {
+      let addressText = "";
 
-    const locations = JSON.parse(savedLocations);
-    const targetLocation = locations.find((loc: any) => loc.label === locationMode);
-    if (!targetLocation) {
-      console.log(`${locationMode === "home" ? "집" : "회사"} 주소 정보가 없습니다.`);
-      setRestaurantData(null);
-      return;
-    }
+      // 1. localStorage 우선 확인
+      const savedLocations = localStorage.getItem("user_locations");
+      if (savedLocations) {
+        try {
+          const locations = JSON.parse(savedLocations);
+          if (Array.isArray(locations)) {
+            const target = locations.find((loc: any) => loc.label === locationMode);
+            if (target && target.address_text) {
+              addressText = target.address_text;
+            }
+          }
+        } catch (e) {
+          console.error("localStorage 파싱 에러", e);
+        }
+      }
 
-    const fetchRestaurantData = async () => {
+      // 2. localStorage에 없으면 서버에서 가져오기
+      if (!addressText && user.user_number) {
+        try {
+          const res = await getUserAddress(user.user_number);
+          if (res.ok) {
+            const data = await res.json();
+            // server response: { user_number, home_address, company_address }
+            if (locationMode === "home" && data.home_address) {
+              addressText = data.home_address;
+            } else if (locationMode === "company" && data.company_address) {
+              addressText = data.company_address;
+            }
+          }
+        } catch (e) {
+          console.error("주소 정보 가져오기 실패", e);
+        }
+      }
+
+      if (!addressText) {
+        console.log(`${locationMode === "home" ? "집" : "회사"} 주소 정보가 없습니다.`);
+        setRestaurantData(null);
+        return;
+      }
+
+      // 3. fetchMenuSave 호출 (식당 데이터 가져오기)
       setIsRestaurantLoading(true);
       try {
         const res = await fetchMenuSave(
-          targetLocation.label,
-          targetLocation.address_text,
-          0,  // lat: 백엔드에서 geocoding 처리
-          0,  // lng: 백엔드에서 geocoding 처리
-          targetLocation.radius_m || 500
+          locationMode,
+          addressText,
+          undefined, // lat
+          undefined, // lng
+          500 // radius 기본값
         );
         if (res.ok) {
           const data = await res.json();
@@ -170,7 +198,7 @@ export default function Mainpage() {
       }
     };
 
-    fetchRestaurantData();
+    fetchAndSetRestaurantData();
   }, [user, locationMode]);
 
   // Store Hydration Sync: 상태가 복구되면 로딩 해제
@@ -405,25 +433,29 @@ export default function Mainpage() {
                       </div>
 
                       {/* Card Content */}
-                      <div className="space-y-2 flex-1 px-2">
-                        {isRestaurantLoading ? (
-                          <>
-                            <PlaceholderFoodItem />
-                            <PlaceholderFoodItem />
-                            <PlaceholderFoodItem />
-                          </>
-                        ) : getMealItems(meal.key).length > 0 ? (
-                          getMealItems(meal.key).map((item) => (
-                            <AgentFoodItem
-                              key={item.menu_id}
-                              item={item}
-                              isChecked={checkedItems.has(item.menu_id)}
-                              onCheck={() => handleCheckItem(item.menu_id)}
-                            />
-                          ))
-                        ) : (
-                          <p className="text-sm text-slate-400 text-center py-4">추천 메뉴가 없습니다</p>
-                        )}
+                      <div className="relative flex-1 min-h-0">
+                        <div className="h-full overflow-y-auto space-y-2 px-2 pb-10 [&::-webkit-scrollbar]:hidden">
+                          {isRestaurantLoading ? (
+                            <>
+                              <PlaceholderFoodItem />
+                              <PlaceholderFoodItem />
+                              <PlaceholderFoodItem />
+                            </>
+                          ) : getMealItems(meal.key).length > 0 ? (
+                            getMealItems(meal.key).map((item) => (
+                              <AgentFoodItem
+                                key={item.menu_id}
+                                item={item}
+                                isChecked={checkedItems.has(item.menu_id)}
+                                onCheck={() => handleCheckItem(item.menu_id)}
+                              />
+                            ))
+                          ) : (
+                            <p className="text-sm text-slate-400 text-center py-4">추천 메뉴가 없습니다</p>
+                          )}
+                        </div>
+                        {/* Blur Gradient Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
                       </div>
                     </div>
                   </div>

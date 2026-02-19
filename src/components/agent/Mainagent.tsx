@@ -37,7 +37,15 @@ export default function AgentFoodItem({ item, isChecked, onCheck, onClick }: Age
 
             {/* 텍스트 정보 */}
             <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-slate-800 truncate">
+                <p
+                    className={`font-bold text-sm truncate ${item.place_url ? 'text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer' : 'text-slate-800'}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (item.place_url) {
+                            window.open(item.place_url, "_blank");
+                        }
+                    }}
+                >
                     {item.menu_name}
                 </p>
                 <p className="text-xs text-slate-400 truncate">

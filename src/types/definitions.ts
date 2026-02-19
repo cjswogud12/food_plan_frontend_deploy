@@ -300,4 +300,5 @@ export interface RestaurantMenuItem {
     protein_g: number;
     fat_g: number;
     confidence: number;
+    place_url?: string;
 }

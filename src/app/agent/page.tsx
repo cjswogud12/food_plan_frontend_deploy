@@ -19,7 +19,7 @@ export default function Mainpage() {
 
   // Zustand Store 전역 상태관리
   const { user, setUser, setUserGoal } = useUserStore();
-  const { todayIntake, setTodayIntake, checkedMeals, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
+  const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
@@ -224,7 +224,8 @@ export default function Mainpage() {
   );
 
   // 체크 토글 핸들러
-  const handleCheckItem = (menuId: number) => {
+  const handleCheckItem = (menuId: number, mealType: "breakfast" | "lunch" | "dinner", item: RestaurantMenuItem) => {
+    // 1. UI용 로컬 체크 상태 토글
     setCheckedItems(prev => {
       const next = new Set(prev);
       if (next.has(menuId)) {
@@ -234,6 +235,18 @@ export default function Mainpage() {
       }
       return next;
     });
+
+    // 2. Store에 음식 데이터 저장 → Record 페이지 연동
+    const foodData = {
+      food_name: item.menu_name,
+      calories_kcal: item.calories_kcal,
+      carbs_g: item.carbs_g,
+      protein_g: item.protein_g,
+      fat_g: item.fat_g,
+      restaurant_name: item.restaurant_name,
+      price: item.price,
+    };
+    toggleMealCheck(today, mealType, foodData);
   };
 
   // 식사 타입별 메뉴 아이템 가져오기
@@ -447,7 +460,7 @@ export default function Mainpage() {
                                 key={item.menu_id}
                                 item={item}
                                 isChecked={checkedItems.has(item.menu_id)}
-                                onCheck={() => handleCheckItem(item.menu_id)}
+                                onCheck={() => handleCheckItem(item.menu_id, meal.key, item)}
                               />
                             ))
                           ) : (

@@ -433,25 +433,29 @@ export default function Mainpage() {
                       </div>
 
                       {/* Card Content */}
-                      <div className="space-y-2 flex-1 px-2">
-                        {isRestaurantLoading ? (
-                          <>
-                            <PlaceholderFoodItem />
-                            <PlaceholderFoodItem />
-                            <PlaceholderFoodItem />
-                          </>
-                        ) : getMealItems(meal.key).length > 0 ? (
-                          getMealItems(meal.key).map((item) => (
-                            <AgentFoodItem
-                              key={item.menu_id}
-                              item={item}
-                              isChecked={checkedItems.has(item.menu_id)}
-                              onCheck={() => handleCheckItem(item.menu_id)}
-                            />
-                          ))
-                        ) : (
-                          <p className="text-sm text-slate-400 text-center py-4">추천 메뉴가 없습니다</p>
-                        )}
+                      <div className="relative flex-1 min-h-0">
+                        <div className="h-full overflow-y-auto space-y-2 px-2 pb-10 [&::-webkit-scrollbar]:hidden">
+                          {isRestaurantLoading ? (
+                            <>
+                              <PlaceholderFoodItem />
+                              <PlaceholderFoodItem />
+                              <PlaceholderFoodItem />
+                            </>
+                          ) : getMealItems(meal.key).length > 0 ? (
+                            getMealItems(meal.key).map((item) => (
+                              <AgentFoodItem
+                                key={item.menu_id}
+                                item={item}
+                                isChecked={checkedItems.has(item.menu_id)}
+                                onCheck={() => handleCheckItem(item.menu_id)}
+                              />
+                            ))
+                          ) : (
+                            <p className="text-sm text-slate-400 text-center py-4">추천 메뉴가 없습니다</p>
+                          )}
+                        </div>
+                        {/* Blur Gradient Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
                       </div>
                     </div>
                   </div>

@@ -80,6 +80,23 @@ export const useDietStore = create<DietState>()(
                     ? mealList.filter((f: any) => (f.food_name || f.name) !== foodId)
                     : [...mealList, food];
 
+                // Update TodayIntake Optimistically
+                const currentIntake = get().todayIntake || {
+                    total_calories_kcal: 0,
+                    total_carbs_g: 0,
+                    total_protein_g: 0,
+                    total_fat_g: 0,
+                };
+
+                const calories = food.calories_kcal || food.calories || food.food_calories || 0;
+                const carbs = food.carbs_g || food.carbs || food.food_carbs || 0;
+                const protein = food.protein_g || food.protein || food.food_proteins || 0;
+                const fat = food.fat_g || food.fat || food.food_fats || 0;
+
+                const factor = isChecked ? -1 : 1; // Uncheck: decrease, Check: increase (이미 isChecked는 토글 전 상태가 아니라 현재 리스트에 있는지 여부)
+                // 잠깐, 위 로직에서 isChecked는 "이미 리스트에 있었다면" 제거하는 것임.
+                // 즉 isChecked가 true이면 제거(빼기), false이면 추가(더하기)가 맞음.
+
                 set({
                     checkedMeals: {
                         ...current,
@@ -88,14 +105,13 @@ export const useDietStore = create<DietState>()(
                             [mealType]: newMealList
                         }
                     },
-                    // Update TodayIntake Optimistically
-                    todayIntake: get().todayIntake ? {
-                        ...get().todayIntake!,
-                        total_calories_kcal: (get().todayIntake!.total_calories_kcal || 0) + (isChecked ? -1 : 1) * (food.calories || food.food_calories || 0),
-                        total_carbs_g: (get().todayIntake!.total_carbs_g || 0) + (isChecked ? -1 : 1) * (food.carbs || food.food_carbs || 0),
-                        total_protein_g: (get().todayIntake!.total_protein_g || 0) + (isChecked ? -1 : 1) * (food.protein || food.food_proteins || 0),
-                        total_fat_g: (get().todayIntake!.total_fat_g || 0) + (isChecked ? -1 : 1) * (food.fat || food.food_fats || 0),
-                    } : null
+                    todayIntake: {
+                        ...currentIntake,
+                        total_calories_kcal: Math.max(0, currentIntake.total_calories_kcal + factor * calories),
+                        total_carbs_g: Math.max(0, currentIntake.total_carbs_g + factor * carbs),
+                        total_protein_g: Math.max(0, currentIntake.total_protein_g + factor * protein),
+                        total_fat_g: Math.max(0, currentIntake.total_fat_g + factor * fat),
+                    }
                 });
             },
             clearCheckedMeals: (date) => {

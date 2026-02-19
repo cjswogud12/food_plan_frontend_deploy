@@ -51,7 +51,7 @@ export default function SurveyPage() {
             const selectedLevel = ACTIVITY_LEVELS[selectedIndex];
             const userNumber = Number(localStorage.getItem("user_number"));
 
-            const res = await updateUserActivity(userNumber, selectedLevel.label);
+            const res = await updateUserActivity(userNumber, selectedLevel.key);
             if (!res.ok) throw new Error("활동 수준 저장 실패");
 
             const data = await res.json();

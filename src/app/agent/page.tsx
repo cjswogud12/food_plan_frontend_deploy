@@ -120,12 +120,17 @@ export default function Mainpage() {
     // 오늘의 섭취 정보 (이미 데이터 있으면 스킵 가능하지만, 최신화 위해 호출)
     // ... logic ...
     if (user && !todayIntake) {
+      console.log("Fetching todayIntake...");
       getTodayIntake()
-        .then(res => res.ok ? res.json() : null)
+        .then(res => {
+          console.log("getTodayIntake response status:", res.status);
+          return res.ok ? res.json() : null;
+        })
         .then(data => {
+          console.log("getTodayIntake data:", data);
           if (data) setTodayIntake(data);
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("getTodayIntake error:", err));
     }
   }, [user]);
 
@@ -296,7 +301,7 @@ export default function Mainpage() {
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right flex items-end justify-end gap-1">
-              <span className="text-lg font-extrabold text-slate-800 leading-none">{todayIntake?.total_calories_kcal}</span>
+              <span className="text-lg font-extrabold text-slate-800 leading-none">{Math.round(todayIntake?.total_calories_kcal || 0)}</span>
               <span className="text-[10px] text-slate-400 font-medium mb-0.5">kcal</span>
             </div>
           </div>
@@ -327,7 +332,7 @@ export default function Mainpage() {
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-slate-600">탄수화물</span>
-                <span className="text-base font-extrabold text-slate-800">{todayIntake?.total_carbs_g}</span>
+                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_carbs_g || 0)}</span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
@@ -335,7 +340,7 @@ export default function Mainpage() {
               <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-slate-600">단백질</span>
-                <span className="text-base font-extrabold text-slate-800">{todayIntake?.total_protein_g}</span>
+                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_protein_g || 0)}</span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
@@ -343,7 +348,7 @@ export default function Mainpage() {
               <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-slate-600">지방</span>
-                <span className="text-base font-extrabold text-slate-800">{todayIntake?.total_fat_g}</span>
+                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_fat_g || 0)}</span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>

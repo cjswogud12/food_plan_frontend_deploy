@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Home, Building2 } from "lucide-react";
+import { fetchMenuSave } from "@/api/index";
 
 export default function AddressPage() {
     const router = useRouter();
@@ -33,9 +34,14 @@ export default function AddressPage() {
             // localStorage에 주소 데이터 저장 (agent 페이지에서 사용)
             localStorage.setItem("user_locations", JSON.stringify(locations));
 
-            // TODO: 백엔드 엔드포인트 연결
-            // await postJson("/user/locations", { locations });
-            console.log("전송할 주소 데이터:", locations);
+            // 각 주소별로 fetchMenuSave 호출
+            for (const loc of locations) {
+                const res = await fetchMenuSave(loc.label, loc.address_text, undefined, undefined, loc.radius_m);
+                if (!res.ok) {
+                    console.error(`${loc.label} 주소 저장 실패:`, await res.text());
+                }
+            }
+            console.log("주소 데이터 전송 완료");
 
             router.push("/");
         } catch (error) {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { updateUserActivity } from "@/api/index";
 
 const ACTIVITY_LEVELS = [
     {
@@ -42,11 +43,14 @@ export default function SurveyPage() {
 
         setIsSubmitting(true);
         try {
-            const selectedFactor = ACTIVITY_LEVELS[selectedIndex].factor;
+            const selectedLevel = ACTIVITY_LEVELS[selectedIndex];
+            const userNumber = Number(localStorage.getItem("user_number"));
 
-            // TODO: 백엔드 엔드포인트 연결
-            // await postJson("/api/user/activity-level", { activity_factor: selectedFactor });
-            console.log("선택된 활동 계수:", selectedFactor);
+            const res = await updateUserActivity(userNumber, selectedLevel.label);
+            if (!res.ok) throw new Error("활동 수준 저장 실패");
+
+            const data = await res.json();
+            console.log("활동 수준 저장 완료:", data);
 
             router.push("/onboarding/address");
         } catch (error) {

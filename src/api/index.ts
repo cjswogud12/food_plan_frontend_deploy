@@ -50,6 +50,19 @@ export async function postJson(endpoint: string, data: object) {
     return response;
 }
 
+export async function putJson(endpoint: string, data: object) {
+    const authHeader = await getAuthHeader();
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            ...authHeader
+        },
+        body: JSON.stringify(data)
+    });
+    return response;
+}
+
 export async function getJson(endpoint: string) {
     const authHeader = await getAuthHeader();
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -59,6 +72,8 @@ export async function getJson(endpoint: string) {
     });
     return response;
 }
+
+
 
 // --- Auth (Login/Register) ---
 
@@ -268,14 +283,16 @@ export async function selectMenuItem(menu_item_id: number, meal_type: string, re
 }
 
 // --- 주변 식당 검색 (entrypoint Agent Node A) ---
-export async function fetchMenuSave(label: string, address_text: string, lat: number, lng: number, radius_m: number) {
-    return postJson("/recommend/menu-save", {
+export async function fetchMenuSave(label: string, address_text: string, lat?: number, lng?: number, radius_m: number = 500) {
+    const payload: any = {
         label,
         address_text,
-        lat,
-        lng,
         radius_m
-    });
+    };
+    if (lat !== undefined) payload.lat = lat;
+    if (lng !== undefined) payload.lng = lng;
+
+    return postJson("/recommend/menu-save", payload);
 }
 
 // --- 주소 설정 (Address) ---
@@ -290,7 +307,7 @@ export async function getUserAddress(userNumber: number) {
 }
 
 export async function updateUserAddress(data: UserAddressData) {
-    return postJson("/user/address", data);
+    return putJson("/user/address", data);
 }
 
 // --- 활동 수준 (Activity Level) ---

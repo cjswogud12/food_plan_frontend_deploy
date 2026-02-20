@@ -29,12 +29,6 @@ export default function AgentFoodItem({ item, isChecked, onCheck, onClick }: Age
             >
                 {isChecked ? <CheckSquare size={18} /> : <Square size={18} />}
             </button>
-
-            {/* 음식 이미지 자리 (백엔드에 이미지 필드 없으므로 플레이스홀더) */}
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                <Utensils size={20} className="text-indigo-300" />
-            </div>
-
             {/* 텍스트 정보 */}
             <div className="flex-1 min-w-0">
                 <p

@@ -302,3 +302,23 @@ export interface RestaurantMenuItem {
     confidence: number;
     place_url?: string;
 }
+
+// ==========================================
+// 식단 체크 기록 저장
+// ==========================================
+export interface MenuCheckItem {
+    meal_type: "breakfast" | "lunch" | "dinner";
+    menu_id: number;
+    checked: boolean;
+}
+
+export interface MenuCheckRequest {
+    label: string;                    // "home" | "company"
+    radius_m: number;
+    record_date: string;              // "YYYY-MM-DD"
+    meals: MenuCheckItem[];
+}
+
+export interface MenuCheckResponse {
+    record_ids: number[];
+}

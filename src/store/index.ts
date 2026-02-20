@@ -82,10 +82,13 @@ export const useDietStore = create<DietState>()(
 
                 // Update TodayIntake Optimistically
                 const currentIntake = get().todayIntake || {
+                    goal_type: "",
+                    target_calorie: 0,
                     total_calories_kcal: 0,
                     total_carbs_g: 0,
                     total_protein_g: 0,
                     total_fat_g: 0,
+                    plan_date: "",
                 };
 
                 const calories = food.calories_kcal || food.calories || food.food_calories || 0;

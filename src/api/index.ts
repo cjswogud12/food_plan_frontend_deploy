@@ -295,6 +295,16 @@ export async function fetchMenuSave(label: string, address_text: string, lat?: n
     return postJson("/recommend/menu-save", payload);
 }
 
+// --- 식단 체크 기록 저장 ---
+export async function saveMenuCheck(data: {
+    label: string;
+    radius_m: number;
+    record_date: string;
+    meals: { meal_type: string; menu_id: number; checked: boolean }[];
+}) {
+    return postJson("/recommend/menu-save", data);
+}
+
 // --- 주소 설정 (Address) ---
 export interface UserAddressData {
     user_number: number;

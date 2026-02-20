@@ -1,21 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
-import DietMapModal from "@/components/DietMapModal" // Import New Modal
-import { Plus, ChevronRight, Utensils, Check, Square, MapPin } from "lucide-react"
-import { getUser, getDietplan, getUserGoal, getTodayIntake, getNearbyPlaces } from "@/api/index" // Import API
+import { Home, Building2, ChevronRight, Utensils, Square } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { getUser, getUserGoal, getTodayIntake, fetchMenuSave, getUserAddress, saveMenuCheck } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
-import { DietPlanKakaoMap } from "@/types/definitions" // Import Type
+import { DietPlanKakaoMap, Restaurant, RestaurantMenuItem } from "@/types/definitions"
+import AgentFoodItem from "@/components/main/Mainagent"
 
-interface GoalsState {
-  calories: number;
-  carbs: number;
-  protein: number;
-  fat: number;
-}
+
 
 export default function Mainpage() {
   const { isMobile } = useViewport();
@@ -23,40 +19,82 @@ export default function Mainpage() {
 
   // Zustand Store 전역 상태관리
   const { user, setUser, setUserGoal } = useUserStore();
-  const { dietPlan, setDietPlan, todayIntake, setTodayIntake, lastFetched, checkedMeals, toggleMealCheck, resetDiet } = useDietStore();
+  const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
 
   // Local State 로컬 상태관리
-  // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
-  // 유저 정보가 이미 있으면 로딩 안 함 (Immediate Display)
   const [isLoading, setIsLoading] = useState(!user);
-  // dietPlan이 없으면 로딩 상태로 시작 (Hydration Flicker 방지)
-  const [isPlanLoading, setIsPlanLoading] = useState(!dietPlan);
+  const [locationMode, setLocationMode] = useState<"home" | "company">("home");
 
-  // Skeleton UI Component
-  const PlanSkeleton = () => (
-    <div className="bg-white border-2 border-slate-100 p-4 rounded-2xl shadow-sm animate-pulse">
-      <div className="flex justify-between items-center mb-3">
-        <div className="h-4 bg-slate-200 rounded w-12"></div>
-        <div className="w-6 h-6 bg-slate-200 rounded-full"></div>
-      </div>
-      <div className="space-y-2">
-        {[1, 2].map((i) => (
-          <div key={i} className="h-14 bg-slate-100 rounded-xl"></div>
-        ))}
-      </div>
-    </div>
-  );
+  // Restaurant 추천 데이터 상태
+  const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
+  const [isRestaurantLoading, setIsRestaurantLoading] = useState(false);
+
+  // Store 상태(checkedMeals)를 기반으로 현재 체크된 아이템 계산 (페이지 이동 후 복귀 시 상태 유지)
+  const checkedItems = useMemo(() => {
+    const set = new Set<number>();
+    const dayMeals = checkedMeals[today];
+
+    if (dayMeals) {
+      (['breakfast', 'lunch', 'dinner'] as const).forEach(type => {
+        const list = dayMeals[type];
+        if (Array.isArray(list)) {
+          list.forEach((item: any) => {
+            if (item.menuId) set.add(item.menuId);
+          });
+        }
+      });
+    }
+    return set;
+  }, [checkedMeals, today]);
 
   // Map State
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [mapData, setMapData] = useState<DietPlanKakaoMap | null>(null);
 
-  /*const [mealPlan, setMealPlan] = useState<MealPlan>({
-    breakfast: [], lunch: [], dinner: [], snack: []
-  });*/
+
+
+  // 식단 카드 데이터
+  const mealCards = [
+    { key: "breakfast" as const, title: "아침 식단", icon: "☀️" },
+    { key: "lunch" as const, title: "점심 식단", icon: "🌤️" },
+    { key: "dinner" as const, title: "저녁 식단", icon: "🌙" },
+  ];
+
+  // 3D Carousel 상태
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const touchStartX = useRef(0);
+  const touchDelta = useRef(0);
+  const isDragging = useRef(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    isDragging.current = true;
+    touchStartX.current = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    touchDelta.current = 0;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const currentX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    touchDelta.current = currentX - touchStartX.current;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    isDragging.current = false;
+    const threshold = 50;
+    if (touchDelta.current < -threshold) {
+      const nextSlide = (currentMealSlide + 1) % mealCards.length;
+      setRotationAngle(prev => prev - 120);
+      setCurrentMealSlide(nextSlide);
+    } else if (touchDelta.current > threshold) {
+      const prevSlide = (currentMealSlide - 1 + mealCards.length) % mealCards.length;
+      setRotationAngle(prev => prev + 120);
+      setCurrentMealSlide(prevSlide);
+    }
+    touchDelta.current = 0;
+  }, [currentMealSlide, setCurrentMealSlide, mealCards.length]);
 
   // 로그인 체크 및 유저 정보 가져오기
   useEffect(() => {
@@ -79,7 +117,6 @@ export default function Mainpage() {
           const goalData = await goalRes.json();
           setUserGoal(goalData);
         } else if (goalRes.status === 404) {
-          // 목표 없음 - UI 초기화
           setUserGoal(null);
           resetDiet();
         }
@@ -94,237 +131,155 @@ export default function Mainpage() {
     fetchData();
   }, [router, setUser]);
 
-  // 식단 계획 및 오늘의 섭취 정보 가져오기 (User Store 의존)
+  // 오늘의 섭취 정보 가져오기
   useEffect(() => {
     if (!user) return;
-
-    const ONE_HOUR = 60 * 60 * 1000;
-
-    // 식단 계획
-    // user가 있고, (데이터가 없거나 || 마지막 갱신으로부터 1시간 지났으면)
-    if (user && (!dietPlan || !lastFetched || (Date.now() - lastFetched > ONE_HOUR))) {
-      // 데이터가 아예 없을 때만 로딩 표시 (Stale-While-Revalidate)
-      if (!dietPlan) setIsPlanLoading(true);
-
-      getUserGoal()
-        .then(res => res.ok ? res.json() : null)
-        .then(goalData => {
-          if (!goalData) return;
-          return getDietplan(
-            user.user_number,
-            user.id,
-            goalData.goal_type,
-            goalData.target_calorie
-          );
-        })
-        .then(data => {
-          console.log("API Response Data:", data);
-          if (data.plan?.days?.length > 0) {
-            setDietPlan(data.plan.days[0]);
-          } else if (data.plan?.days?.length > 0) {
-            setDietPlan(data.days[0]);
-          } else{
-            console.log("응답에서 days 가 읎다아ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ!!!!")
-          }
-            // ✅ 백엔드 응답에 today_intake가 포함되어 있다면 바로 상태 업데이트
-            if (data.today_intake) {
-              setTodayIntake(data.today_intake);
-            }
-          }
-        )
-        .catch(err => console.error(err))
-        .finally(() => setIsPlanLoading(false)); // 로딩 끝
-    }
-
     // 오늘의 섭취 정보 (이미 데이터 있으면 스킵 가능하지만, 최신화 위해 호출)
     // ... logic ...
     if (user && !todayIntake) {
+      console.log("Fetching todayIntake...");
       getTodayIntake()
-        .then(res => res.ok ? res.json() : null)
+        .then(res => {
+          console.log("getTodayIntake response status:", res.status);
+          return res.ok ? res.json() : null;
+        })
         .then(data => {
+          console.log("getTodayIntake data:", data);
           if (data) setTodayIntake(data);
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("getTodayIntake error:", err));
     }
-  }, [user, lastFetched]);
+  }, [user]);
+
+  // 식당 메뉴 추천 데이터 가져오기 (집/회사 모드에 따라 전환)
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchAndSetRestaurantData = async () => {
+      let addressText = "";
+
+      // 1. localStorage 우선 확인
+      const savedLocations = localStorage.getItem("user_locations");
+      if (savedLocations) {
+        try {
+          const locations = JSON.parse(savedLocations);
+          if (Array.isArray(locations)) {
+            const target = locations.find((loc: any) => loc.label === locationMode);
+            if (target && target.address_text) {
+              addressText = target.address_text;
+            }
+          }
+        } catch (e) {
+          console.error("localStorage 파싱 에러", e);
+        }
+      }
+
+      // 2. localStorage에 없으면 서버에서 가져오기
+      if (!addressText && user.user_number) {
+        try {
+          const res = await getUserAddress(user.user_number);
+          if (res.ok) {
+            const data = await res.json();
+            // server response: { user_number, home_address, company_address }
+            if (locationMode === "home" && data.home_address) {
+              addressText = data.home_address;
+            } else if (locationMode === "company" && data.company_address) {
+              addressText = data.company_address;
+            }
+          }
+        } catch (e) {
+          console.error("주소 정보 가져오기 실패", e);
+        }
+      }
+
+      if (!addressText) {
+        console.log(`${locationMode === "home" ? "집" : "회사"} 주소 정보가 없습니다.`);
+        setRestaurantData(null);
+        return;
+      }
+
+      // 3. fetchMenuSave 호출 (식당 데이터 가져오기)
+      setIsRestaurantLoading(true);
+      try {
+        const res = await fetchMenuSave(
+          locationMode,
+          addressText,
+          undefined, // lat
+          undefined, // lng
+          500 // radius 기본값
+        );
+        if (res.ok) {
+          const data = await res.json();
+          console.log(`[${locationMode}] 식당 추천 데이터:`, data);
+          setRestaurantData(data);
+        }
+      } catch (err) {
+        console.error("식당 추천 데이터 가져오기 실패:", err);
+      } finally {
+        setIsRestaurantLoading(false);
+      }
+    };
+
+    fetchAndSetRestaurantData();
+  }, [user, locationMode]);
 
   // Store Hydration Sync: 상태가 복구되면 로딩 해제
   useEffect(() => {
     if (user) setIsLoading(false);
   }, [user]);
 
-  useEffect(() => {
-    if (dietPlan) {
-      console.log("현재 다이어트플랜 상태:", dietPlan);
-      console.log("다이어트 계획 아침:", dietPlan.breakfast);
-      setIsPlanLoading(false);
-    }
-  }, [dietPlan]);
-
   // 로딩 중이면 빈 화면
   if (isLoading) {
     return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
   }
 
-  // Handlers
-  const handleAddMenu = (type: string) => {
-    // 이 부분에 추후 엔드포인트, API 연결하여 이동 기능 추가 예정
-  };
-
-  const handleFoodClick = async (foodName: string) => {
-    if (!navigator.geolocation) {
-      alert("위치 정보를 사용할 수 없습니다.");
-      return;
-    }
-
-    // Show loading or toast could be added here
-    console.log("📍 Obtaining user location...");
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          console.log(`📍 Location obtained: ${latitude}, ${longitude}`);
-
-          // Fetch nearby places
-          console.log(`🍽️ Fetching places for: ${foodName}`);
-          const data = await getNearbyPlaces(foodName, latitude, longitude);
-          console.log("📦 API Response:", data);
-
-          // The backend returns a structure. Depending on current impl, adapt it.
-          // Assuming backend returns { ...data } matching DietPlanKakaoMap
-          // Or if it returns { places: [] }, we might need to construct the object.
-          // Let's assume response IS the DietPlanKakaoMap object structure or close to it.
-          // User showed "ResponseData" has "places": [...].
-          // We need to form DietPlanKakaoMap structure: { food_name, place, lat, lng, radius_m }
-
-          const places = data.place || data.places || [];
-          console.log(`✅ Found ${places.length} places`);
-
-          const mapPayload: DietPlanKakaoMap = {
-            food_name: foodName,
-            lat: latitude,
-            lng: longitude,
-            radius_m: 2000,
-            place: places // Handle backend response key
-          };
-
-          setMapData(mapPayload);
-          setIsMapOpen(true);
-        } catch (error) {
-          console.error("❌ Error in handleFoodClick:", error);
-          alert("장소 정보를 가져오는데 실패했습니다.");
-        }
-      },
-      (error) => {
-        console.error("Location error:", error);
-        alert("위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.");
-      }
-    );
-  };
-
-  // 로딩 중이면 빈 화면
-  if (isLoading) {
-    return <div className="w-full h-full flex items-center justify-center">로딩 중...</div>;
-  }
-
-  const PlanSection = ({ title, type, items }: { title: string, type: 'breakfast' | 'lunch' | 'dinner', items: any[] }) => {
-    const todayChecked = checkedMeals[today]?.[type] || [];
-
-    const isItemChecked = (item: any) => {
-      const itemName = item.food_name || item.name;
-      return todayChecked.some((f: any) => (f.food_name || f.name) === itemName);
-    };
-
-    const handleCheckClick = (e: React.MouseEvent, item: any) => {
-      e.stopPropagation();
-      toggleMealCheck(today, type, item);
-    };
-
-    return (
-      <div className="bg-white border-2 border-indigo-50 p-4 rounded-2xl shadow-sm">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-bold text-slate-700">{title}</h3>
-          <button
-            onClick={() => handleAddMenu(title)}
-            className="bg-indigo-100 text-indigo-500 p-1.5 rounded-full hover:bg-indigo-200 transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-
-        {items.length > 0 ? (
-          <ul className="space-y-2">
-            {items.map((item, idx) => (
-              <li
-                key={idx}
-                // Click handler for opening map
-                onClick={() => handleFoodClick(item.food_name || item.name)}
-                className={`flex justify-between items-center p-2.5 rounded-xl border transition-all cursor-pointer hover:shadow-md ${isItemChecked(item)
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-slate-50 border-slate-100'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={(e) => handleCheckClick(e, item)}
-                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors shrink-0 ${isItemChecked(item)
-                      ? 'bg-green-500 text-white'
-                      : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
-                      }`}
-                  >
-                    {isItemChecked(item) ? <Check size={14} /> : <Square size={14} />}
-                  </button>
-
-                  {/* Food Image */}
-                  {item.image_url ? (
-                    <img
-                      src={item.image_url}
-                      alt={item.food_name || item.name}
-                      className="w-10 h-10 rounded-lg object-cover bg-slate-200 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                      <Utensils size={16} className="text-slate-300" />
-                    </div>
-                  )}
-
-                  <div>
-                    <span className={`block text-sm font-medium ${isItemChecked(item) ? 'text-green-700 line-through' : 'text-slate-700'
-                      }`}>
-                      {item.food_name || item.name}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>{item.calories || item.food_calories || item.calories_kcal} kcal</span>
-                      <span className="text-indigo-400 flex items-center gap-0.5 ml-1 bg-indigo-50 px-1 rounded">
-                        <MapPin size={10} /> 지도보기
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight size={14} className="text-slate-300" />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div
-            onClick={() => handleAddMenu(title)}
-            className="py-4 border-2 border-dashed border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-          >
-            <Utensils size={16} className="text-slate-300" />
-            <span className="text-xs text-slate-400 font-medium">메뉴 추가하기</span>
-          </div>
-        )}
+  // 빈 깡통 음식 아이템 컴포넌트 (로딩/폴백용)
+  const PlaceholderFoodItem = () => (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 animate-pulse">
+      <div className="w-8 h-8 rounded-lg bg-slate-200 shrink-0" />
+      <div className="w-12 h-12 rounded-xl bg-slate-100 shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 bg-slate-200 rounded w-28" />
+        <div className="h-3 bg-slate-100 rounded w-20" />
       </div>
-    );
+    </div>
+  );
+
+  // 체크 토글 핸들러
+  const handleCheckItem = (menuId: number, mealType: "breakfast" | "lunch" | "dinner", item: RestaurantMenuItem) => {
+    // 1. 토글 전 상태 확인 (체크 → 해제인지, 해제 → 체크인지)
+    const isNowChecked = !checkedItems.has(menuId);
+
+    // 2. Store에 음식 데이터 저장 (로컬 상태 즉시 반영)
+    const foodData = {
+      menuId: item.menu_id,
+      food_name: item.menu_name,
+      calories_kcal: item.calories_kcal,
+      carbs_g: item.carbs_g,
+      protein_g: item.protein_g,
+      fat_g: item.fat_g,
+      restaurant_name: item.restaurant_name,
+      price: item.price,
+    };
+    toggleMealCheck(today, mealType, foodData);
+
+    // 3. 백엔드에도 저장 (비동기, UI 블로킹 없음)
+    saveMenuCheck({
+      label: locationMode,
+      radius_m: 500,
+      record_date: today,
+      meals: [{ meal_type: mealType, menu_id: menuId, checked: isNowChecked }]
+    }).catch(err => console.error("체크 저장 실패:", err));
   };
 
-  const getMealItems = (mealData: any) => {
-    if(!mealData) return [];
-    return Array.isArray(mealData) ? mealData : [mealData];
+  // 식사 타입별 메뉴 아이템 가져오기
+  const getMealItems = (mealKey: "breakfast" | "lunch" | "dinner"): RestaurantMenuItem[] => {
+    if (!restaurantData) return [];
+    return restaurantData[mealKey] || [];
   };
 
   return (
-    <div className="w-full h-full bg-white flex flex-col overflow-y-auto">
+    <div className="w-full h-full bg-white flex flex-col overflow-hidden">
       {/* Header */}
       <header className="px-6 pt-8 pb-4">
         <span className="block text-sm text-slate-500 mb-1">{isMobile ? '모바일' : 'PC'}</span>
@@ -333,7 +288,7 @@ export default function Mainpage() {
         </h1>
       </header>
 
-      <div className="px-5 space-y-5">
+      <div className="px-5 space-y-5 flex-1 flex flex-col">
 
         {/* Assistant Message */}
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-xl p-3 text-slate-800 shadow-sm border border-indigo-100/50 flex items-center gap-3">
@@ -364,7 +319,7 @@ export default function Mainpage() {
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right flex items-end justify-end gap-1">
-              <span className="text-lg font-extrabold text-slate-800 leading-none">{todayIntake?.total_calories_kcal}</span>
+              <span className="text-lg font-extrabold text-slate-800 leading-none">{Math.round(todayIntake?.total_calories_kcal || 0)}</span>
               <span className="text-[10px] text-slate-400 font-medium mb-0.5">kcal</span>
             </div>
           </div>
@@ -395,7 +350,7 @@ export default function Mainpage() {
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-slate-600">탄수화물</span>
-                <span className="text-base font-extrabold text-slate-800">{todayIntake?.total_carbs_g}</span>
+                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_carbs_g || 0)}</span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
@@ -403,7 +358,7 @@ export default function Mainpage() {
               <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-slate-600">단백질</span>
-                <span className="text-base font-extrabold text-slate-800">{todayIntake?.total_protein_g}</span>
+                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_protein_g || 0)}</span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
@@ -411,43 +366,142 @@ export default function Mainpage() {
               <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-slate-600">지방</span>
-                <span className="text-base font-extrabold text-slate-800">{todayIntake?.total_fat_g}</span>
+                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_fat_g || 0)}</span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Meal Plan Planning */}
-        <section className="space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
+        {/* Meal Plan Planning — 3D Rotary Carousel */}
+        <section className="flex-1 space-y-3 bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-3 pt-5 pb-4 shadow-sm border border-indigo-100/50 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-bold text-slate-800 text-base">식단 계획 제공</h2>
+            {/* 집/회사 모드 전환 토글 */}
+            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+              <Button
+                variant={locationMode === "home" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setLocationMode("home")}
+                className={`h-7 px-2.5 text-xs font-semibold rounded-md gap-1 transition-all ${locationMode === "home"
+                  ? "bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-transparent"
+                  }`}
+              >
+                <Home size={13} />
+                집
+              </Button>
+              <Button
+                variant={locationMode === "company" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setLocationMode("company")}
+                className={`h-7 px-2.5 text-xs font-semibold rounded-md gap-1 transition-all ${locationMode === "company"
+                  ? "bg-purple-500 text-white hover:bg-purple-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-transparent"
+                  }`}
+              >
+                <Building2 size={13} />
+                회사
+              </Button>
+            </div>
+            {/* 슬라이드 인디케이터 */}
+            <div className="flex gap-2">
+              {mealCards.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const diff = i - currentMealSlide;
+                    setRotationAngle(prev => prev - diff * 120);
+                    setCurrentMealSlide(i);
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${i === currentMealSlide
+                    ? 'bg-indigo-500 scale-150 shadow-lg shadow-indigo-300'
+                    : 'bg-slate-300 hover:bg-slate-400'
+                    }`}
+                />
+              ))}
+            </div>
           </div>
-          <div className="grid gap-3">
-            {isPlanLoading && !dietPlan ? (
-              <>
-                <PlanSkeleton />
-                <PlanSkeleton />
-                <PlanSkeleton />
-              </>
-            ) : (
-              <>
-                <PlanSection title="아침" type="breakfast" items={getMealItems(dietPlan?.breakfast)} />
-                <PlanSection title="점심" type="lunch" items={getMealItems(dietPlan?.lunch)} />
-                <PlanSection title="저녁" type="dinner" items={getMealItems(dietPlan?.dinner)} />
-              </>
-            )}
+
+          {/* 3D Rotary Carousel */}
+          <div
+            className="relative flex-1 select-none mt-5"
+            style={{ perspective: '600px' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleTouchStart}
+            onMouseMove={handleTouchMove}
+            onMouseUp={handleTouchEnd}
+            onMouseLeave={handleTouchEnd}
+          >
+            <div
+              className="w-full h-full relative"
+              style={{
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transform: `rotateY(${rotationAngle}deg)`,
+              }}
+            >
+              {mealCards.map((meal, i) => {
+                const angle = i * 120;
+                const isActive = i === currentMealSlide;
+                return (
+                  <div
+                    key={meal.key}
+                    className="absolute top-0 left-0 right-0 bottom-0 w-full px-1 flex flex-col"
+                    style={{
+                      transform: `rotateY(${angle}deg) translateZ(50px)`,
+                      backfaceVisibility: 'hidden',
+                    }}
+                  >
+                    <div className={`
+                      h-full rounded-2xl p-3 flex flex-col gap-2 transition-all duration-500
+                      ${isActive
+                        ? 'bg-white/90 border-2 border-indigo-100 shadow-xl shadow-indigo-100/50'
+                        : 'bg-white/60 border border-slate-200/50 shadow-md opacity-70'
+                      }
+                    `}>
+                      {/* Card Header */}
+                      <div className="flex items-center gap-2 px-1 shrink-0">
+                        <span className="text-xl">{meal.icon}</span>
+                        <span className="font-bold text-base text-slate-800">{meal.title}</span>
+                      </div>
+
+                      {/* Card Content */}
+                      <div className="relative flex-1 min-h-0">
+                        <div className="h-full overflow-y-auto space-y-2 px-2 pb-10 [&::-webkit-scrollbar]:hidden">
+                          {isRestaurantLoading ? (
+                            <>
+                              <PlaceholderFoodItem />
+                              <PlaceholderFoodItem />
+                              <PlaceholderFoodItem />
+                            </>
+                          ) : getMealItems(meal.key).length > 0 ? (
+                            getMealItems(meal.key).map((item) => (
+                              <AgentFoodItem
+                                key={item.menu_id}
+                                item={item}
+                                isChecked={checkedItems.has(item.menu_id)}
+                                onCheck={() => handleCheckItem(item.menu_id, meal.key, item)}
+                              />
+                            ))
+                          ) : (
+                            <p className="text-sm text-slate-400 text-center py-4">추천 메뉴가 없습니다</p>
+                          )}
+                        </div>
+                        {/* Blur Gradient Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
         <FloatingCameraButton />
-
-        {/* Map Modal */}
-        <DietMapModal
-          isOpen={isMapOpen}
-          onClose={() => setIsMapOpen(false)}
-          data={mapData}
-        />
       </div>
     </div>
   );

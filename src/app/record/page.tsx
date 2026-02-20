@@ -8,7 +8,6 @@ import { Plus, ChevronRight, Utensils, Trash2 } from "lucide-react"
 import { FoodAnalysisResult } from "@/types/definitions";
 import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord, getCalendarRecord } from "@/api/index";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
-import { useDietStore } from "@/store";
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
 interface DailyMealData {
@@ -55,9 +54,6 @@ function groupByMealType(rows: any[]): DailyMealData {
 
 export default function RecordPage() {
   const { isMobile } = useViewport();
-
-  // Zustand Store - 체크된 음식 가져오기
-  const { checkedMeals } = useDietStore();
 
   // State
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -209,21 +205,8 @@ export default function RecordPage() {
     }
   };
 
-  // Calculate Totals
-  // 선택된 날짜의 체크된 음식 가져오기
-  const dateString = toDateString(selectedDate);
-  const checkedForDate = checkedMeals[dateString] || { breakfast: [], lunch: [], dinner: [] };
-
-  // 체크된 음식에 isFromPlan 플래그 추가
-  const addPlanFlag = (items: any[]) => items.map(item => ({ ...item, isFromPlan: true }));
-
-  // API 데이터 + 체크된 음식 합치기
-  const combinedMealData = {
-    breakfast: [...mealData.breakfast, ...addPlanFlag(checkedForDate.breakfast || [])],
-    lunch: [...mealData.lunch, ...addPlanFlag(checkedForDate.lunch || [])],
-    dinner: [...mealData.dinner, ...addPlanFlag(checkedForDate.dinner || [])],
-    snack: mealData.snack,
-  };
+  // API 데이터만 사용 (체크 기록은 백엔드에 저장되므로 getRecord로 이미 포함됨)
+  const combinedMealData = mealData;
 
   const allRecords = [
     ...combinedMealData.breakfast,

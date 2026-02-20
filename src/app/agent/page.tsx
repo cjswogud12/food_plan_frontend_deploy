@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { getUser, getUserGoal, getTodayIntake, fetchMenuSave, getUserAddress } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
 import { DietPlanKakaoMap, Restaurant, RestaurantMenuItem } from "@/types/definitions"
-import AgentFoodItem from "@/components/agent/Mainagent"
+import AgentFoodItem from "@/components/main/Mainagent"
 
 
 
@@ -31,7 +31,24 @@ export default function Mainpage() {
   // Restaurant 추천 데이터 상태
   const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
   const [isRestaurantLoading, setIsRestaurantLoading] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+
+  // Store 상태(checkedMeals)를 기반으로 현재 체크된 아이템 계산 (페이지 이동 후 복귀 시 상태 유지)
+  const checkedItems = useMemo(() => {
+    const set = new Set<number>();
+    const dayMeals = checkedMeals[today];
+
+    if (dayMeals) {
+      (['breakfast', 'lunch', 'dinner'] as const).forEach(type => {
+        const list = dayMeals[type];
+        if (Array.isArray(list)) {
+          list.forEach((item: any) => {
+            if (item.menuId) set.add(item.menuId);
+          });
+        }
+      });
+    }
+    return set;
+  }, [checkedMeals, today]);
 
   // Map State
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -230,19 +247,12 @@ export default function Mainpage() {
 
   // 체크 토글 핸들러
   const handleCheckItem = (menuId: number, mealType: "breakfast" | "lunch" | "dinner", item: RestaurantMenuItem) => {
-    // 1. UI용 로컬 체크 상태 토글
-    setCheckedItems(prev => {
-      const next = new Set(prev);
-      if (next.has(menuId)) {
-        next.delete(menuId);
-      } else {
-        next.add(menuId);
-      }
-      return next;
-    });
+    // 1. UI용 로컬 체크 상태 관리는 이제 checkedMeals(Store)를 기반으로 자동 처리됩니다.
+    // (checkedItems는 useMemo로 Store 값을 바라봄)
 
     // 2. Store에 음식 데이터 저장 → Record 페이지 연동
     const foodData = {
+      menuId: item.menu_id, // 상태 복구를 위한 식별자 추가
       food_name: item.menu_name,
       calories_kcal: item.calories_kcal,
       carbs_g: item.carbs_g,

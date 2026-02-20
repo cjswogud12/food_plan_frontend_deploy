@@ -295,6 +295,21 @@ export async function fetchMenuSave(label: string, address_text: string, lat?: n
     return postJson("/recommend/menu-save", payload);
 }
 
+// --- 메뉴 저장 (체크박스 상태 저장) ---
+export async function saveCheckedMenu(
+    recordDate: string,
+    meals: { meal_type: string, menu_id: number, checked: boolean, record_id?: number }[],
+    label: string = "home",
+    radius_m: number = 500
+) {
+    return postJson("/recommend/menu-save", {
+        label,
+        radius_m,
+        record_date: recordDate,
+        meals
+    });
+}
+
 // --- 식단 체크 기록 저장 ---
 export async function saveMenuCheck(data: {
     label: string;

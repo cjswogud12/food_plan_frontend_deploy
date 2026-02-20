@@ -28,6 +28,7 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
 
     useEffect(() => {
         if (inbodyDataProp) {
+            console.log("[MypageInbody] inbodyDataProp 수신:", inbodyDataProp);
             setInbodyData(inbodyDataProp);
             return;
         }
@@ -38,8 +39,10 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
                 const response = await getInbody(userId);
                 if (!response.ok) throw new Error("Network response was not ok");
                 const data = await response.json();
+                console.log("[MypageInbody] getInbody 응답 원본:", data);
 
                 if (Array.isArray(data) && data.length > 0) {
+                    console.log("[MypageInbody] 첫 번째 인바디:", data[0]);
                     setInbodyData(data[0]);
                 } else if (data && !Array.isArray(data)) {
                     setInbodyData(data);

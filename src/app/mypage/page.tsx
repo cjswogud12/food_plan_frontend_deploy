@@ -61,11 +61,14 @@ export default function Mypage() {
                 }
 
                 if (data.body) {
+                    console.log("[Mypage] data.body 전체:", data.body);
                     setInbodyData({
                         height: data.body.height,
                         weight: data.body.weight,
                         skeletal_muscle_mass: data.body.skeletal_muscle_mass,
-                        body_fat_pct: data.body.body_fat_percent // API 응답 필드명 확인 (body_fat_percent -> body_fat_pct 매핑)
+                        body_fat_pct: data.body.body_fat_percent,
+                        bmr: data.body.bmr,
+                        bmi: data.body.bmi,
                     });
                 }
                 setLoading(false);
@@ -134,9 +137,8 @@ export default function Mypage() {
                 {/* 1. 유저 프로필 섹션 (mypage_profile_target.tsx) */}
                 <MypageProfileTarget key={refreshKey} foodrecords={foodrecords} goal={goal} />
 
-                {/* 2. 체성분 (mypage_inbody.tsx) */}
+                {/* 2. 체성분 (mypage_inbody.tsx) - 직접 getInbody() 호출로 완전한 데이터 사용 */}
                 <MypageInbody
-                    inbodyDataProp={inbodyData}
                     onInbodyUpdate={() => setRefreshKey(prev => prev + 1)}
                 />
 

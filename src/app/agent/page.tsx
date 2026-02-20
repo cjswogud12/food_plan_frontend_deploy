@@ -6,7 +6,7 @@ import { useViewport } from "@/context/ViewportContext"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { Home, Building2, ChevronRight, Utensils, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getUser, getUserGoal, getTodayIntake, fetchMenuSave, getUserAddress } from "@/api/index"
+import { getUser, getUserGoal, getTodayIntake, fetchMenuSave, getUserAddress, saveCheckedMenu } from "@/api/index"
 import { useUserStore, useDietStore } from "@/store"
 import { DietPlanKakaoMap, Restaurant, RestaurantMenuItem } from "@/types/definitions"
 import AgentFoodItem from "@/components/main/Mainagent"
@@ -19,7 +19,7 @@ export default function Mainpage() {
 
   // Zustand Store 전역 상태관리
   const { user, setUser, setUserGoal } = useUserStore();
-  const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
+  const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, updateCheckedMeal, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
@@ -42,7 +42,10 @@ export default function Mainpage() {
         const list = dayMeals[type];
         if (Array.isArray(list)) {
           list.forEach((item: any) => {
-            if (item.menuId) set.add(item.menuId);
+            // menuId를 우선 확인, 없으면 다른 로직이나 생략
+            if (item.menuId) {
+              set.add(item.menuId);
+            }
           });
         }
       });
@@ -246,13 +249,70 @@ export default function Mainpage() {
   );
 
   // 체크 토글 핸들러
-  const handleCheckItem = (menuId: number, mealType: "breakfast" | "lunch" | "dinner", item: RestaurantMenuItem) => {
-    // 1. UI용 로컬 체크 상태 관리는 이제 checkedMeals(Store)를 기반으로 자동 처리됩니다.
-    // (checkedItems는 useMemo로 Store 값을 바라봄)
+  const handleCheckItem = async (menuId: number, mealType: "breakfast" | "lunch" | "dinner", item: RestaurantMenuItem) => {
+    const isCurrentlyChecked = checkedItems.has(menuId);
+    const nextCheckState = !isCurrentlyChecked;
 
-    // 2. Store에 음식 데이터 저장 → Record 페이지 연동
-    const foodData = {
-      menuId: item.menu_id, // 상태 복구를 위한 식별자 추가
+    // ── 체크 해제 ──────────────────────────────────────────────
+    if (isCurrentlyChecked) {
+      // Store에서 record_id 찾기
+      const dayMeals = checkedMeals[today];
+      const found = dayMeals?.[mealType]?.find((f: any) => String(f.menuId) === String(menuId));
+      const recordId: number | undefined = found?.record_id;
+
+      // record_id 없으면 API 호출 안 함 (백엔드가 400 반환하므로)
+      if (!recordId) {
+        console.warn(`[CheckItem] 해제 불가: record_id 없음 (menuId: ${menuId}). 먼저 체크 후 해제하세요.`);
+        // UI는 Store 토글만 수행 (시각적 해제는 해줌)
+        toggleMealCheck(today, mealType, {
+          menuId: item.menu_id,
+          food_name: item.menu_name,
+          calories_kcal: item.calories_kcal,
+          carbs_g: item.carbs_g,
+          protein_g: item.protein_g,
+          fat_g: item.fat_g,
+          restaurant_name: item.restaurant_name,
+          price: item.price,
+        });
+        return;
+      }
+
+      // record_id 있으면 Store 토글 + API 호출
+      toggleMealCheck(today, mealType, {
+        menuId: item.menu_id,
+        food_name: item.menu_name,
+        calories_kcal: item.calories_kcal,
+        carbs_g: item.carbs_g,
+        protein_g: item.protein_g,
+        fat_g: item.fat_g,
+        restaurant_name: item.restaurant_name,
+        price: item.price,
+      });
+
+      try {
+        const res = await saveCheckedMenu(today, [{
+          meal_type: mealType,
+          menu_id: menuId,
+          record_id: recordId,
+          checked: false,
+        }], locationMode, 500);
+
+        if (res.ok) {
+          console.log(`[CheckItem] 체크 해제 성공: ${item.menu_name} (record_id: ${recordId})`);
+        } else {
+          const errBody = await res.text();
+          console.error(`[CheckItem] 체크 해제 실패 (${res.status}):`, errBody);
+        }
+      } catch (err) {
+        console.error(`[CheckItem] 체크 해제 API 에러:`, err);
+      }
+
+      return;
+    }
+
+    // ── 체크 (true) ────────────────────────────────────────────
+    toggleMealCheck(today, mealType, {
+      menuId: item.menu_id,
       food_name: item.menu_name,
       calories_kcal: item.calories_kcal,
       carbs_g: item.carbs_g,
@@ -260,8 +320,29 @@ export default function Mainpage() {
       fat_g: item.fat_g,
       restaurant_name: item.restaurant_name,
       price: item.price,
-    };
-    toggleMealCheck(today, mealType, foodData);
+    });
+
+    try {
+      const res = await saveCheckedMenu(today, [{
+        meal_type: mealType,
+        menu_id: menuId,
+        checked: true,
+      }], locationMode, 500);
+
+      if (res.ok) {
+        const data = await res.json(); // { record_ids: [123] }
+        if (data?.record_ids?.[0]) {
+          // 백엔드가 생성한 record_id → Store에 저장해 둠 (나중에 해제 시 사용)
+          updateCheckedMeal(today, mealType, menuId, { record_id: data.record_ids[0] });
+          console.log(`[CheckItem] 체크 성공: ${item.menu_name}, record_id: ${data.record_ids[0]}`);
+        }
+      } else {
+        const errBody = await res.text();
+        console.error(`[CheckItem] 체크 저장 실패 (${res.status}):`, errBody);
+      }
+    } catch (err) {
+      console.error(`[CheckItem] 체크 API 에러:`, err);
+    }
   };
 
   // 식사 타입별 메뉴 아이템 가져오기

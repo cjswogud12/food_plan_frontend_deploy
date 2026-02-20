@@ -50,6 +50,7 @@ interface DietState {
     setTodayIntake: (intake: TodayIntake) => void;
     setTodayRecord: (record: any) => void;
     toggleMealCheck: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', food: any) => void;
+    updateCheckedMeal: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', menuId: number, updates: any) => void;
     clearCheckedMeals: (date: string) => void;
     setCurrentMealSlide: (index: number) => void;
     resetDiet: () => void;
@@ -72,33 +73,22 @@ export const useDietStore = create<DietState>()(
                 const dayMeals = current[date] || { breakfast: [], lunch: [], dinner: [] };
                 const mealList = dayMeals[mealType] || [];
 
-                // 이미 체크되어 있으면 제거, 아니면 추가
-                const foodId = food.food_name || food.name;
-                const isChecked = mealList.some((f: any) => (f.food_name || f.name) === foodId);
-
-                const newMealList = isChecked
-                    ? mealList.filter((f: any) => (f.food_name || f.name) !== foodId)
-                    : [...mealList, food];
-
-                // Update TodayIntake Optimistically
-                const currentIntake = get().todayIntake || {
-                    goal_type: "",
-                    target_calorie: 0,
-                    total_calories_kcal: 0,
-                    total_carbs_g: 0,
-                    total_protein_g: 0,
-                    total_fat_g: 0,
-                    plan_date: "",
+                // 아이템 비교 헬퍼 함수
+                const isSameFood = (item1: any, item2: any) => {
+                    // 1. menuId가 둘 다 있고 같으면 일치
+                    if (item1.menuId && item2.menuId && item1.menuId === item2.menuId) return true;
+                    // 2. 이름이 같으면 일치 (menuId가 없거나 다를 때 백업 확인)
+                    const name1 = item1.food_name || item1.name;
+                    const name2 = item2.food_name || item2.name;
+                    return name1 && name2 && name1 === name2;
                 };
 
-                const calories = food.calories_kcal || food.calories || food.food_calories || 0;
-                const carbs = food.carbs_g || food.carbs || food.food_carbs || 0;
-                const protein = food.protein_g || food.protein || food.food_proteins || 0;
-                const fat = food.fat_g || food.fat || food.food_fats || 0;
+                // 이미 체크되어 있는지 확인
+                const isChecked = mealList.some((f: any) => isSameFood(f, food));
 
-                const factor = isChecked ? -1 : 1; // Uncheck: decrease, Check: increase (이미 isChecked는 토글 전 상태가 아니라 현재 리스트에 있는지 여부)
-                // 잠깐, 위 로직에서 isChecked는 "이미 리스트에 있었다면" 제거하는 것임.
-                // 즉 isChecked가 true이면 제거(빼기), false이면 추가(더하기)가 맞음.
+                const newMealList = isChecked
+                    ? mealList.filter((f: any) => !isSameFood(f, food)) // 제거
+                    : [...mealList, food]; // 추가
 
                 set({
                     checkedMeals: {
@@ -107,13 +97,30 @@ export const useDietStore = create<DietState>()(
                             ...dayMeals,
                             [mealType]: newMealList
                         }
-                    },
-                    todayIntake: {
-                        ...currentIntake,
-                        total_calories_kcal: Math.max(0, currentIntake.total_calories_kcal + factor * calories),
-                        total_carbs_g: Math.max(0, currentIntake.total_carbs_g + factor * carbs),
-                        total_protein_g: Math.max(0, currentIntake.total_protein_g + factor * protein),
-                        total_fat_g: Math.max(0, currentIntake.total_fat_g + factor * fat),
+                    }
+                });
+            },
+            updateCheckedMeal: (date, mealType, menuId, updates) => {
+                const current = get().checkedMeals;
+                const dayMeals = current[date];
+                if (!dayMeals) return;
+
+                const mealList = dayMeals[mealType] || [];
+                // menuId 타입 불일치 방지 (문자열/숫자)
+                const targetIndex = mealList.findIndex((item: any) => String(item.menuId) === String(menuId));
+
+                if (targetIndex === -1) return;
+
+                const newMealList = [...mealList];
+                newMealList[targetIndex] = { ...newMealList[targetIndex], ...updates };
+
+                set({
+                    checkedMeals: {
+                        ...current,
+                        [date]: {
+                            ...dayMeals,
+                            [mealType]: newMealList
+                        }
                     }
                 });
             },

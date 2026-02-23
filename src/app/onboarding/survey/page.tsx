@@ -13,7 +13,7 @@ const ACTIVITY_LEVELS = [
         description: "주로 앉아서 생활하며 운동을 거의 하지 않음",
     },
     {
-        key: "lightly_active",
+        key: "light",
         label: "가벼운 활동",
         factor: 1.375,
         description: "주 1~3회 가벼운 운동",

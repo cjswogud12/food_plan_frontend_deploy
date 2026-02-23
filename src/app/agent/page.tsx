@@ -335,6 +335,13 @@ export default function Mainpage() {
           // 백엔드가 생성한 record_id → Store에 저장해 둠 (나중에 해제 시 사용)
           updateCheckedMeal(today, mealType, menuId, { record_id: data.record_ids[0] });
           console.log(`[CheckItem] 체크 성공: ${item.menu_name}, record_id: ${data.record_ids[0]}`);
+
+          // ✅ 상단 섭취량 정보 즉시 갱신
+          const intakeRes = await getTodayIntake();
+          if (intakeRes.ok) {
+            const intakeData = await intakeRes.json();
+            setTodayIntake(intakeData);
+          }
         }
       } else {
         const errBody = await res.text();

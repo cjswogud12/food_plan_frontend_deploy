@@ -33,11 +33,11 @@ export interface UserGoal {
     goal_id: number;
     goal_type: string;
     target_calorie: number;
-    target_protein: number;
-    target_carb: number;
-    target_fat: number;
-    target_macros: string;
-    target_pace: string;
+    target_protein: number | null;
+    target_carb: number | null;
+    target_fat: number | null;
+    target_macros: string | null;
+    target_pace: string | null;
     start_date: string;
     end_date: string;
     created_at: string;

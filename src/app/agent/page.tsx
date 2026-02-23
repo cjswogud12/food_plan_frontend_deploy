@@ -574,7 +574,18 @@ export default function Mainpage() {
           </div>
         </section>
 
-        <FloatingCameraButton />
+        <FloatingCameraButton onUploadSuccess={async () => {
+          // 촬영 업로드 성공 후 오늘의 섭취량 자동 새로고침
+          try {
+            const res = await getTodayIntake();
+            if (res.ok) {
+              const data = await res.json();
+              if (data) setTodayIntake(data);
+            }
+          } catch (err) {
+            console.error("섭취량 새로고침 실패:", err);
+          }
+        }} />
       </div>
     </div>
   );

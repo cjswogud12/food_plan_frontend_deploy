@@ -347,7 +347,7 @@ export default function RecordPage() {
           />
         ))}
 
-        <FloatingCameraButton />
+        <FloatingCameraButton onUploadSuccess={() => fetchRecords(selectedDate)} />
       </div>
     </div>
   );

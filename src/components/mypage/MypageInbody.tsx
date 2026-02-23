@@ -222,6 +222,10 @@ export default function MypageBodyComposition({ inbodyDataProp, onInbodyUpdate }
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
                 inbodyData={inbodyData}
+                onSave={(updatedData) => {
+                    setInbodyData(updatedData);
+                    if (onInbodyUpdate) onInbodyUpdate();
+                }}
             />
         </section>
     );

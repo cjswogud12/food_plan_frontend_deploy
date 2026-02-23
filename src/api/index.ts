@@ -344,3 +344,16 @@ export async function updateUserActivity(userNumber: number, activityLevel: stri
         activity_level: activityLevel
     });
 }
+
+// --- 인바디 수동 편집 (manual record) ---
+export async function updateInbodyManual(data: {
+    user_number: number;
+    height?: number;
+    weight?: number;
+    bmi?: number;
+    bmr?: number;
+    body_fat_pct?: number;
+    skeletal_muscle_mass?: number;
+}) {
+    return putJson("/mypage/inbody", data);
+}

@@ -18,7 +18,7 @@ export default function Mainpage() {
   const router = useRouter();
 
   // Zustand Store 전역 상태관리
-  const { user, setUser, setUserGoal } = useUserStore();
+  const { user, userGoal, setUser, setUserGoal } = useUserStore();
   const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, updateCheckedMeal, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
@@ -118,7 +118,9 @@ export default function Mainpage() {
         const goalRes = await getUserGoal();
         if (goalRes.ok) {
           const goalData = await goalRes.json();
-          setUserGoal(goalData);
+          // 배열로 올 경우 첫 번째 요소를 사용
+          const goal = Array.isArray(goalData) ? goalData[0] : goalData;
+          setUserGoal(goal);
         } else if (goalRes.status === 404) {
           setUserGoal(null);
           resetDiet();
@@ -397,19 +399,23 @@ export default function Mainpage() {
         {/* Compact Nutrition Graph (One Graph) */}
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
           <div className="flex justify-between items-end mb-3">
-            <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
+            <h2 className="font-bold text-slate-800 text-sm">오늘의 목표</h2>
             <div className="text-right flex items-end justify-end gap-1">
-              <span className="text-lg font-extrabold text-slate-800 leading-none">{Math.round(todayIntake?.total_calories_kcal || 0)}</span>
+              <span className="text-lg font-extrabold text-slate-800 leading-none">
+                {Math.round(userGoal?.target_calorie || 0)}
+              </span>
               <span className="text-[10px] text-slate-400 font-medium mb-0.5">kcal</span>
             </div>
           </div>
 
           {/* Stacked Bar Graph Logic */}
           {(() => {
-            const carbs = todayIntake?.total_carbs_g || 0;
-            const protein = todayIntake?.total_protein_g || 0;
-            const fat = todayIntake?.total_fat_g || 0;
-            const totalGrams = carbs + protein + fat || 1; // Prevent division by zero
+            // 로컬 버전(target_carb)과 배포 버전(total_carbs_g) 구조를 모두 지원하도록 폴백 처리
+            const goal = userGoal as any;
+            const carbs = goal?.target_carb ?? goal?.total_carbs_g ?? 0;
+            const protein = goal?.target_protein ?? goal?.total_protein_g ?? 0;
+            const fat = goal?.target_fat ?? goal?.total_fat_g ?? 0;
+            const totalGrams = carbs + protein + fat || 1;
 
             const carbsPercent = (carbs / totalGrams) * 100;
             const proteinPercent = (protein / totalGrams) * 100;
@@ -429,24 +435,30 @@ export default function Mainpage() {
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-600">탄수화물</span>
-                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_carbs_g || 0)}</span>
+                <span className="text-xs font-bold text-slate-600">탄</span>
+                <span className="text-base font-extrabold text-slate-800">
+                  {Math.round((userGoal as any)?.target_carb ?? (userGoal as any)?.total_carbs_g ?? 0)}
+                </span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-600">단백질</span>
-                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_protein_g || 0)}</span>
+                <span className="text-xs font-bold text-slate-600">단</span>
+                <span className="text-base font-extrabold text-slate-800">
+                  {Math.round((userGoal as any)?.target_protein ?? (userGoal as any)?.total_protein_g ?? 0)}
+                </span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-600">지방</span>
-                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_fat_g || 0)}</span>
+                <span className="text-xs font-bold text-slate-600">지</span>
+                <span className="text-base font-extrabold text-slate-800">
+                  {Math.round((userGoal as any)?.target_fat ?? (userGoal as any)?.total_fat_g ?? 0)}
+                </span>
                 <span className="text-[10px] text-slate-500">g</span>
               </div>
             </div>

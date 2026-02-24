@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Camera, Upload, ArrowRight, CheckCircle2, ChevronLeft } from "lucide-react";
 import { uploadInbodyImage, getInbody } from "@/api/index";
 import { useUserStore } from "@/store";
-import FloatingCameraButton from "@/components/FloatingCameraButton";
 
 export default function InbodyOnboardingPage() {
     const router = useRouter();
@@ -156,9 +155,6 @@ export default function InbodyOnboardingPage() {
                     )}
                 </button>
             </div>
-
-            {/* Floating Action Button (Chatbot + Camera) */}
-            <FloatingCameraButton onUploadSuccess={() => router.push("/")} />
         </div>
     );
 }

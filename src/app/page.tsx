@@ -331,7 +331,7 @@ export default function Mainpage() {
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right flex items-end justify-end gap-1">
               <span className="text-lg font-extrabold text-slate-800 leading-none">
-                {Math.round(todayIntake?.target_calorie || 0)} / {Math.round(todayIntake?.total_calories_kcal || 0)}
+                {Math.round(todayIntake?.total_calories_kcal || 0)} / {Math.round(todayIntake?.target_calorie || 0)}
               </span>
               <span className="text-[10px] text-slate-400 font-medium mb-0.5">kcal</span>
             </div>

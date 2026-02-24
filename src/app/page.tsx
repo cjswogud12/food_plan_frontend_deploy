@@ -345,7 +345,7 @@ export default function Mainpage() {
                     <span className="text-lg font-extrabold text-slate-800 leading-none">
                       {Math.round(checkedNutrition.totalCalories)}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-medium mb-0.5">
+                    <span className="text-[15px] text-slate-400 font-medium mb-0.5">
                       / {Math.round(targetCalories)} kcal
                     </span>
                   </div>
@@ -366,7 +366,7 @@ export default function Mainpage() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-xs font-bold text-slate-600">탄수화물</span>
                       <span className="text-base font-extrabold text-slate-800">{Math.round(checkedNutrition.totalCarbs)}</span>
-                      <span className="text-[10px] text-slate-400">/{Math.round(targetCarbs)} g</span>
+                      <span className="text-[12px] text-slate-400">/{Math.round(targetCarbs)} g</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -374,7 +374,7 @@ export default function Mainpage() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-xs font-bold text-slate-600">단백질</span>
                       <span className="text-base font-extrabold text-slate-800">{Math.round(checkedNutrition.totalProtein)}</span>
-                      <span className="text-[10px] text-slate-400">/{Math.round(targetProtein)} g</span>
+                      <span className="text-[12px] text-slate-400">/{Math.round(targetProtein)} g</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -382,7 +382,7 @@ export default function Mainpage() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-xs font-bold text-slate-600">지방</span>
                       <span className="text-base font-extrabold text-slate-800">{Math.round(checkedNutrition.totalFat)}</span>
-                      <span className="text-[10px] text-slate-400">/{Math.round(targetFat)} g</span>
+                      <span className="text-[12px] text-slate-400">/{Math.round(targetFat)} g</span>
                     </div>
                   </div>
                 </div>

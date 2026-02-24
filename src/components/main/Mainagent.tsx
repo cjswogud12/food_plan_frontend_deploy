@@ -43,7 +43,7 @@ export default function AgentFoodItem({ item, isChecked, onCheck, onClick }: Age
                     {item.menu_name}
                 </p>
                 <p className="text-xs text-slate-400 truncate">
-                    {item.restaurant_name} · {item.distance_m}m
+                    {item.restaurant_name} · {Math.round(item.distance_m)}m
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs font-semibold text-indigo-500">

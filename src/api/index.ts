@@ -357,3 +357,12 @@ export async function updateInbodyManual(data: {
 }) {
     return putJson("/mypage/inbody", data);
 }
+
+// --- 회원 탈퇴 ---
+export async function withdrawUser() {
+    const authHeader = await getAuthHeader();
+    return fetch(`${BASE_URL}/user/withdraw`, {
+        method: "DELETE",
+        headers: { ...authHeader }
+    });
+}

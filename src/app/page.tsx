@@ -136,7 +136,7 @@ export default function Mainpage() {
     if (!user) return;
     // 오늘의 섭취 정보 (이미 데이터 있으면 스킵 가능하지만, 최신화 위해 호출)
     // ... logic ...
-    if (user && !todayIntake) {
+    if (user) {
       console.log("Fetching todayIntake...");
       getTodayIntake()
         .then(res => {
@@ -269,7 +269,18 @@ export default function Mainpage() {
       radius_m: 500,
       record_date: today,
       meals: [{ meal_type: mealType, menu_id: menuId, checked: isNowChecked }]
-    }).catch(err => console.error("체크 저장 실패:", err));
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          // 저장 성공 시 최신 요약 데이터 다시 가져오기
+          const intakeRes = await getTodayIntake();
+          if (intakeRes.ok) {
+            const intakeData = await intakeRes.json();
+            setTodayIntake(intakeData);
+          }
+        }
+      })
+      .catch(err => console.error("체크 저장 실패:", err));
   };
 
   // 식사 타입별 메뉴 아이템 가져오기
@@ -319,7 +330,9 @@ export default function Mainpage() {
           <div className="flex justify-between items-end mb-3">
             <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
             <div className="text-right flex items-end justify-end gap-1">
-              <span className="text-lg font-extrabold text-slate-800 leading-none">{Math.round(todayIntake?.total_calories_kcal || 0)}</span>
+              <span className="text-lg font-extrabold text-slate-800 leading-none">
+                {Math.round(todayIntake?.target_calorie || 0)} / {Math.round(todayIntake?.total_calories_kcal || 0)}
+              </span>
               <span className="text-[10px] text-slate-400 font-medium mb-0.5">kcal</span>
             </div>
           </div>

@@ -6,7 +6,8 @@ import FloatingCameraButton from "@/components/FloatingCameraButton";
 import CalendarFull from "@/components/MainCalendarFull";
 import { Plus, ChevronRight, Utensils, Trash2 } from "lucide-react"
 import { FoodAnalysisResult } from "@/types/definitions";
-import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord, getCalendarRecord } from "@/api/index";
+import { getRecord, uploadFoodImage, deleteDayRecords, deleteRecord, getCalendarRecord, getTodayIntake } from "@/api/index";
+import { useDietStore } from "@/store";
 import RecordMealGroup from "@/components/record/RecordMealGroup";
 
 // 식단 데이터를 끼니별로 분류하기 위한 타입
@@ -64,6 +65,8 @@ export default function RecordPage() {
     dinner: [],
     snack: [],
   });
+  const { setTodayIntake } = useDietStore();
+
   // 캘린더에서 식단 기록이 있는 날짜에 색상 추가
   // 월별 기록 데이터 가져오기 (캘린더용)
   const fetchMonthlyRecords = async (date: Date) => {
@@ -142,7 +145,16 @@ export default function RecordPage() {
     try {
       const userNumber = localStorage.getItem("user_number");
       const userNum = userNumber ? Number(userNumber) : undefined;
-      await deleteDayRecords(toDateString(selectedDate), userNum);
+      const dateStr = toDateString(selectedDate);
+      await deleteDayRecords(dateStr, userNum);
+
+      // ✅ 상단 섭취 정보 동기화 (오늘 날짜인 경우)
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (dateStr === todayStr) {
+        const res = await getTodayIntake();
+        if (res.ok) setTodayIntake(await res.json());
+      }
+
       alert("삭제되었습니다.");
       fetchRecords(selectedDate); // Refresh
     } catch (error) {
@@ -161,6 +173,15 @@ export default function RecordPage() {
         // 단일 삭제
         await deleteRecord(recordIds);
       }
+
+      // ✅ 상단 섭취 정보 동기화 (오늘 날짜인 경우)
+      const dateStr = toDateString(selectedDate);
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (dateStr === todayStr) {
+        const res = await getTodayIntake();
+        if (res.ok) setTodayIntake(await res.json());
+      }
+
       alert("삭제가 완료되었습니다.");
       fetchRecords(selectedDate);
     } catch (error) {
@@ -186,6 +207,14 @@ export default function RecordPage() {
       const response = await uploadFoodImage(formData);
 
       if (response.ok) {
+        // ✅ 상단 섭취 정보 동기화 (오늘 날짜인 경우)
+        const dateStr = toDateString(selectedDate);
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (dateStr === todayStr) {
+          const res = await getTodayIntake();
+          if (res.ok) setTodayIntake(await res.json());
+        }
+
         alert("음식 등록 완료!");
         // ✅ 업로드 후 새로고침
         await fetchRecords(selectedDate);

@@ -79,12 +79,28 @@ export const useDietStore = create<DietState>()(
 
                 // 아이템 비교 헬퍼 함수
                 const isSameFood = (item1: any, item2: any) => {
-                    // 1. menuId가 둘 다 있고 같으면 일치
-                    if (item1.menuId && item2.menuId && item1.menuId === item2.menuId) return true;
-                    // 2. 이름이 같으면 일치 (menuId가 없거나 다를 때 백업 확인)
+                    const menuId1 = item1.menuId || item1.menu_id;
+                    const menuId2 = item2.menuId || item2.menu_id;
+
+                    // 1. menuId가 둘 다 있으면 menuId가 같아야만 일치
+                    if (menuId1 && menuId2) {
+                        return String(menuId1) === String(menuId2);
+                    }
+
+                    // 2. 이름 비교
                     const name1 = item1.food_name || item1.name;
                     const name2 = item2.food_name || item2.name;
-                    return name1 && name2 && name1 === name2;
+
+                    if (name1 && name2 && name1 === name2) {
+                        // 이름이 같을 때, 식당 이름이 둘 다 있으면 식당 이름도 같아야 함
+                        const rest1 = item1.restaurant_name;
+                        const rest2 = item2.restaurant_name;
+                        if (rest1 && rest2) {
+                            return rest1 === rest2;
+                        }
+                        return true; // 식당 정보가 하나라도 없으면 이름만으로 판단
+                    }
+                    return false;
                 };
 
                 // 이미 체크되어 있는지 확인

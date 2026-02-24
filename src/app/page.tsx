@@ -280,7 +280,18 @@ export default function Mainpage() {
       radius_m: 500,
       record_date: today,
       meals: [{ meal_type: mealType, menu_id: menuId, checked: isNowChecked }]
-    }).catch(err => console.error("체크 저장 실패:", err));
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          // 저장 성공 시 최신 요약 데이터 다시 가져오기
+          const intakeRes = await getTodayIntake();
+          if (intakeRes.ok) {
+            const intakeData = await intakeRes.json();
+            setTodayIntake(intakeData);
+          }
+        }
+      })
+      .catch(err => console.error("체크 저장 실패:", err));
   };
 
   // 식사 타입별 메뉴 아이템 가져오기

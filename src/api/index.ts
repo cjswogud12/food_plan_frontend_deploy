@@ -53,7 +53,7 @@ export async function postJson(endpoint: string, data: object) {
 export async function putJson(endpoint: string, data: object) {
     const authHeader = await getAuthHeader();
     const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
             "Content-Type": "application/json",
             ...authHeader

@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react"
 import { Camera, Plus, X, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import AiChatbot from "@/components/AiChatBot/Aichatbot"
-import { uploadInbodyImage, uploadFoodImage } from "@/api/index";
+//챗봇 import 삭제
+import { uploadFoodImage } from "@/api/index";
 
 interface FloatingCameraButtonProps {
     onUploadSuccess?: (data?: unknown) => void;
@@ -13,9 +13,7 @@ interface FloatingCameraButtonProps {
 export default function FloatingCameraButton({ onUploadSuccess }: FloatingCameraButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
-    const [showChatbot, setShowChatbot] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
-    const [cameraMode, setCameraMode] = useState<'inbody' | 'food'>('food');
     const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
     const [showMealOptions, setShowMealOptions] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -37,50 +35,38 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
     };
 
     // 촬영 후 처리 (백엔드 전송)
-    const handleSubmit = async () => {
-        if (!capturedImage) return;
-
-        setIsProcessing(true);
-
-        try {
-            // FormData 생성
-            const blob = base64ToBlob(capturedImage);
-            const formData = new FormData();
-            formData.append('image', blob, `photo_${Date.now()}.jpg`);
-
-            // 음식 모드일 때 meal_type 추가 (user_number는 백엔드 세션에서 처리)
-            if (cameraMode === 'food') {
-                formData.append('meal_type', mealType);
+const handleSubmit = async () => {
+    if (!capturedImage) return;
+    setIsProcessing(true);
+    try {
+        const blob = base64ToBlob(capturedImage);
+        const formData = new FormData();
+        formData.append('image', blob, `photo_${Date.now()}.jpg`);
+        formData.append('meal_type', mealType);
+        const response = await uploadFoodImage(formData);
+        let responseData: unknown = undefined;
+        const success = response.ok;
+        if (success) {
+            try {
+                responseData = await response.json();
+            } catch {
+                // Ignore JSON parse errors
             }
-
-            // 모드에 따라 다른 API 호출
-            const response = cameraMode === 'inbody'
-                ? await uploadInbodyImage(formData)
-                : await uploadFoodImage(formData);
-            let responseData: unknown = undefined;
-            const success = response.ok;
-
-            if (success) {
-                try {
-                    responseData = await response.json();
-                } catch {
-                    // Ignore JSON parse errors for non-JSON responses
-                }
-                alert(cameraMode === 'inbody' ? "인바디 이미지가 업로드되었습니다!" : "음식 이미지가 업로드되었습니다!");
-                onUploadSuccess?.(responseData);
-                closeCamera();
-            } else {
-                alert("업로드에 실패했습니다.");
-            }
-        } catch (err) {
-            const message = err instanceof DOMException && err.name === "AbortError"
-                ? "업로드가 지연되어 취소되었습니다. 다시 시도해주세요."
-                : "처리 중 오류가 발생했습니다.";
-            alert(message);
-        } finally {
-            setIsProcessing(false);
+            alert("음식 이미지가 업로드되었습니다!");
+            onUploadSuccess?.(responseData);
+            closeCamera();
+        } else {
+            alert("업로드에 실패했습니다.");
         }
-    };
+    } catch (err) {
+        const message = err instanceof DOMException && err.name === "AbortError"
+            ? "업로드가 지연되어 취소되었습니다. 다시 시도해주세요."
+            : "처리 중 오류가 발생했습니다.";
+        alert(message);
+    } finally {
+        setIsProcessing(false);
+    }
+};
 
 
     // 카메라 시작
@@ -133,14 +119,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
     };
 
     // 챗봇 모달 열기/닫기
-    const openChatbot = () => {
-        setShowChatbot(true);
-        setIsOpen(false);
-    };
-
-    const closeChatbot = () => {
-        setShowChatbot(false);
-    };
+    // 챗봇 삭제
 
     // 카메라 모달 닫기
     const closeCamera = () => {
@@ -169,17 +148,6 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
         <>
             {/* FAB 컨테이너 */}
             <div className="absolute bottom-24 right-4 flex flex-col items-center gap-3 z-50">
-                {/* 확장 버튼 (챗봇) */}
-                <div className={`flex flex-col items-center gap-1 transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
-                    <button
-                        onClick={openChatbot}
-                        className="w-12 h-12 bg-white text-indigo-500 rounded-full shadow-md flex items-center justify-center hover:bg-indigo-50 border border-indigo-100"
-                    >
-                        <MessageCircle size={24} />
-                    </button>
-                    <span className="text-xs font-medium text-slate-600 bg-white/80 px-2 py-0.5 rounded-full shadow-sm backdrop-blur-sm">챗봇</span>
-                </div>
-
                 {/* 확장 버튼 (카메라) */}
                 <div className={`flex flex-col items-center gap-1 transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
                     <button
@@ -212,46 +180,28 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                         >
                             <X size={24} />
                         </button>
-                        {/* 모드 선택 탭 */}
-                        <div className="flex justify-center items-center gap-2 p-3">
-                            <Button
-                                onClick={() => {
-                                    setCameraMode('inbody');
-                                    setShowMealOptions(false);
-                                }}
-                                variant="ghost"
-                                size="sm"
-                                className={`rounded-full ${cameraMode === 'inbody'
-                                    ? 'bg-white text-black hover:bg-white/90'
-                                    : 'bg-white/20 text-white/70 hover:bg-white/30'}`}
-                            >
-                                인바디
-                            </Button>
+                        
 
                             {/* 음식 기록 버튼 - FAB 스타일 */}
                             <div className="relative">
                                 <Button
                                     onClick={() => {
-                                        setCameraMode('food');
                                         setShowMealOptions(!showMealOptions);
                                     }}
                                     variant="ghost"
                                     size="sm"
-                                    className={`rounded-full ${cameraMode === 'food'
-                                        ? 'bg-white text-black hover:bg-white/90'
-                                        : 'bg-white/20 text-white/70 hover:bg-white/30'}`}
+                                    className={`rounded-full bg-white text-black hover:bg-white/90`}
                                 >
                                     음식 기록
                                 </Button>
 
                                 {/* FAB 서브메뉴 - 아래로 펼쳐짐 */}
-                                {showMealOptions && cameraMode === 'food' && (
+                                {showMealOptions && (
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 flex flex-col gap-2 z-50">
                                         {[
                                             { key: 'breakfast', label: '아침' },
                                             { key: 'lunch', label: '점심' },
-                                            { key: 'dinner', label: '저녁' },
-                                            { key: 'snack', label: '간식' }
+                                            { key: 'dinner', label: '저녁' }
                                         ].map(({ key, label }, index) => (
                                             <Button
                                                 key={key}
@@ -274,7 +224,7 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                     </div>
                                 )}
                             </div>
-                        </div>
+
                     </div>
 
                     {/* 비디오/이미지 영역 */}
@@ -321,27 +271,6 @@ export default function FloatingCameraButton({ onUploadSuccess }: FloatingCamera
                                 className="w-16 h-16 bg-white rounded-full border-4 border-purple-500 hover:scale-105 transition-transform"
                             />
                         )}
-                    </div>
-                </div>
-            )}
-
-            {/* 챗봇 팝업 모달 */}
-            {showChatbot && (
-                <div className="absolute inset-0 z-[100] flex flex-col">
-                    <div className="w-full h-full overflow-hidden relative">
-                        {/* 팝업 헤더 - 닫기 버튼 */}
-                        <div className="absolute top-4 right-4 z-50">
-                            <button
-                                onClick={closeChatbot}
-                                className="p-2 bg-white rounded-full text-black hover:bg-gray-100 shadow-md transition-colors border border-gray-200"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                        {/* 챗봇 컴포넌트 */}
-                        <div className="w-full h-full">
-                            <AiChatbot />
-                        </div>
                     </div>
                 </div>
             )}

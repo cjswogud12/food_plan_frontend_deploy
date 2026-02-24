@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User, InbodyRecord, UserGoal, TodayIntake, DietPlanResponse, Food } from '@/types/definitions'
+import { User, InbodyRecord, UserGoal, TodayIntake, DietPlanResponse, Food, Restaurant } from '@/types/definitions'
 
 // 사용자 관련 전역 상태
 interface UserState {
@@ -46,9 +46,11 @@ interface DietState {
     lastFetched: number | null;
     checkedMeals: CheckedMeals;  // 체크된 음식들
     currentMealSlide: number;  // 현재 식단 카드 슬라이드 인덱스
+    restaurantData: Restaurant | null;  // 식당 추천 데이터 (persist)
     setDietPlan: (plan: any) => void;
     setTodayIntake: (intake: TodayIntake) => void;
     setTodayRecord: (record: any) => void;
+    setRestaurantData: (data: Restaurant | null) => void;
     toggleMealCheck: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', food: any) => void;
     updateCheckedMeal: (date: string, mealType: 'breakfast' | 'lunch' | 'dinner', menuId: number, updates: any) => void;
     clearCheckedMeals: (date: string) => void;
@@ -65,9 +67,11 @@ export const useDietStore = create<DietState>()(
             lastFetched: null,
             checkedMeals: {},
             currentMealSlide: 0,
+            restaurantData: null,
             setDietPlan: (dietPlan) => set({ dietPlan, lastFetched: Date.now() }),
             setTodayIntake: (todayIntake) => set({ todayIntake }),
             setTodayRecord: (todayRecord) => set({ todayRecord }),
+            setRestaurantData: (restaurantData) => set({ restaurantData }),
             toggleMealCheck: (date, mealType, food) => {
                 const current = get().checkedMeals;
                 const dayMeals = current[date] || { breakfast: [], lunch: [], dinner: [] };
@@ -130,7 +134,7 @@ export const useDietStore = create<DietState>()(
                 set({ checkedMeals: rest });
             },
             setCurrentMealSlide: (index) => set({ currentMealSlide: index }),
-            resetDiet: () => set({ dietPlan: null, todayIntake: null, todayRecord: null, lastFetched: null, checkedMeals: {}, currentMealSlide: 0 }),
+            resetDiet: () => set({ dietPlan: null, todayIntake: null, todayRecord: null, lastFetched: null, checkedMeals: {}, currentMealSlide: 0, restaurantData: null }),
         }),
         {
             name: 'diet-storage',
@@ -138,7 +142,8 @@ export const useDietStore = create<DietState>()(
                 dietPlan: state.dietPlan,
                 todayIntake: state.todayIntake, // 오늘의 섭취 정보도 저장
                 lastFetched: state.lastFetched,
-                checkedMeals: state.checkedMeals  // 체크 상태도 저장
+                checkedMeals: state.checkedMeals,  // 체크 상태도 저장
+                restaurantData: state.restaurantData,  // 식당 데이터도 저장
             }),
         }
     )

@@ -19,7 +19,7 @@ export default function Mainpage() {
 
   // Zustand Store 전역 상태관리
   const { user, setUser, setUserGoal } = useUserStore();
-  const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, resetDiet, currentMealSlide, setCurrentMealSlide } = useDietStore();
+  const { todayIntake, setTodayIntake, checkedMeals, toggleMealCheck, resetDiet, currentMealSlide, setCurrentMealSlide, restaurantData, setRestaurantData } = useDietStore();
 
   // 오늘 날짜 (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
@@ -28,8 +28,7 @@ export default function Mainpage() {
   const [isLoading, setIsLoading] = useState(!user);
   const [locationMode, setLocationMode] = useState<"home" | "company">("home");
 
-  // Restaurant 추천 데이터 상태
-  const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
+  // Restaurant 추천 로딩 상태
   const [isRestaurantLoading, setIsRestaurantLoading] = useState(false);
 
   // Store 상태(checkedMeals)를 기반으로 현재 체크된 아이템 계산 (페이지 이동 후 복귀 시 상태 유지)
@@ -341,11 +340,11 @@ export default function Mainpage() {
               <>
                 <div className="flex justify-between items-end mb-3">
                   <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
-                  <div className="text-right flex items-end justify-end gap-1">
-                    <span className="text-lg font-extrabold text-slate-800 leading-none">
+                  <div className="text-right flex items-baseline justify-end gap-1">
+                    <span className="text-lg font-extrabold text-slate-800 leading-tight">
                       {Math.round(checkedNutrition.totalCalories)}
                     </span>
-                    <span className="text-[15px] text-slate-400 font-medium mb-0.5">
+                    <span className="text-[15px] text-slate-400 font-medium">
                       / {Math.round(targetCalories)} kcal
                     </span>
                   </div>

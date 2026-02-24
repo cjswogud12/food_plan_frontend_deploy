@@ -50,6 +50,29 @@ export default function Mainpage() {
     return set;
   }, [checkedMeals, today]);
 
+  // checkedMeals에서 오늘 체크된 음식의 영양 성분 합산
+  const checkedNutrition = useMemo(() => {
+    const dayMeals = checkedMeals[today] || { breakfast: [], lunch: [], dinner: [] };
+    let totalCalories = 0;
+    let totalCarbs = 0;
+    let totalProtein = 0;
+    let totalFat = 0;
+
+    (['breakfast', 'lunch', 'dinner'] as const).forEach(type => {
+      const list = dayMeals[type];
+      if (Array.isArray(list)) {
+        list.forEach((item: any) => {
+          totalCalories += item.calories_kcal || 0;
+          totalCarbs += item.carbs_g || 0;
+          totalProtein += item.protein_g || 0;
+          totalFat += item.fat_g || 0;
+        });
+      }
+    });
+
+    return { totalCalories, totalCarbs, totalProtein, totalFat };
+  }, [checkedMeals, today]);
+
   // Map State
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [mapData, setMapData] = useState<DietPlanKakaoMap | null>(null);
@@ -134,21 +157,10 @@ export default function Mainpage() {
   // 오늘의 섭취 정보 가져오기
   useEffect(() => {
     if (!user) return;
-    // 오늘의 섭취 정보 (이미 데이터 있으면 스킵 가능하지만, 최신화 위해 호출)
-    // ... logic ...
-    if (user && !todayIntake) {
-      console.log("Fetching todayIntake...");
-      getTodayIntake()
-        .then(res => {
-          console.log("getTodayIntake response status:", res.status);
-          return res.ok ? res.json() : null;
-        })
-        .then(data => {
-          console.log("getTodayIntake data:", data);
-          if (data) setTodayIntake(data);
-        })
-        .catch(err => console.error("getTodayIntake error:", err));
-    }
+    getTodayIntake()
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setTodayIntake(data); })
+      .catch(err => console.error("getTodayIntake error:", err));
   }, [user]);
 
   // 식당 메뉴 추천 데이터 가져오기 (집/회사 모드에 따라 전환)
@@ -316,61 +328,67 @@ export default function Mainpage() {
 
         {/* Compact Nutrition Graph (One Graph) */}
         <section className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-5 shadow-sm border border-indigo-100/50">
-          <div className="flex justify-between items-end mb-3">
-            <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
-            <div className="text-right flex items-end justify-end gap-1">
-              <span className="text-lg font-extrabold text-slate-800 leading-none">{Math.round(todayIntake?.total_calories_kcal || 0)}</span>
-              <span className="text-[10px] text-slate-400 font-medium mb-0.5">kcal</span>
-            </div>
-          </div>
-
-          {/* Stacked Bar Graph Logic */}
           {(() => {
-            const carbs = todayIntake?.total_carbs_g || 0;
-            const protein = todayIntake?.total_protein_g || 0;
-            const fat = todayIntake?.total_fat_g || 0;
-            const totalGrams = carbs + protein + fat || 1; // Prevent division by zero
-
-            const carbsPercent = (carbs / totalGrams) * 100;
-            const proteinPercent = (protein / totalGrams) * 100;
-            const fatPercent = (fat / totalGrams) * 100;
+            const targetCalories = todayIntake?.target_calorie || 0;
+            const targetCarbs = todayIntake?.total_carbs_g || 0;
+            const targetProtein = todayIntake?.total_protein_g || 0;
+            const targetFat = todayIntake?.total_fat_g || 0;
+            const progress = targetCalories > 0
+              ? Math.min((checkedNutrition.totalCalories / targetCalories) * 100, 100)
+              : 0;
 
             return (
-              <div className="h-6 w-full bg-indigo-50 rounded-full overflow-hidden flex relative border border-indigo-100/50 shadow-inner">
-                <div className="h-full bg-indigo-400 transition-all duration-500 ease-in-out" style={{ width: `${carbsPercent}%` }} />
-                <div className="h-full bg-purple-400 transition-all duration-500 ease-in-out" style={{ width: `${proteinPercent}%` }} />
-                <div className="h-full bg-pink-400 transition-all duration-500 ease-in-out" style={{ width: `${fatPercent}%` }} />
-              </div>
+              <>
+                <div className="flex justify-between items-end mb-3">
+                  <h2 className="font-bold text-slate-800 text-sm">오늘의 섭취</h2>
+                  <div className="text-right flex items-end justify-end gap-1">
+                    <span className="text-lg font-extrabold text-slate-800 leading-none">
+                      {Math.round(checkedNutrition.totalCalories)}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium mb-0.5">
+                      / {Math.round(targetCalories)} kcal
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="h-6 w-full bg-indigo-50 rounded-full overflow-hidden relative border border-indigo-100/50 shadow-inner">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-400 to-purple-400 transition-all duration-500 ease-in-out rounded-full"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                {/* Legend */}
+                <div className="flex w-full justify-between items-center mt-3 px-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs font-bold text-slate-600">탄수화물</span>
+                      <span className="text-base font-extrabold text-slate-800">{Math.round(checkedNutrition.totalCarbs)}</span>
+                      <span className="text-[10px] text-slate-400">/{Math.round(targetCarbs)} g</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs font-bold text-slate-600">단백질</span>
+                      <span className="text-base font-extrabold text-slate-800">{Math.round(checkedNutrition.totalProtein)}</span>
+                      <span className="text-[10px] text-slate-400">/{Math.round(targetProtein)} g</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs font-bold text-slate-600">지방</span>
+                      <span className="text-base font-extrabold text-slate-800">{Math.round(checkedNutrition.totalFat)}</span>
+                      <span className="text-[10px] text-slate-400">/{Math.round(targetFat)} g</span>
+                    </div>
+                  </div>
+                </div>
+              </>
             );
           })()}
-
-          {/* Legend */}
-          <div className="flex w-full justify-between items-center mt-3 px-1">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-600">탄수화물</span>
-                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_carbs_g || 0)}</span>
-                <span className="text-[10px] text-slate-500">g</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-600">단백질</span>
-                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_protein_g || 0)}</span>
-                <span className="text-[10px] text-slate-500">g</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-pink-400"></div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-600">지방</span>
-                <span className="text-base font-extrabold text-slate-800">{Math.round(todayIntake?.total_fat_g || 0)}</span>
-                <span className="text-[10px] text-slate-500">g</span>
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* Meal Plan Planning — 3D Rotary Carousel */}
